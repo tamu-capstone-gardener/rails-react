@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  root "home#welcome"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -11,4 +12,11 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+  #
+  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
+  devise_scope :user do
+    get "users/sign_in", to: "users/sessions#new", as: :new_user_session
+    get "users/sign_out", to: "users/sessions#destroy", as:
+    :destroy_user_session
+  end
 end
