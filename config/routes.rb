@@ -1,22 +1,25 @@
 Rails.application.routes.draw do
   root "home#welcome"
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check route
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
-  #
+  # Devise authentication routes
   devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
   devise_scope :user do
     get "users/sign_in", to: "users/sessions#new", as: :new_user_session
-    get "users/sign_out", to: "users/sessions#destroy", as:
-    :destroy_user_session
+    get "users/sign_out", to: "users/sessions#destroy", as: :destroy_user_session
   end
+
+  # Nested resources for plant_modules
+  resources :plant_modules do
+    resources :sensors, only: [:index, :show] # Added :show to allow individual sensor pages
+    resources :schedules
+  end
+
+  # Time series data routes
+  resources :time_series_data, only: [:index, :show]
+
+  # Custom route for viewing sensor time series data
+  get "sensors/:id/time_series", to: "sensors#show", as: :sensor_time_series
 end

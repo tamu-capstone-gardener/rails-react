@@ -1,0 +1,27 @@
+<div class="container mx-auto p-6">
+    <div class="mt-6">
+    <%= link_to sanitize("Back to Home"), root_path,
+        class: "bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block" %>
+    </div>
+  <h1 class="text-3xl font-bold"><%= sanitize(@plant_module.name) %></h1>
+  <p class="text-gray-600"><%= sanitize(@plant_module.description) %></p>
+  <p class="text-sm text-gray-500">Location: <%= sanitize(@plant_module.location) %></p>
+
+  <h2 class="text-2xl font-semibold mt-4">Sensors</h2>
+  <ul>
+    <% @plant_module.sensors.each do |sensor| %>
+      <li class="mb-2">
+        <strong><%= sanitize(sensor.measurement_type) %></strong> (<%= sanitize(sensor.measurement_unit) %>)
+        
+        <% recent_data = sensor.time_series_data.order(timestamp: :desc).first %>
+        <% if recent_data %>
+          - <span class="text-green-600"><%= recent_data.value %></span> at <%= recent_data.timestamp.strftime("%Y-%m-%d %H:%M:%S") %>
+        <% else %>
+          - <span class="text-gray-500">No recent data</span>
+        <% end %>
+
+        <%= link_to sanitize("View History"), sensor_time_series_path(sensor), class: "text-blue-500 hover:underline ml-2" %>
+      </li>
+    <% end %>
+  </ul>
+</div>
