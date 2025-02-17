@@ -5,6 +5,43 @@ def extract_sensor_id_from_topic(path)
   match ? match[1] : nil
 end
 
+def process_mqtt_message(topic, message)
+  Rails.logger.info "Received MQTT message on #{topic}: #{message}"
+
+  sensor_id = extract_sensor_id_from_topic(topic)
+  unless sensor_id
+    Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
+    return
+  end
+
+  message_json = JSON.parse(message) rescue nil
+  unless message_json.is_a?(Hash)
+    Rails.logger.error "Malformed JSON received: #{message}"
+    return
+  end
+
+  value = message_json["value"]
+  timestamp = message_json["timestamp"]
+
+  if value.nil? || timestamp.nil?
+    Rails.logger.warn "Missing required fields in message: #{message_json}"
+    return
+  end
+
+  begin
+    TimeSeriesDatum.create!(
+      sensor_id: sensor_id,
+      value: value,
+      timestamp: timestamp
+    )
+    Rails.logger.info "Stored time series data for sensor '#{sensor_id}'"
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
+  rescue => e
+    Rails.logger.error "Unexpected error storing data: #{e.message}"
+  end
+end
+
 Thread.new do
   secrets = Rails.application.credentials.hivemq
 
@@ -24,43 +61,7 @@ Thread.new do
         client.subscribe("#{secrets[:topic]}/sensor_data/#")
 
         client.get do |topic, message|
-          begin
-            Rails.logger.info "Received MQTT message on #{topic}: #{message}"
-
-            sensor_id = extract_sensor_id_from_topic(topic)
-            unless sensor_id
-              Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
-              next
-            end
-
-            message_json = JSON.parse(message) rescue nil
-            unless message_json.is_a?(Hash)
-              Rails.logger.error "Malformed JSON received: #{message}"
-              next
-            end
-
-            value = message_json["value"]
-            timestamp = message_json["timestamp"]
-
-            if value.nil? || timestamp.nil?
-              Rails.logger.warn "Missing required fields in message: #{message_json}"
-              next
-            end
-
-            TimeSeriesDatum.create!(
-              sensor_id: sensor_id,
-              value: value,
-              timestamp: timestamp
-            )
-            Rails.logger.info "Stored time series data for sensor '#{sensor_id}'"
-
-          rescue ActiveRecord::RecordInvalid => e
-            Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
-          rescue JSON::ParserError => e
-            Rails.logger.error "JSON Parsing error: #{e.message}. Message: #{message}"
-          rescue => e
-            Rails.logger.error "Unexpected error processing message on #{topic}: #{e.message}"
-          end
+          process_mqtt_message(topic, message)
         end
       end
     rescue MQTT::Exception, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
