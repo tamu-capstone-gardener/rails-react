@@ -1,10 +1,10 @@
 class User < ApplicationRecord
-  self.primary_key = "uid"
-
   devise :omniauthable, omniauth_providers: [:google_oauth2]
 
   validates :email, presence: true, uniqueness: true
   validates :username, presence: true, uniqueness: true
+  
+  has_many :plant_modules, primary_key: :uid, foreign_key: :user_id, dependent: :destroy
 
   def self.from_omniauth(auth)
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize
