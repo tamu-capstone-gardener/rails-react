@@ -23,5 +23,6 @@ Rails.application.routes.draw do
   # Custom route for viewing sensor time series data
   get "sensors/:id/time_series", to: "sensors#show", as: :sensor_time_series
 
-  post "mqtt/test", to: "mqtt#publish_data", as: :mqtt_publish_data
+  post "mqtt/schedule", to: "mqtt#set_schedule"
+  post "mqtt/water", to: "mqtt#send_water_signal"
 end

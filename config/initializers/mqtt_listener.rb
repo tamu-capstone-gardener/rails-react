@@ -1,7 +1,7 @@
 require "mqtt"
 
 def extract_sensor_id_from_topic(path)
-  match = path.match(%r{\Aplanthub/sensor_data/(\d+)\z})
+  match = path.match(%r{\Aplanthub/sensor_data/([\w-]+)\z}) # Accepts alphanumeric and hyphens
   match ? match[1] : nil
 end
 
@@ -10,31 +10,65 @@ Thread.new do
 
   Rails.logger.info "Starting MQTT subscriber on #{secrets[:topic]}..."
 
-  begin
-    MQTT::Client.connect(
-      host: secrets[:url],
-      port: secrets[:port],
-      username: secrets[:username],
-      password: secrets[:password],
-      ssl: true
-    ) do |client|
-      client.subscribe("#{secrets[:topic]}/#")
-      client.get do |topic, message|
-        Rails.logger.info "Received MQTT message on #{topic}: #{message}"
-        sensor_id = extract_sensor_id_from_topic(topic)
-        next unless sensor_id
-        message_json = JSON.parse(message)
+  while true
+    begin
+      MQTT::Client.connect(
+        host: secrets[:url],
+        port: secrets[:port],
+        username: secrets[:username],
+        password: secrets[:password],
+        ssl: true
+      ) do |client|
+        Rails.logger.info "Connected to MQTT broker at #{secrets[:url]}"
 
-        TimeSeriesDatum.create!(
-          sensor_id: sensor_id,
-          value: message_json["value"],
-          timestamp: message_json["timestamp"]
-        )
+        client.subscribe("#{secrets[:topic]}/sensor_data/#")
+
+        client.get do |topic, message|
+          begin
+            Rails.logger.info "Received MQTT message on #{topic}: #{message}"
+
+            sensor_id = extract_sensor_id_from_topic(topic)
+            unless sensor_id
+              Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
+              next
+            end
+
+            message_json = JSON.parse(message) rescue nil
+            unless message_json.is_a?(Hash)
+              Rails.logger.error "Malformed JSON received: #{message}"
+              next
+            end
+
+            value = message_json["value"]
+            timestamp = message_json["timestamp"]
+
+            if value.nil? || timestamp.nil?
+              Rails.logger.warn "Missing required fields in message: #{message_json}"
+              next
+            end
+
+            TimeSeriesDatum.create!(
+              sensor_id: sensor_id,
+              value: value,
+              timestamp: timestamp
+            )
+            Rails.logger.info "Stored time series data for sensor '#{sensor_id}'"
+
+          rescue ActiveRecord::RecordInvalid => e
+            Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
+          rescue JSON::ParserError => e
+            Rails.logger.error "JSON Parsing error: #{e.message}. Message: #{message}"
+          rescue => e
+            Rails.logger.error "Unexpected error processing message on #{topic}: #{e.message}"
+          end
+        end
       end
+    rescue MQTT::Exception, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
+      Rails.logger.error "MQTT connection error: #{e.message}, retrying in 5 seconds..."
+      sleep 5
+    rescue => e
+      Rails.logger.fatal "Unexpected MQTT Listener error: #{e.message}, retrying in 5 seconds..."
+      sleep 5
     end
-  rescue => e
-    Rails.logger.error "MQTT Listener error: #{e.message}"
-    sleep 5
-    retry
   end
 end
