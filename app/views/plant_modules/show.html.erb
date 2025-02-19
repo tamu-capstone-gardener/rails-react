@@ -1,18 +1,23 @@
 <div class="container mx-auto p-6">
-    <div class="mt-6">
+  <div class="mt-6">
     <%= link_to sanitize("Back to Home"), root_path,
         class: "bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block" %>
-    </div>
+  </div>
+
   <h1 class="text-3xl font-bold"><%= sanitize(@plant_module.name) %></h1>
   <p class="text-gray-600"><%= sanitize(@plant_module.description) %></p>
   <p class="text-sm text-gray-500">Location: <%= sanitize(@plant_module.location) %></p>
 
+  <div class="container mt-6 mx-auto flex items-center justify-center bg-white p-4 border border-gray-200 rounded-lg">
+    <p class="text-gray-600">Placeholder for LLM Advice or Random Fun Fact</p>
+  </div>
+
   <h2 class="text-2xl font-semibold mt-4">Sensors</h2>
   <ul>
-    <% @plant_module.sensors.each do |sensor| %>
-      <li class="mb-2">
+    <% @sensors.each do |sensor| %>
+      <li class="mb-4">
         <strong><%= sanitize(sensor.measurement_type) %></strong> (<%= sanitize(sensor.measurement_unit) %>)
-        
+
         <% recent_data = sensor.time_series_data.order(timestamp: :desc).first %>
         <% if recent_data %>
           - <span class="text-green-600"><%= recent_data.value %></span> at <%= recent_data.timestamp.strftime("%Y-%m-%d %H:%M:%S") %>
@@ -21,7 +26,72 @@
         <% end %>
 
         <%= link_to sanitize("View History"), sensor_time_series_path(sensor), class: "text-blue-500 hover:underline ml-2" %>
+
+        <% time_series_data = sensor.time_series_data.order(timestamp: :asc) %>
+        <% if time_series_data.any? %>
+          <div class="mt-4">
+            <canvas id="sensorChart-<%= sensor.id %>" class="w-full h-64"></canvas>
+          </div>
+        <% else %>
+          <p class="text-gray-500 mt-2">No time series data available for this sensor.</p>
+        <% end %>
       </li>
     <% end %>
   </ul>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log("Chart.js script loaded"); // Debugging message
+
+    <% @sensors.each do |sensor| %>
+      <% time_series_data = sensor.time_series_data.order(timestamp: :asc) %>
+      <% if time_series_data.any? %>
+        console.log("Rendering chart for Sensor ID: <%= sensor.id %>");
+
+        setTimeout(function() { // Ensure canvas is fully loaded before rendering
+          const canvas = document.getElementById('sensorChart-<%= sensor.id %>');
+          if (!canvas) {
+            console.error("Canvas not found for sensor ID <%= sensor.id %>");
+            return;
+          }
+          const ctx = canvas.getContext('2d');
+
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: <%= time_series_data.map { |data| data.timestamp.strftime("%Y-%m-%d %H:%M:%S") }.to_json.html_safe %>,
+              datasets: [{
+                label: "<%= sanitize(sensor.measurement_type) %> Data",
+                data: <%= time_series_data.map(&:value).to_json.html_safe %>,
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderWidth: 2,
+                fill: true
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Timestamp"
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "<%= sanitize(sensor.measurement_unit) %>"
+                  }
+                }
+              }
+            }
+          });
+        }, 500); // Delay to ensure DOM is ready
+      <% end %>
+    <% end %>
+  });
+</script>
