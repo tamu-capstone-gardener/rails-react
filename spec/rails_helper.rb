@@ -1,3 +1,10 @@
+require 'simplecov'
+SimpleCov.start 'rails' do
+  add_filter '/spec/'
+  add_filter '/config/'
+  add_filter '/vendor/'
+  add_filter '/bin/'
+end
 # This file is copied to spec/ when you run 'rails generate rspec:install'
 require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
@@ -9,6 +16,8 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 # return unless Rails.env.test?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
+# spec/rails_helper.rb
+Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
