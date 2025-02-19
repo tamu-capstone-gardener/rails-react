@@ -97,8 +97,8 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git libpq-dev pkg-config google-chrome-stable
+      - name: Install postgres client
+        run: sudo apt-get install libpq-dev
 
       - name: Checkout code
         uses: actions/checkout@v4
