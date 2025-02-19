@@ -4,6 +4,7 @@ class MqttController < AuthenticatedApplicationController
   before_action :set_secrets
   before_action :validate_set_schedule_params, only: [ :set_schedule ]
   before_action :validate_send_water_signal_params, only: [ :send_water_signal ]
+  before_action :authorize_user, only: [ :set_schedule, :send_water_signal ]
 
   def set_schedule
     message = { frequency: params[:frequency], units: params[:units] }.to_json
@@ -48,6 +49,14 @@ class MqttController < AuthenticatedApplicationController
   def validate_send_water_signal_params
     unless params[:sensor_id].present?
       render json: { status: "error", message: "Missing required parameter: sensor_id" }, status: :bad_request
+    end
+  end
+
+  def authorize_user
+    sensor = Sensor.find_by(id: params[:sensor_id])
+
+    if sensor.nil? || sensor.plant_module.user != current_user
+      redirect_to root_path, alert: "You are not authorized to perform this action."
     end
   end
 end

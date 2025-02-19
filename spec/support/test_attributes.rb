@@ -10,6 +10,17 @@ module TestAttributes
         avatar_url: "https://example.com/avatar.png"
       }
     end
+
+    def self.other_user
+      {
+        email: "other_user@example.com",
+        full_name: "Jane Smith",
+        uid: "0987654321",
+        username: "janesmith",
+        provider: "google_oauth2",
+        avatar_url: "https://example.com/other_avatar.png"
+      }
+    end
   end
 
   module PlantModule
