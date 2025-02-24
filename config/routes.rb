@@ -25,4 +25,6 @@ Rails.application.routes.draw do
 
   post "mqtt/schedule", to: "mqtt#set_schedule"
   post "mqtt/water", to: "mqtt#send_water_signal"
+
+  post "plant_modules/test_create", to: "plant_modules#test_create", as: :plant_module_test_create
 end
