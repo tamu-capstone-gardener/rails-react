@@ -30,7 +30,7 @@
     </style>
   </head>
 
-  <body>
+  <body class="text-black dark:text-white bg-white dark:bg-gray-900">
 
     <% if flash.any? %>
       <% flash.each do |key, value| -%>
@@ -42,7 +42,7 @@
     <header>
       <%= render "shared/navbar" %>
     </header>
-    <main class="container mx-auto mt-28 px-5 flex">
+    <main class="container mx-auto mt-16 px-5 flex">
       <%= yield %>
     </main>
   </body>

@@ -1,4 +1,5 @@
-// Configure your import map in config/importmap.rb. Read more: https://github.com/rails/importmap-rails
+import { application } from "controllers/application"
+import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
 import "@hotwired/turbo-rails"
+eagerLoadControllersFrom("controllers", application)
 import "controllers"
-import "stylesheets/application.css"

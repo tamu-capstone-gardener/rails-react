@@ -1,0 +1,16 @@
+<div class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold text-center mb-4">PlantHub Dashboard</h1>
+  <div class="container my-6 mx-auto flex items-center justify-center bg-white p-4 border border-gray-200 rounded-lg">
+    <p class="text-gray-600">Placeholder for LLM Notification on startup</p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <% @plant_modules.each do |plant_module| %>
+      <div class="bg-white p-4 shadow-lg rounded-lg">
+        <h2 class="text-xl font-semibold"><%= sanitize(plant_module.name) %></h2>
+        <p class="text-gray-600"><%= sanitize(plant_module.description) %></p>
+        <p class="text-sm text-gray-500">Location: <%= sanitize(plant_module.location) %></p>
+        <%= link_to "View Module", plant_module_path(plant_module), class: "text-blue-500 hover:underline" %>
+      </div>
+    <% end %>
+  </div>
+</div>
