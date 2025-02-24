@@ -7,6 +7,7 @@ export default class extends Controller {
     static targets = [ "menu", "x", "bars" ]
   
     connect() {
+      console.log("Navbar controller connected")
       console.log(this.stateValue)
     }
   
