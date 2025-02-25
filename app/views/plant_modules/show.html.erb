@@ -1,31 +1,43 @@
 <div class="container mx-auto p-6">
-  <div class="mt-6">
+  <div class="mb-6">
     <%= link_to sanitize("Back to Home"), root_path,
         class: "bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block" %>
   </div>
 
-  <h1 class="text-3xl font-bold"><%= sanitize(@plant_module.name) %></h1>
-  <p class="text-gray-600"><%= sanitize(@plant_module.description) %></p>
-  <p class="text-sm text-gray-500">Location: <%= sanitize(@plant_module.location) %></p>
+  <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
+    <%= sanitize(@plant_module.name) %>
+  </h1>
+  <p class="text-gray-600 dark:text-gray-300">
+    <%= sanitize(@plant_module.description) %>
+  </p>
+  <p class="text-sm text-gray-500 dark:text-gray-400">
+    Location: <%= sanitize(@plant_module.location) %>
+  </p>
 
-  <div class="container mt-6 mx-auto flex items-center justify-center bg-white p-4 border border-gray-200 rounded-lg">
-    <p class="text-gray-600">Placeholder for LLM Advice or Random Fun Fact</p>
+  <!-- Example container with dark mode classes -->
+  <div class="container mt-6 mx-auto flex items-center justify-center bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <p class="text-gray-600 dark:text-gray-300">
+      Placeholder for LLM Advice or Random Fun Fact
+    </p>
   </div>
 
-  <h2 class="text-2xl font-semibold mt-4">Sensors</h2>
+  <h2 class="text-2xl font-semibold mt-4 text-gray-800 dark:text-gray-100">Sensors</h2>
   <ul>
     <% @sensors.each do |sensor| %>
       <li class="mb-4">
-        <strong><%= sanitize(sensor.measurement_type) %></strong> (<%= sanitize(sensor.measurement_unit) %>)
+        <strong class="text-gray-800 dark:text-gray-100">
+          <%= sanitize(sensor.measurement_type) %>
+        </strong> (<%= sanitize(sensor.measurement_unit) %>)
 
         <% recent_data = sensor.time_series_data.order(timestamp: :desc).first %>
         <% if recent_data %>
           - <span class="text-green-600"><%= recent_data.value %></span> at <%= recent_data.timestamp.strftime("%Y-%m-%d %H:%M:%S") %>
         <% else %>
-          - <span class="text-gray-500">No recent data</span>
+          - <span class="text-gray-500 dark:text-gray-400">No recent data</span>
         <% end %>
 
-        <%= link_to sanitize("View History"), sensor_time_series_path(sensor), class: "text-blue-500 hover:underline ml-2" %>
+        <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
+              class: "text-blue-500 hover:underline ml-2" %>
 
         <% time_series_data = sensor.time_series_data.order(timestamp: :asc) %>
         <% if time_series_data.any? %>
@@ -33,24 +45,30 @@
             <canvas id="sensorChart-<%= sensor.id %>" class="w-full h-64"></canvas>
           </div>
         <% else %>
-          <p class="text-gray-500 mt-2">No time series data available for this sensor.</p>
+          <p class="text-gray-500 dark:text-gray-400 mt-2">No time series data available for this sensor.</p>
         <% end %>
       </li>
     <% end %>
   </ul>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    console.log("Chart.js script loaded"); // Debugging message
+    console.log("Chart.js script loaded");
+
+    // Use the global variable if already set; otherwise, fall back to checking the class.
+    const isDarkMode = (typeof window.isDarkMode !== "undefined")
+                         ? window.isDarkMode
+                         : document.documentElement.classList.contains('dark');
+    // Set Chart.js global default text color
+    // Chart.defaults.color = isDarkMode ? '#ffffff' : '#000000';
+    Chart.defaults.color = '#ffffff';
 
     <% @sensors.each do |sensor| %>
       <% time_series_data = sensor.time_series_data.order(timestamp: :asc) %>
       <% if time_series_data.any? %>
         console.log("Rendering chart for Sensor ID: <%= sensor.id %>");
-
-        setTimeout(function() { // Ensure canvas is fully loaded before rendering
+        setTimeout(function() {
           const canvas = document.getElementById('sensorChart-<%= sensor.id %>');
           if (!canvas) {
             console.error("Canvas not found for sensor ID <%= sensor.id %>");
@@ -65,8 +83,8 @@
               datasets: [{
                 label: "<%= sanitize(sensor.measurement_type) %> Data",
                 data: <%= time_series_data.map(&:value).to_json.html_safe %>,
-                borderColor: 'rgb(54, 162, 235)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: isDarkMode ? 'rgb(255, 99, 132)' : 'rgb(54, 162, 235)',
+                backgroundColor: isDarkMode ? 'rgba(255, 99, 132, 0.2)' : 'rgba(54, 162, 235, 0.2)',
                 borderWidth: 2,
                 fill: true
               }]
@@ -74,23 +92,48 @@
             options: {
               responsive: true,
               maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    color: Chart.defaults.color
+                  }
+                },
+                tooltip: {
+                  bodyColor: Chart.defaults.color,
+                  titleColor: Chart.defaults.color
+                }
+              },
               scales: {
                 x: {
                   title: {
                     display: true,
-                    text: "Timestamp"
+                    text: "Timestamp",
+                    color: Chart.defaults.color
+                  },
+                  ticks: {
+                    color: Chart.defaults.color
+                  },
+                  grid: {
+                    color: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
                   }
                 },
                 y: {
                   title: {
                     display: true,
-                    text: "<%= sanitize(sensor.measurement_unit) %>"
+                    text: "<%= sanitize(sensor.measurement_unit) %>",
+                    color: Chart.defaults.color
+                  },
+                  ticks: {
+                    color: Chart.defaults.color
+                  },
+                  grid: {
+                    color: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
                   }
                 }
               }
             }
           });
-        }, 500); // Delay to ensure DOM is ready
+        }, 500);
       <% end %>
     <% end %>
   });
