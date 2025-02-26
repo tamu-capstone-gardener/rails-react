@@ -1,6 +1,0 @@
-<div id="<%= dom_id plant_module %>">
-    <h1 class="text-3xl font-bold"><%= sanitize(plant_module.name) %></h1>
-  <p class="text-gray-600"><%= sanitize(plant_module.description) %></p>
-  <p class="text-sm text-gray-500">Location: <%= sanitize(plant_module.location) %></p>
-  <%= button_to sanitize("Water Now"), mqtt_water_path, method: :post, params: {plant_module_id: plant_module.id}, remote: true %>
-</div>

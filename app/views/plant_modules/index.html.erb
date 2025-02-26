@@ -13,5 +13,7 @@
       </div>
     <% end %>
   </div>
-  <%= button_to "Create Sample Module", plant_module_simple_create_path, method: :post %>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <%= button_to "Create Sample Module", plant_module_simple_create_path, class: "text-blue-500 hover:underline", method: :post %>
+  </div>
 </div>
