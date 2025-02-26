@@ -6,5 +6,4 @@ class SensorsController < ApplicationController
                       .group_by_day(:timestamp)
                       .sum(:value)
   end
-  
 end

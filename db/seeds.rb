@@ -38,8 +38,8 @@ existing_users.each do |user|
       3.times do
         sensor = plant_module.sensors.create!(
           id: SecureRandom.uuid,
-          measurement_unit: ['Celsius', 'Lux', 'Moisture'].sample,
-          measurement_type: ['Temperature', 'Light', 'Soil Moisture'].sample
+          measurement_unit: [ 'Celsius', 'Lux', 'Moisture' ].sample,
+          measurement_type: [ 'Temperature', 'Light', 'Soil Moisture' ].sample
         )
 
         # Generate more time series data for each sensor (20 instead of 10)
@@ -55,11 +55,10 @@ existing_users.each do |user|
       2.times do
         plant_module.schedules.create!(
           id: SecureRandom.uuid,
-          frequency: [1, 2, 4, 8, 12, 24].sample,
-          unit: ['minutes', 'hours', 'days', 'weeks'].sample
+          frequency: [ 1, 2, 4, 8, 12, 24 ].sample,
+          unit: [ 'minutes', 'hours', 'days', 'weeks' ].sample
         )
       end
     end
   end
 end
-  

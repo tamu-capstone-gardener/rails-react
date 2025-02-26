@@ -59,5 +59,8 @@
   <% end %>  
 </div>
 
+  <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
+   params: {plant_module_id: @plant_module.id}, remote: true %>
+
   </ul>
 </div>

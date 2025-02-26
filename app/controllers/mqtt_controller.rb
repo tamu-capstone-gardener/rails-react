@@ -8,18 +8,18 @@ class MqttController < AuthenticatedApplicationController
 
   def set_schedule
     message = { frequency: params[:frequency], units: params[:units] }.to_json
-    publish_data(message, "#{@secrets[:topic]}/set_schedule/#{params[:sensor_id]}")
-    render json: { status: "success", message: "Schedule set successfully" }
+    publish_data(message, "#{@secrets[:topic]}/#{params[:plant_module_id]}/set_schedule")
+    redirect_back fallback_location: plant_modules_path, notice: "Schedule set successfully"
   rescue => e
-    render json: { status: "error", message: e.message }, status: :unprocessable_entity
+    redirect_back fallback_location: plant_modules_path, alert: "Error: #{e.message}"
   end
 
   def send_water_signal
     message = { water: true }.to_json
-    publish_data(message, "#{@secrets[:topic]}/water/#{params[:sensor_id]}")
-    render json: { status: "success", message: "Water signal sent successfully" }
+    publish_data(message, "#{@secrets[:topic]}/#{params[:plant_module_id]}/water")
+    redirect_back fallback_location: plant_modules_path, notice: "Water signal sent successfully"
   rescue => e
-    render json: { status: "error", message: e.message }, status: :unprocessable_entity
+    redirect_back fallback_location: plant_modules_path, alert: "Error: #{e.message}"
   end
 
   private
@@ -41,22 +41,22 @@ class MqttController < AuthenticatedApplicationController
   end
 
   def validate_set_schedule_params
-    unless params[:frequency].present? && params[:units].present? && params[:sensor_id].present?
-      render json: { status: "error", message: "Missing one or more of required parameters: frequency, units, and sensor_id" }, status: :bad_request
+    unless params[:frequency].present? && params[:units].present? && params[:plant_module_id].present?
+      redirect_back fallback_location: plant_modules_path, alert: "Missing one or more of required parameters: frequency, units, and plant_module_id"
     end
   end
 
   def validate_send_water_signal_params
-    unless params[:sensor_id].present?
-      render json: { status: "error", message: "Missing required parameter: sensor_id" }, status: :bad_request
+    unless params[:plant_module_id].present?
+      redirect_back fallback_location: plant_modules_path, alert: "Missing required parameter: plant_module_id"
     end
   end
 
   def authorize_user
-    sensor = Sensor.find_by(id: params[:sensor_id])
+    plant_module = PlantModule.find_by(id: params[:plant_module_id])
 
-    if sensor.nil? || sensor.plant_module.user != current_user
-      redirect_to root_path, alert: "You are not authorized to perform this action."
+    if plant_module.nil? || plant_module.user != current_user
+      redirect_back fallback_location: plant_modules_path, alert: "You are not authorized to perform this action."
     end
   end
 end
