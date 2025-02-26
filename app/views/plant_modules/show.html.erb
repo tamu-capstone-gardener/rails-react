@@ -1,7 +1,7 @@
 <div class="container mx-auto p-6">
   <div class="mb-6">
     <%= link_to sanitize("Back to Home"), root_path,
-        class: "bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block" %>
+        class: "bg-green-800 text-white px-4 py-2 rounded-lg hover:bg-green-900 transition duration-300 inline-block" %>
   </div>
 
   <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
@@ -21,120 +21,40 @@
     </p>
   </div>
 
-  <h2 class="text-2xl font-semibold mt-4 text-gray-800 dark:text-gray-100">Sensors</h2>
+  <h2 class="text-2xl font-semibold mt-4 mb-8 text-gray-800 dark:text-gray-100">Sensors</h2>
   <ul>
-    <% @sensors.each do |sensor| %>
-      <li class="mb-4">
-        <strong class="text-gray-800 dark:text-gray-100">
+  <% @sensors.each do |sensor| %>
+    <li class="flex flex-col mb-4 items-center bg-white dark:bg-gray-800 p-4 shadow-lg rounded-lg">
+      <div class="flex-shrink-0 w-full items-start mb-6">
+        <h2 class="text-xl font-bold text-black dark:text-gray-100">
           <%= sanitize(sensor.measurement_type) %>
-        </strong> (<%= sanitize(sensor.measurement_unit) %>)
-
-        <% recent_data = sensor.time_series_data.order(timestamp: :desc).first %>
-        <% if recent_data %>
-          - <span class="text-green-600"><%= recent_data.value %></span> at <%= recent_data.timestamp.strftime("%Y-%m-%d %H:%M:%S") %>
-        <% else %>
-          - <span class="text-gray-500 dark:text-gray-400">No recent data</span>
-        <% end %>
-
-        <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
-              class: "text-blue-500 hover:underline ml-2" %>
-
-        <% time_series_data = sensor.time_series_data.order(timestamp: :asc) %>
-        <% if time_series_data.any? %>
-          <div class="mt-4">
-            <canvas id="sensorChart-<%= sensor.id %>" class="w-full h-64"></canvas>
-          </div>
-        <% else %>
-          <p class="text-gray-500 dark:text-gray-400 mt-2">No time series data available for this sensor.</p>
-        <% end %>
-      </li>
-    <% end %>
+        </h2>
+      </div>
+  
+      <% if @sensor_data[sensor.id].any? %>
+        <div class="mt-4 w-full">
+          <%= line_chart @sensor_data[sensor.id], 
+            xtitle: "Time", 
+            ytitle: sanitize(sensor.measurement_unit),
+            colors: ["#34D399", "#FFFFFF"], # Green color
+            library: { 
+              backgroundColor: "transparent",
+              legend: { labels: { fontColor: "white" } },
+              scales: {
+                x: { ticks: { fontColor: "white" } },
+                y: { ticks: { fontColor: "white" } }
+              },
+              datasets: [
+                { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
+              ]
+            } %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">No time series data available for this sensor.</p>
+      <% end %>
+      <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
+            class: "text-blue-500 hover:underline ml-2" %>
+    </li>
+  <% end %>  
   </ul>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    console.log("Chart.js script loaded");
-
-    // Use the global variable if already set; otherwise, fall back to checking the class.
-    const isDarkMode = (typeof window.isDarkMode !== "undefined")
-                         ? window.isDarkMode
-                         : document.documentElement.classList.contains('dark');
-    // Set Chart.js global default text color
-    // Chart.defaults.color = isDarkMode ? '#ffffff' : '#000000';
-    Chart.defaults.color = '#ffffff';
-
-    <% @sensors.each do |sensor| %>
-      <% time_series_data = sensor.time_series_data.order(timestamp: :asc) %>
-      <% if time_series_data.any? %>
-        console.log("Rendering chart for Sensor ID: <%= sensor.id %>");
-        setTimeout(function() {
-          const canvas = document.getElementById('sensorChart-<%= sensor.id %>');
-          if (!canvas) {
-            console.error("Canvas not found for sensor ID <%= sensor.id %>");
-            return;
-          }
-          const ctx = canvas.getContext('2d');
-
-          new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: <%= time_series_data.map { |data| data.timestamp.strftime("%Y-%m-%d %H:%M:%S") }.to_json.html_safe %>,
-              datasets: [{
-                label: "<%= sanitize(sensor.measurement_type) %> Data",
-                data: <%= time_series_data.map(&:value).to_json.html_safe %>,
-                borderColor: isDarkMode ? 'rgb(255, 99, 132)' : 'rgb(54, 162, 235)',
-                backgroundColor: isDarkMode ? 'rgba(255, 99, 132, 0.2)' : 'rgba(54, 162, 235, 0.2)',
-                borderWidth: 2,
-                fill: true
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  labels: {
-                    color: Chart.defaults.color
-                  }
-                },
-                tooltip: {
-                  bodyColor: Chart.defaults.color,
-                  titleColor: Chart.defaults.color
-                }
-              },
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: "Timestamp",
-                    color: Chart.defaults.color
-                  },
-                  ticks: {
-                    color: Chart.defaults.color
-                  },
-                  grid: {
-                    color: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
-                  }
-                },
-                y: {
-                  title: {
-                    display: true,
-                    text: "<%= sanitize(sensor.measurement_unit) %>",
-                    color: Chart.defaults.color
-                  },
-                  ticks: {
-                    color: Chart.defaults.color
-                  },
-                  grid: {
-                    color: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'
-                  }
-                }
-              }
-            }
-          });
-        }, 500);
-      <% end %>
-    <% end %>
-  });
-</script>

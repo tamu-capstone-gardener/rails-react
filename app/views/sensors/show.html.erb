@@ -3,54 +3,32 @@
     <%= link_to sanitize("Back to Plant Module"), plant_module_path(@sensor.plant_module),
           class: "bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block" %>
   </div>
+
   <h1 class="text-3xl font-bold"><%= sanitize(@sensor.measurement_type) %> Data</h1>
   <p class="text-gray-600"><strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %></p>
+  <div class="h-120">
+    <% if @time_series_data.any? %>
+        <%= line_chart @time_series_data, 
+            xtitle: "Time", 
+            ytitle: sanitize(@sensor.measurement_unit),
+            colors: ["#34D399", "#FFFFFF"], # Green color
+            library: { 
+              backgroundColor: "transparent",
+              legend: { labels: { fontColor: "white" } },
+              scales: {
+                x: { ticks: { fontColor: "white" } },
+                y: { ticks: { fontColor: "white" } }
+              },
+              datasets: [
+                { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
+              ]
+            } %>
 
-  <% if @time_series_data.any? %>
-    <canvas id="sensorChart" class="w-full h-96"></canvas>
-  <% else %>
-    <p class="text-gray-500 mt-4">No time series data available for this sensor.</p>
-  <% end %>
+
+    <% else %>
+        <p class="text-gray-500 mt-4">No time series data available for this sensor.</p>
+    <% end %>
+  </div>
 
   <%= link_to "Back to Plant Module", plant_module_path(@sensor.plant_module), class: "text-blue-500 hover:underline mt-4 block" %>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    <% if @time_series_data.any? %>
-      const ctx = document.getElementById('sensorChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: <%= @time_series_data.map { |data| data.timestamp.strftime("%Y-%m-%d %H:%M:%S") }.to_json.html_safe %>,
-          datasets: [{
-            label: "<%= sanitize(@sensor.measurement_type) %> Data",
-            data: <%= @time_series_data.map(&:value).to_json.html_safe %>,
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderWidth: 2,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: "Timestamp"
-              }
-            },
-            y: {
-              title: {
-                display: true,
-                text: "<%= sanitize(@sensor.measurement_unit) %>"
-              }
-            }
-          }
-        }
-      });
-    <% end %>
-  });
-</script>
