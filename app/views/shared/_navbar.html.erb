@@ -3,7 +3,7 @@
     <h2 class="text-2xl font-bold">Plant<span class="p-1 text-white bg-green-800 rounded-lg">Hub</span></h2>
     <!-- Toggle button visible on mobile only -->
     <button type="button"
-            class="text-orange-400 focus:text-white focus:outline-none hover:text-white block lg:hidden"
+            class="text-green-800 dark:text-white focus:text-black dark:focus:text-green-200 focus:outline-none hover:text-black dark:hover:text-green-200 block lg:hidden"
             data-action="click->navbar#toggle">
       <span class="sr-only">Open main menu</span>
       <svg class="h-8 w-8 fill-current" xmlns="http://www.w3.org/2000/svg"
@@ -33,7 +33,7 @@
   <!-- Mobile dropdown menu (initially hidden) positioned below the navbar -->
   <div data-navbar-target="menu" class="hidden absolute left-0 right-0 top-full bg-white border-t border-gray-200 dark:bg-gray-900">
     <% @page_links.each do |link| %>
-      <%= link_to link[:name], link[:path], class: "block text-gray-200 font-semibold hover:bg-gray-800 rounded px-4 py-2" %>
+      <%= link_to link[:name], link[:path], class: "block text-gray-800 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-4 py-2" %>
     <% end %>
   </div>
 </nav>

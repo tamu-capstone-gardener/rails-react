@@ -23,6 +23,7 @@
 
   <h2 class="text-2xl font-semibold mt-4 mb-8 text-gray-800 dark:text-gray-100">Sensors</h2>
   <ul>
+  <div data-controller="chart">
   <% @sensors.each do |sensor| %>
     <li class="flex flex-col mb-4 items-center bg-white dark:bg-gray-800 p-4 shadow-lg rounded-lg">
       <div class="flex-shrink-0 w-full items-start mb-6">
@@ -30,19 +31,19 @@
           <%= sanitize(sensor.measurement_type) %>
         </h2>
       </div>
-  
+
       <% if @sensor_data[sensor.id].any? %>
-        <div class="mt-4 w-full">
+        <div class="mt-4 w-full" data-chart-target="chart" id="chart-<%= sensor.id %>">
           <%= line_chart @sensor_data[sensor.id], 
             xtitle: "Time", 
             ytitle: sanitize(sensor.measurement_unit),
             colors: ["#34D399", "#FFFFFF"], # Green color
             library: { 
               backgroundColor: "transparent",
-              legend: { labels: { fontColor: "white" } },
+              legend: { labels: { fontColor: "black" } }, # Default Light Mode
               scales: {
-                x: { ticks: { fontColor: "white" } },
-                y: { ticks: { fontColor: "white" } }
+                x: { ticks: { fontColor: "black" } },
+                y: { ticks: { fontColor: "black" } }
               },
               datasets: [
                 { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
@@ -56,5 +57,7 @@
             class: "text-blue-500 hover:underline ml-2" %>
     </li>
   <% end %>  
+</div>
+
   </ul>
 </div>
