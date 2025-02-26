@@ -62,3 +62,4 @@ existing_users.each do |user|
     end
   end
 end
+  
