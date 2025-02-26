@@ -1,4 +1,4 @@
-class HomeController < AuthenticatedApplicationController
+class HomeController < ApplicationController
   def welcome
   end
 end
