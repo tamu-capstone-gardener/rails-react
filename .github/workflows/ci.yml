@@ -24,7 +24,7 @@ jobs:
         run: echo "version=$(cat .ruby-version)" >> $GITHUB_OUTPUT
 
       - name: Cache gems
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: vendor/bundle
           key: gems-${{ runner.os }}-${{ steps.ruby-version.outputs.version }}-${{ hashFiles('**/Gemfile.lock') }}
