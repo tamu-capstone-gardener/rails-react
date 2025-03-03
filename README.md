@@ -56,7 +56,12 @@ Ensure you have the following installed:
   ```sh
   rubocop
   ```  
+<<<<<<< HEAD
 ## Link to other repos
+=======
+
+### Link to other repos
+>>>>>>> 6dfb49a (Update README.md)
 
 | Repository Name                | Description                                                   | Link                                                                 |
 |--------------------------------|---------------------------------------------------------------|----------------------------------------------------------------------|
