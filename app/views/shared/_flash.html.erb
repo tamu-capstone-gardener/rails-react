@@ -1,0 +1,13 @@
+<% flash.each do |key, value| -%>
+    <% bg_color = case key
+       when "alert" then "bg-red-500 border-red-800"
+       when "notice" then "bg-blue-500 border-blue-800"
+       when "success" then "bg-green-500 border-green-800"
+       else "bg-gray-500 border-gray-800"
+       end
+    %>
+    <div data-controller="flash" class="py-2 mx-5 w-80vw <%= bg_color %> border-4 rounded-lg flex justify-center items-center z-10">
+      <section class="text-black dark:text-white opacity-100 z-20"><%= value.html_safe %></section>
+    </div>
+  <% end %>
+  

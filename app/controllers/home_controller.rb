@@ -1,5 +1,4 @@
-class HomeController < AuthenticatedApplicationController
+class HomeController < ApplicationController
   def welcome
-    @plant_modules = PlantModule.all
   end
 end

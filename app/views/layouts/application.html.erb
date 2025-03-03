@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-controller="dark-mode">
   <head>
     <title><%= content_for(:title) || "Ruby React" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -30,19 +30,14 @@
     </style>
   </head>
 
-  <body>
-
-    <% if flash.any? %>
-      <% flash.each do |key, value| -%>
-        <section class="flash flash__<%= key %>">
-          <%= value.html_safe%>
-        </section>
-      <% end -%>
-    <% end %>
+  <body class="text-black dark:text-white bg-white dark:bg-gray-900">
     <header>
       <%= render "shared/navbar" %>
     </header>
-    <main class="container mx-auto mt-28 px-5 flex">
+    <div id="flash_messages">
+      <%= render "shared/flash" %>
+    </div>
+    <main class="container mx-auto px-5 flex">
       <%= yield %>
     </main>
   </body>

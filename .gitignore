@@ -38,3 +38,6 @@
 
 .DS_Store
 .vscode/
+
+# simple cov reports
+coverage/
