@@ -5,12 +5,7 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
     static values  = { state: Boolean }
     static targets = [ "menu", "x", "bars" ]
-  
-    connect() {
-      console.log("Navbar controller connected")
-      console.log(this.stateValue)
-    }
-  
+
     toggle() {
       this.stateValue = !this.stateValue
   

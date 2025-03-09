@@ -1,33 +1,33 @@
 <div class="container mx-auto p-6">
   <div class="mb-6">
     <%= link_to sanitize("Back to Home"), root_path,
-        class: "bg-green-800 text-white px-4 py-2 rounded-lg hover:bg-green-900 transition duration-300 inline-block" %>
+        class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
-  <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
+  <h1 class="text-3xl font-bold theme-text">
     <%= sanitize(@plant_module.name) %>
   </h1>
-  <p class="text-gray-600 dark:text-gray-300">
+  <p class="theme-text">
     <%= sanitize(@plant_module.description) %>
   </p>
-  <p class="text-sm text-gray-500 dark:text-gray-400">
+  <p class="text-sm theme-text">
     Location: <%= sanitize(@plant_module.location) %>
   </p>
 
   <!-- Example container with dark mode classes -->
-  <div class="container mt-6 mx-auto flex items-center justify-center bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-    <p class="text-gray-600 dark:text-gray-300">
+  <div class="container mt-6 mx-auto flex items-center justify-center theme-bg-alt p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <p class="theme-text">
       Placeholder for LLM Advice or Random Fun Fact
     </p>
   </div>
 
-  <h2 class="text-2xl font-semibold mt-4 mb-8 text-gray-800 dark:text-gray-100">Sensors</h2>
+  <h2 class="text-2xl font-semibold mt-4 mb-8 theme-text">Sensors</h2>
   <ul>
   <div data-controller="chart">
   <% @sensors.each do |sensor| %>
-    <li class="flex flex-col mb-4 items-center bg-white dark:bg-gray-800 p-4 shadow-lg rounded-lg">
+    <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
       <div class="flex-shrink-0 w-full items-start mb-6">
-        <h2 class="text-xl font-bold text-black dark:text-gray-100">
+        <h2 class="text-xl font-bold theme-text">
           <%= sanitize(sensor.measurement_type) %>
         </h2>
       </div>
@@ -51,7 +51,7 @@
             } %>
         </div>
       <% else %>
-        <p class="text-gray-500 dark:text-gray-400 mt-2">No time series data available for this sensor.</p>
+        <p class="theme-text mt-2">No time series data available for this sensor.</p>
       <% end %>
       <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
             class: "text-blue-500 hover:underline ml-2" %>
