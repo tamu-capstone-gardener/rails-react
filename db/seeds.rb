@@ -62,8 +62,8 @@ existing_users.each do |user|
     3.times do
       sensor = plant_module.sensors.create!(
         id: SecureRandom.uuid,
-        measurement_unit: [ 'Celsius', 'Lux', 'Moisture' ].sample,
-        measurement_type: [ 'Temperature', 'Light', 'Soil Moisture' ].sample
+        measurement_unit: ['Celsius', 'Lux', 'Moisture'].sample,
+        measurement_type: ['Temperature', 'Light', 'Soil Moisture'].sample
       )
 
       # Generate up to 100 days of time series data
