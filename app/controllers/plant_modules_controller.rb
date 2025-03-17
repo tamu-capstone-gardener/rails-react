@@ -1,11 +1,11 @@
 class PlantModulesController < AuthenticatedApplicationController
   def show
-    @plant_module = PlantModule.find(params[:id])
+    @plant_module = PlantModule.find_by(id: params[:id])
 
     if @plant_module.nil?
-      redirect_to plant_modules_path, alert: "Plant module not found."
+      redirect_to plant_modules_path, alert: "Plant module not found." and return
     elsif @plant_module.user != current_user
-      redirect_to plant_modules_path, alert: "You are not authorized to access this plant module."
+      redirect_to plant_modules_path, alert: "You are not authorized to access this plant module." and return
     end
 
     @sensors = @plant_module.sensors.includes(:time_series_data)
