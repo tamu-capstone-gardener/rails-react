@@ -14,7 +14,7 @@ class MqttListener
         ) do |client|
           Rails.logger.info "Connected to MQTT broker at #{secrets[:url]}"
 
-          client.subscribe("#{secrets[:topic]}/sensor_data/#")
+          client.subscribe("#{secrets[:topic]}/+/sensor_data")
 
           client.get do |topic, message|
             process_mqtt_message(topic, message)
@@ -68,7 +68,7 @@ class MqttListener
   end
 
   def self.extract_sensor_id_from_topic(path)
-    match = path.match(%r{\Aplanthub/sensor_data/([\w-]+)\z}) # Accepts alphanumeric and hyphens
+    match = path.match(%r{\Aplanthub/([\w-]+)/sensor_data\z})
     match ? match[1] : nil
   end
 end
