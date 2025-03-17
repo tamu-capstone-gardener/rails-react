@@ -56,8 +56,7 @@ Ensure you have the following installed:
   ```sh
   rubocop
   ```  
-
-### Link to other repos
+## Link to other repos
 
 | Repository Name                | Description                                                   | Link                                                                 |
 |--------------------------------|---------------------------------------------------------------|----------------------------------------------------------------------|

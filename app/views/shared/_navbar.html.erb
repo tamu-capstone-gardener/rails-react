@@ -33,7 +33,11 @@
   <!-- Mobile dropdown menu (initially hidden) positioned below the navbar -->
   <div data-navbar-target="menu" class="hidden absolute left-0 right-0 top-full bg-white border-t theme-bg-alt">
     <% @page_links.each do |link| %>
+<<<<<<< HEAD
       <%= link_to link[:name], link[:path], class: "block btn-primary font-semibold px-4 py-2" %>
+=======
+      <%= link_to link[:name], link[:path], class: "block btn-primary font-semibold rounded px-4 py-2" %>
+>>>>>>> c515ddb (Data views (#25))
     <% end %>
   </div>
 </nav>
