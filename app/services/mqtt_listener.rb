@@ -11,9 +11,6 @@ class MqttListener
         MQTT::Client.connect(
           host: secrets[:url],
           port: secrets[:port],
-          username: secrets[:username],
-          password: secrets[:password],
-          ssl: true
         ) do |client|
           Rails.logger.info "Connected to MQTT broker at #{secrets[:url]}"
 
