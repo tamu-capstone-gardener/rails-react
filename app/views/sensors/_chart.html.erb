@@ -1,0 +1,30 @@
+<turbo-frame id="sensor_chart">
+  <div data-controller="dark-mode-chart" class="h-auto theme-bg-alt pt-8 p-4 shadow-lg rounded-lg transition-colors">
+    <% if time_series_data.any? %>
+      <%= line_chart time_series_data, 
+          xtitle: "Time", 
+          ytitle: sanitize(sensor.measurement_unit),
+          colors: ["#34d399", "#ffffff"],
+          library: { 
+            backgroundColor: "transparent",
+            plugins: {
+              legend: { labels: { color: "var(--app-text)" } }
+            },
+            scales: {
+              x: {
+                title: { display: true, color: "var(--app-text)", text: "Time" },
+                ticks: { color: "var(--app-text)" },
+                grid: { color: "var(--app-grid-color)" }  
+              },
+              y: {
+                title: { display: true, color: "var(--app-text)", text: sanitize(sensor.measurement_unit) },
+                ticks: { color: "var(--app-text)" },
+                grid: { color: "var(--app-grid-color)" }
+              }
+            }
+          } %>
+    <% else %>
+      <p class="text-gray-500 mt-4">No time series data available for this sensor.</p>
+    <% end %>
+  </div>
+</turbo-frame>
