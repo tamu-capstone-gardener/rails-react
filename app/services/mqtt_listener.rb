@@ -26,7 +26,7 @@ class MqttListener
               next
             end
 
-            if topic.ends_with?("sensor_data")
+            if topic.end_with?("sensor_data")
               process_mqtt_sensor_data(topic, message_json)
             else
               process_mqtt_photo(topic, message_json)
@@ -44,7 +44,7 @@ class MqttListener
   end
 
   private
-    def process_mqtt_sensor_data(topic, message_json)
+    def self.process_mqtt_sensor_data(topic, message_json)
       sensor_id = extract_sensor_id_from_sensor_topic(topic)
       unless sensor_id
         Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
@@ -73,7 +73,7 @@ class MqttListener
       end
     end
 
-    def process_mqtt_photo(topic, message_json)
+    def self.process_mqtt_photo(topic, message_json)
       plant_module_id = extract_plant_module_id_from_photo_topic(topic)
       unless plant_module_id
         Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
@@ -89,7 +89,8 @@ class MqttListener
       end
 
       begin
-        Photo.create(
+        Photo.create!(
+          id: SecureRandom.uuid,
           plant_module_id: plant_module_id,
           timestamp: timestamp,
           url: url
@@ -102,12 +103,12 @@ class MqttListener
       end
     end
 
-    def extract_sensor_id_from_sensor_topic(path)
+    def self.extract_sensor_id_from_sensor_topic(path)
       match = path.match(%r{\Aplanthub/([\w-]+)/sensor_data\z})
       match ? match[1] : nil
     end
 
-    def extract_plant_module_id_from_photo_topic(path)
+    def self.extract_plant_module_id_from_photo_topic(path)
       match = path.match(%r{\Aplanthub/([\w-]+)/photo\z})
       match ? match[1] : nil
     end
