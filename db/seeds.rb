@@ -34,6 +34,17 @@ existing_users.each do |user|
 
     # Create sensors for each plant module
     3.times do
+      photo = plant_module.photos.create!(
+        id: SecureRandom.uuid,
+        url: "https://www.alpinegardensociety.net/wp-content/uploads/2020/05/Paris-japonica_exh_John-Savage-6517.jpg",
+        timestamp: 2.days.ago + rand(0..86400)
+      )
+
+      photo.posts.create!(
+        title: Faker::Lorem.word.capitalize,
+        description: Faker::Lorem.sentence,
+      )
+
       sensor = plant_module.sensors.create!(
         id: SecureRandom.uuid,
         measurement_unit: [ 'Celsius', 'Lux', 'Moisture' ].sample,
@@ -60,4 +71,4 @@ existing_users.each do |user|
   end
 end
 
-puts "✅ Seeded database with users, plant modules, sensors, and time series data!"
+Rails.logger.info "Seeded database with users, plant modules, sensors, time series data, photos, and posts."

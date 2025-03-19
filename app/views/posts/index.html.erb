@@ -1,0 +1,11 @@
+<div class="pagination">
+  <%= link_to_prev_page @posts, 'Previous' %>
+</div>
+
+<div id="posts">
+  <%= render @posts %>
+</div>
+
+<div class="pagination">
+  <%= link_to_next_page @posts, 'Next' %>
+</div>

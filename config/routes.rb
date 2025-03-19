@@ -27,4 +27,6 @@ Rails.application.routes.draw do
   post "mqtt/water", to: "mqtt#send_water_signal"
 
   post "plant_modules/simple_create", to: "plant_modules#simple_create", as: :plant_module_simple_create
+
+  resources :posts, only: [ :index, :show ]
 end
