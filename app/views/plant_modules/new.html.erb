@@ -1,0 +1,67 @@
+<!-- app/views/plant_modules/new.html.erb -->
+<h1>Create New Plant Module</h1>
+
+<%= form_with model: @plant_module, local: true do |f| %>
+  <div>
+    <%= f.label :name, "Module Name" %>
+    <%= f.text_field :name %>
+  </div>
+
+  <div>
+    <%= f.label :description, "Description" %>
+    <%= f.text_area :description %>
+  </div>
+
+  <div>
+    <%= f.label :location_type, "Module Location Type" %><br>
+    <%= f.radio_button :location_type, "indoor", checked: true %> Indoor
+    <%= f.radio_button :location_type, "outdoor" %> Outdoor
+  </div>
+
+  <div id="zip_code_field" style="display: none;">
+    <%= f.label :zip_code, "ZIP Code (for outdoor modules)" %>
+    <%= f.text_field :zip_code %>
+  </div>
+
+  <hr>
+
+  <div>
+    <h3>Recommended Plants</h3>
+    <p>Select up to 3 plants from the recommendations below. (You may override these by searching.)</p>
+    <div id="recommendations">
+      <% @recommendations.each do |plant| %>
+        <div>
+          <%= check_box_tag "plant_ids[]", plant.id, false %>
+          <%= plant.CommonName %> - Light: <%= plant.light_requirement %> hrs/day, Hardiness: <%= plant.HardinessZones %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div>
+    <h3>Override Plant Selection</h3>
+    <%= link_to "Search for Plants", plants_path, remote: true, id: "plant-search-link" %>
+    <!-- This link could open a modal or replace part of the form via AJAX. -->
+  </div>
+
+  <div>
+    <%= f.submit "Create Module" %>
+  </div>
+<% end %>
+
+<script>
+  // Toggle the ZIP code field based on the selected location_type
+  document.addEventListener("DOMContentLoaded", function() {
+    var indoorRadio = document.querySelector('input[name="plant_module[location_type]"][value="indoor"]');
+    var outdoorRadio = document.querySelector('input[name="plant_module[location_type]"][value="outdoor"]');
+    var zipField = document.getElementById("zip_code_field");
+
+    function toggleZipField() {
+      zipField.style.display = outdoorRadio.checked ? "block" : "none";
+    }
+
+    indoorRadio.addEventListener("change", toggleZipField);
+    outdoorRadio.addEventListener("change", toggleZipField);
+    toggleZipField();
+  });
+</script>

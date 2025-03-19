@@ -1,0 +1,37 @@
+<!-- app/views/plants/index.html.erb -->
+<h1>Search Plants</h1>
+
+<%= form_with url: plants_path, method: :get, local: true do |f| %>
+  <div>
+    <%= f.label :query, "Search by Common Name, Genus or Species" %>
+    <%= f.text_field :query, value: params[:query] %>
+    <%= f.submit "Search" %>
+  </div>
+<% end %>
+
+<div>
+  <% @plants.each do |plant| %>
+    <div class="plant-result">
+      <p>
+        <strong><%= plant.CommonName %></strong> (<%= plant.Genus %> <%= plant.Species %>)
+        - Light: <%= plant.light_requirement %> hrs/day
+      </p>
+      <%= button_to "Select", "#", class: "select-plant-btn", data: { plant_id: plant.id, plant_name: plant.CommonName } %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // Example JavaScript to handle plant selection override.
+  // This script would typically communicate the selected plant back to the new module form.
+  document.querySelectorAll('.select-plant-btn').forEach(function(button) {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      var plantId = this.dataset.plant_id;
+      var plantName = this.dataset.plant_name;
+      // For demonstration, simply alert the selected plant.
+      // In practice, you would update the form (e.g. adding a hidden field or replacing a recommendation).
+      alert("Selected plant: " + plantName + " (ID: " + plantId + ")");
+    });
+  });
+</script>

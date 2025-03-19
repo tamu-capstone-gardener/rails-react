@@ -1,9 +1,11 @@
 <div class="container mx-auto p-6">
+  <!-- Navigation Link -->
   <div class="mb-6">
     <%= link_to sanitize("Back to Home"), root_path,
         class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
+  <!-- Module Title & Description -->
   <h1 class="text-3xl font-bold theme-text">
     <%= sanitize(@plant_module.name) %>
   </h1>
@@ -12,55 +14,92 @@
   </p>
   <p class="text-sm theme-text">
     Location: <%= sanitize(@plant_module.location) %>
+    <% if @plant_module.location_type.downcase == "outdoor" %>
+      (ZIP: <%= sanitize(@plant_module.zip_code) %>)
+    <% end %>
   </p>
 
-  <!-- Example container with dark mode classes -->
+  <!-- Static Advice/LLM Section -->
   <div class="container mt-6 mx-auto flex items-center justify-center theme-bg-alt p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
     <p class="theme-text">
       Placeholder for LLM Advice or Random Fun Fact
     </p>
   </div>
 
-  <h2 class="text-2xl font-semibold mt-4 mb-8 theme-text">Sensors</h2>
-  <ul>
-  <div data-controller="chart">
-  <% @sensors.each do |sensor| %>
-    <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
-      <div class="flex-shrink-0 w-full items-start mb-6">
-        <h2 class="text-xl font-bold theme-text">
-          <%= sanitize(sensor.measurement_type) %>
-        </h2>
+  <!-- Selected Plants & Care Guide -->
+  <div class="mt-8">
+    <h2 class="text-2xl font-semibold theme-text">Selected Plants & Care Guide</h2>
+    <% @plant_module.plants.each do |plant| %>
+      <div class="plant-care-card border rounded-lg p-4 my-4 shadow-md">
+        <h3 class="text-xl font-bold theme-text">
+          <%= sanitize(plant.common_name) %> (<%= sanitize(plant.genus) %> <%= sanitize(plant.species) %>)
+        </h3>
+        <ul class="mt-2 list-disc list-inside">
+          <li><strong>Light:</strong> <%= plant.light_requirement %> hrs/day</li>
+          <li><strong>Watering:</strong> Every <%= @plant_module.care_schedule.watering_frequency %> days</li>
+          <li><strong>Fertilization:</strong> Every <%= @plant_module.care_schedule.fertilizer_frequency %> days</li>
+          <li><strong>Soil Moisture:</strong> <%= sanitize(@plant_module.care_schedule.soil_moisture_pref) %></li>
+          <% if @plant_module.location_type.downcase == "outdoor" %>
+            <li><strong>Hardiness Zones:</strong> <%= sanitize(plant.hardiness_zones) %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    <div class="mt-4">
+      <h3 class="text-lg font-medium theme-text">Module Default Schedule</h3>
+      <ul class="list-disc list-inside">
+        <li>Water every <%= @plant_module.care_schedule.watering_frequency %> days</li>
+        <li>Fertilize every <%= @plant_module.care_schedule.fertilizer_frequency %> days</li>
+        <li>Light exposure: <%= @plant_module.care_schedule.light_hours %> hrs/day</li>
+      </ul>
+      <%= link_to "Edit Module", edit_plant_module_path(@plant_module), class: "text-blue-500 hover:underline mt-2 inline-block" %>
+    </div>
+  </div>
+
+  <!-- Sensors & Time Series Data -->
+  <div class="mt-8">
+    <h2 class="text-2xl font-semibold theme-text">Sensors</h2>
+    <ul>
+      <div data-controller="chart">
+        <% @sensors.each do |sensor| %>
+          <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
+            <div class="flex-shrink-0 w-full items-start mb-6">
+              <h2 class="text-xl font-bold theme-text">
+                <%= sanitize(sensor.measurement_type) %>
+              </h2>
+            </div>
+
+            <% if @sensor_data[sensor.id].any? %>
+              <div class="mt-4 w-full" data-chart-target="chart" id="chart-<%= sensor.id %>">
+                <%= line_chart @sensor_data[sensor.id], 
+                  xtitle: "Time", 
+                  ytitle: sanitize(sensor.measurement_unit),
+                  colors: ["#34D399", "#FFFFFF"], # Green color
+                  library: { 
+                    backgroundColor: "transparent",
+                    legend: { labels: { fontColor: "black" } }, # Default Light Mode
+                    scales: {
+                      x: { ticks: { fontColor: "black" } },
+                      y: { ticks: { fontColor: "black" } }
+                    },
+                    datasets: [
+                      { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
+                    ]
+                  } %>
+              </div>
+            <% else %>
+              <p class="theme-text mt-2">No time series data available for this sensor.</p>
+            <% end %>
+            <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
+                  class: "text-blue-500 hover:underline ml-2" %>
+          </li>
+        <% end %>  
       </div>
 
-      <% if @sensor_data[sensor.id].any? %>
-        <div class="mt-4 w-full" data-chart-target="chart" id="chart-<%= sensor.id %>">
-          <%= line_chart @sensor_data[sensor.id], 
-            xtitle: "Time", 
-            ytitle: sanitize(sensor.measurement_unit),
-            colors: ["#34D399", "#FFFFFF"], # Green color
-            library: { 
-              backgroundColor: "transparent",
-              legend: { labels: { fontColor: "black" } }, # Default Light Mode
-              scales: {
-                x: { ticks: { fontColor: "black" } },
-                y: { ticks: { fontColor: "black" } }
-              },
-              datasets: [
-                { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
-              ]
-            } %>
-        </div>
-      <% else %>
-        <p class="theme-text mt-2">No time series data available for this sensor.</p>
-      <% end %>
-      <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
-            class: "text-blue-500 hover:underline ml-2" %>
-    </li>
-  <% end %>  
-</div>
-
-  <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
-   params: {plant_module_id: @plant_module.id}, remote: true %>
-
-  </ul>
+      <div class="mt-4">
+        <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
+           params: { plant_module_id: @plant_module.id }, remote: true %>
+      </div>
+    </ul>
+  </div>
 </div>

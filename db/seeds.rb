@@ -1,14 +1,25 @@
 require 'faker'
+require 'csv'
+require 'securerandom'
 
-# Preserve users with @gmail.com emails, delete the rest
-User.where.not("email LIKE ?", "%@gmail.com").destroy_all
+# -------------------------------
+# 1. Clean-up Existing Data
+# -------------------------------
+# Preserve only Gmail users and delete the rest
+User.where.not("email LIKE ? OR email LIKE ?", "%@gmail.com", "%@tamu.edu").destroy_all
 
+# Clean up other related records
 PlantModule.destroy_all
 Sensor.destroy_all
 TimeSeriesDatum.destroy_all
 Schedule.destroy_all
+# Also clear care_schedules and module_plants if needed
+CareSchedule.destroy_all
+ModulePlant.destroy_all
 
-# Retrieve existing Gmail users and add new ones if needed
+# -------------------------------
+# 2. Create or Collect Users
+# -------------------------------
 existing_users = User.where("email LIKE ?", "%@gmail.com").to_a
 users_needed = 5 - existing_users.count
 
@@ -22,15 +33,30 @@ users_needed.times do
   )
 end
 
-# Ensure every user (including existing Gmail users) has plant modules, sensors, and schedules
+# -------------------------------
+# 3. Create Plant Modules for Each User
+# -------------------------------
 existing_users.each do |user|
   2.times do
+    # Create a new PlantModule. (Note: You might want to set location_type explicitly.)
     plant_module = user.plant_modules.create!(
       id: SecureRandom.uuid,
       name: Faker::Lorem.word.capitalize,
       description: Faker::Lorem.sentence,
-      location: Faker::Address.city
+      location: Faker::Address.city,
+      location_type: ['indoor', 'outdoor'].sample,  # Randomly assign indoor/outdoor for demo
+      zip_code: (rand(10000..99999)).to_s             # Only used for outdoor modules
     )
+
+    # Ensure the module gets at least one plant.
+    if Plant.exists?
+      # You can choose the first plant or a random one.
+      chosen_plant = Plant.order("RANDOM()").first
+      plant_module.module_plants.create!(
+        id: SecureRandom.uuid,
+        plant_id: chosen_plant.id
+      )
+    end
 
     # Create sensors for each plant module
     3.times do
@@ -49,15 +75,70 @@ existing_users.each do |user|
       end
     end
 
-    # Create schedules for each plant module
-    2.times do
-      plant_module.schedules.create!(
-        id: SecureRandom.uuid,
-        frequency: [1, 2, 4, 8, 12, 24].sample,
-        unit: ['minutes', 'hours', 'days', 'weeks'].sample
-      )
-    end
+    # -------------------------------
+    # 4. Create a Default Care Schedule for the Plant Module
+    # -------------------------------
+    # For simplicity, we'll set the care schedule based on the location_type.
+    default_schedule =
+      if plant_module.location_type.downcase == "indoor"
+        {
+          watering_frequency: 7,
+          fertilizer_frequency: 30,
+          light_hours: 6,
+          soil_moisture_pref: "Keep moderately moist"
+        }
+      else
+        {
+          watering_frequency: 7,
+          fertilizer_frequency: 30,
+          light_hours: 8,
+          soil_moisture_pref: "Ensure well-draining soil; water deeply once a week"
+        }
+      end
+
+    # Create a single care_schedule record for this module.
+    plant_module.create_care_schedule!(default_schedule.merge("id" => SecureRandom.uuid))
   end
 end
 
-puts "✅ Seeded database with users, plant modules, sensors, and time series data!"
+# -------------------------------
+# 5. Import Plants from CSV
+# -------------------------------
+# Mapping from CSV header names to model attribute names.
+COLUMN_MAPPING = {
+  "Family"         => "family",
+  "Genus"          => "genus",
+  "Species"        => "species",
+  "CommonName"     => "common_name",
+  "GrowthRate"     => "growth_rate",
+  "HardinessZones" => "hardiness_zones",
+  "Height"         => "height",
+  "Width"          => "width",
+  "Type"           => "plant_type",  # Using plant_type instead of 'type'
+  "Leaf"           => "leaf",
+  "Flower"         => "flower",
+  "Ripen"          => "ripen",
+  "Reproduction"   => "reproduction",
+  "Soils"          => "soils",
+  "pH"             => "ph",
+  "Preferences"    => "preferences",
+  "Tolerances"     => "tolerances",
+  "Habitat"        => "habitat",
+  "HabitatRange"   => "habitat_range",
+  "Edibility"      => "edibility",
+  "Medicinal"      => "medicinal",
+  "OtherUses"      => "other_uses"
+}
+
+csv_file_path = Rails.root.join('app/assets/csv/sven_plants.csv')
+
+CSV.foreach(csv_file_path, headers: true) do |row|
+  plant_attributes = row.to_hash.transform_keys do |key|
+    COLUMN_MAPPING[key] || key.downcase
+  end
+
+  # Merge in a generated UUID for the id.
+  Plant.create!(plant_attributes.merge("id" => SecureRandom.uuid))
+end
+
+puts "✅ Seeded database with users, plant modules, sensors, time series data, care schedules, and plants!"
