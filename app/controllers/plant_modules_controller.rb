@@ -20,6 +20,7 @@ class PlantModulesController < AuthenticatedApplicationController
     @plant_modules = current_user.plant_modules
   end
 
+<<<<<<< HEAD
   def new
     @plant_module = PlantModule.new(location_type: "indoor")
 
@@ -38,6 +39,8 @@ class PlantModulesController < AuthenticatedApplicationController
   end
   
 
+=======
+>>>>>>> 5108ca6 (part 2)
   def create
     @plant_module = PlantModule.new(plant_module_params)
     @plant_module.user = current_user
