@@ -26,5 +26,5 @@ class SensorsController < ApplicationController
         )
       end
     end
-  end  
+  end
 end
