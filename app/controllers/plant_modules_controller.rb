@@ -20,6 +20,18 @@ class PlantModulesController < AuthenticatedApplicationController
     @plant_modules = current_user.plant_modules
   end
 
+  def create
+    @plant_module = PlantModule.new(plant_module_params)
+    @plant_module.user = current_user
+    @plant_module.id = SecureRandom.uuid
+    if @plant_module.save
+      redirect_to plant_modules_path, notice: "Plant module created successfully."
+    else
+      flash.now[:alert] = "Error creating plant module."
+      render :new
+    end
+  end
+
   def simple_create
     PlantModule.create!(
       id: SecureRandom.uuid,
