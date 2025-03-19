@@ -10,9 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025021217533) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "photos", id: :string, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "timestamp", precision: nil, null: false
+    t.string "plant_module_id", null: false
+    t.string "url"
+    t.index ["plant_module_id"], name: "index_photos_on_plant_module_id"
+  end
 
   create_table "plant_modules", id: :string, force: :cascade do |t|
     t.string "user_id", null: false
@@ -61,6 +70,7 @@ ActiveRecord::Schema[8.0].define(version: 2025021217533) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "photos", "plant_modules"
   add_foreign_key "plant_modules", "users", primary_key: "uid"
   add_foreign_key "schedules", "plant_modules"
   add_foreign_key "sensors", "plant_modules"
