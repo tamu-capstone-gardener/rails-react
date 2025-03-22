@@ -1,56 +1,141 @@
-<!-- app/views/plant_modules/new.html.erb -->
-<h1>Create New Plant Module</h1>
+<div class="max-w-3xl mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-6 theme-text-primary">Create New Plant Module</h1>
+  
+  <!-- Main Plant Module Form -->
+  <%= form_with model: @plant_module, local: true do |f| %>
+    <!-- Module Name -->
+    <div class="mb-4">
+      <%= f.label :name, "Module Name", class: "block text-sm font-medium theme-text-secondary" %>
+      <%= f.text_field :name, class: "mt-1 block w-full rounded-md text-box shadow-sm" %>
+    </div>
 
-<%= form_with model: @plant_module, local: true do |f| %>
-  <div>
-    <%= f.label :name, "Module Name" %>
-    <%= f.text_field :name %>
-  </div>
+    <!-- Description -->
+    <div class="mb-4">
+      <%= f.label :description, "Description", class: "block text-sm font-medium theme-text-secondary" %>
+      <%= f.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md text-box shadow-sm" %>
+    </div>
 
-  <div>
-    <%= f.label :description, "Description" %>
-    <%= f.text_area :description %>
-  </div>
+    <!-- Location Type -->
+    <div class="mb-4">
+      <span class="block text-sm font-medium theme-text-primary">Module Location Type</span>
+      <div class="mt-1">
+        <%= f.radio_button :location_type, "indoor", checked: true, class: "mr-2" %>
+        <%= f.label :location_type, "Indoor", value: "indoor", class: "mr-4 theme-text-primary" %>
+        <%= f.radio_button :location_type, "outdoor", class: "mr-2" %>
+        <%= f.label :location_type, "Outdoor", value: "outdoor", class: "theme-text-primary" %>
+      </div>
+    </div>
 
-  <div>
-    <%= f.label :location_type, "Module Location Type" %><br>
-    <%= f.radio_button :location_type, "indoor", checked: true %> Indoor
-    <%= f.radio_button :location_type, "outdoor" %> Outdoor
-  </div>
+    <!-- ZIP Code for Outdoor Modules -->
+    <div id="zip_code_field" class="mb-4" style="display: none;">
+      <%= f.label :zip_code, "ZIP Code (for outdoor modules)", class: "block text-sm font-medium theme-text-secondary" %>
+      <%= f.text_field :zip_code, class: "mt-1 block w-full rounded-md text-area shadow-sm" %>
+    </div>
 
-  <div id="zip_code_field" style="display: none;">
-    <%= f.label :zip_code, "ZIP Code (for outdoor modules)" %>
-    <%= f.text_field :zip_code %>
-  </div>
+    <hr class="my-6">
 
-  <hr>
+    <!-- Selected Plants Section -->
+    <div id="selected-plants" class="mb-6">
+      <h3 class="text-xl font-semibold mb-2 theme-text-primary">Selected Plants</h3>
+      <ul></ul>
+    </div>
 
-  <div>
-    <h3>Recommended Plants</h3>
-    <p>Select up to 3 plants from the recommendations below. (You may override these by searching.)</p>
-    <div id="recommendations">
-      <% @recommendations.each do |plant| %>
-        <div>
-          <%= check_box_tag "plant_ids[]", plant.id, false %>
-          <%= plant.CommonName %> - Light: <%= plant.light_requirement %> hrs/day, Hardiness: <%= plant.HardinessZones %>
-        </div>
-      <% end %>
+    <!-- Submit Button for Creating the Module -->
+    <div>
+      <%= f.submit "Create Module", class: "w-full py-2 px-4 bg-green-600 btn-primary" %>
+    </div>
+  <% end %>
+
+  <!-- Filter Recommendations Section -->
+  <div class="mb-6">
+    <h3 class="text-xl font-semibold mb-2 theme-text-primary">Filter Recommendations</h3>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <%= label_tag :max_height, "Max Height (m)", class: "block text-sm font-medium text-gray-700" %>
+        <%= number_field_tag :max_height, params[:max_height] || 10.0, step: 0.1, class: "text-area mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+      </div>
+      <div>
+        <%= label_tag :max_width, "Max Width (m)", class: "block text-sm font-medium text-gray-700" %>
+        <%= number_field_tag :max_width, params[:max_width] || 10.0, step: 0.1, class: "text-area mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+      </div>
+      <div>
+        <%= label_tag :maintenance, "Maintenance", class: "block text-sm font-medium text-gray-700" %>
+        <%= select_tag :maintenance, options_for_select([["Low", "low"], ["Medium", "medium"], ["High", "high"]], params[:maintenance] || "low"), class: "select mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+      </div>
+      <div>
+        <%= label_tag :edible, "Edible", class: "block text-sm font-medium text-gray-700" %>
+        <%= select_tag :edible, options_for_select([["Yes", "yes"], ["No", "no"], ["Either", "either"]], params[:edible] || "yes"), class: "select mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+      </div>
+    </div>
+    <div class="mt-4">
+      <%= button_tag "Apply Filters", type: "button", id: "apply-filters", class: "py-2 px-4 btn-primary rounded-md hover:bg-blue-700" %>
     </div>
   </div>
 
-  <div>
-    <h3>Override Plant Selection</h3>
-    <%= link_to "Search for Plants", plants_path, remote: true, id: "plant-search-link" %>
-    <!-- This link could open a modal or replace part of the form via AJAX. -->
-  </div>
+  <!-- Plant Search and Recommendations Section -->
+  <div class="mb-6">
+    <h3 class="text-xl font-semibold mb-2 theme-text-primary">
+      <% if params[:query].present? %>
+        Search Results
+      <% else %>
+        Recommended Plants
+      <% end %>
+    </h3>
+    
+    <%= form_with url: plants_path, method: :get, local: false, data: { turbo_frame: "recommendations" }, class: "mb-4" do |f| %>
+      <div class="flex flex-col md:flex-row items-center gap-4">
+        <div class="flex-1">
+          <%= f.label :query, "Search by Common Name, Genus or Species", class: "block text-sm font-medium theme-text-secondary" %>
+          <%= f.text_field :query, value: params[:query], placeholder: "Enter search term...", class: "mt-1 block w-full rounded-md text-area" %>
+        </div>
+        <div>
+          <%= f.submit "Search", class: "py-2 px-4 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none" %>
+        </div>
+      </div>
+    <% end %>
 
-  <div>
-    <%= f.submit "Create Module" %>
+    <!-- Turbo Frame for Plant Results -->
+    <turbo-frame id="recommendations">
+      <!-- When not a Turbo Frame request, this content will be replaced by the controller -->
+      <% if params[:query].present? %>
+        <% if @plants.present? %>
+          <div class="space-y-4">
+            <% @plants.each do |plant| %>
+              <div class="p-4 theme-bg-alt rounded-md shadow">
+                <p class="theme-text-primary">
+                  <strong><%= plant.common_name %></strong> (<%= plant.genus %> <%= plant.species %>)
+                  - Light: <%= plant.light_requirement %> hrs/day
+                </p>
+                <%= button_tag "Select", type: "button", class: "select-plant-btn py-1 px-3 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none", data: { plant_id: plant.id, plant_name: plant.common_name } %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="theme-text-primary">No plants found.</p>
+        <% end %>
+      <% else %>
+        <% if @recommendations.present? %>
+          <div class="space-y-4">
+            <% @recommendations.each do |plant| %>
+              <div class="p-4 theme-bg-alt rounded-md shadow">
+                <p class="theme-text-primary">
+                  <strong><%= plant.common_name %></strong> (<%= plant.genus %> <%= plant.species %>)
+                  - Light: <%= plant.light_requirement %> hrs/day
+                </p>
+                <%= button_tag "Select", type: "button", class: "select-plant-btn py-1 px-3 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none", data: { plant_id: plant.id, plant_name: plant.common_name } %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="text-gray-500">No recommendations available.</p>
+        <% end %>
+      <% end %>
+    </turbo-frame>
   </div>
-<% end %>
+</div>
 
 <script>
-  // Toggle the ZIP code field based on the selected location_type
+  // Toggle ZIP code field for outdoor modules
   document.addEventListener("DOMContentLoaded", function() {
     var indoorRadio = document.querySelector('input[name="plant_module[location_type]"][value="indoor"]');
     var outdoorRadio = document.querySelector('input[name="plant_module[location_type]"][value="outdoor"]');
@@ -63,5 +148,44 @@
     indoorRadio.addEventListener("change", toggleZipField);
     outdoorRadio.addEventListener("change", toggleZipField);
     toggleZipField();
+  });
+
+  // Handle Apply Filters button click using Turbo.visit
+  document.getElementById("apply-filters").addEventListener("click", function() {
+    const maxHeight = document.querySelector('input[name="max_height"]').value;
+    const maxWidth  = document.querySelector('input[name="max_width"]').value;
+    const maintenance = document.querySelector('select[name="maintenance"]').value;
+    const edible = document.querySelector('select[name="edible"]').value;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("max_height", maxHeight);
+    url.searchParams.set("max_width", maxWidth);
+    url.searchParams.set("maintenance", maintenance);
+    url.searchParams.set("edible", edible);
+
+    Turbo.visit(url.toString());
+  });
+
+  // Delegated event listener for plant selection
+  document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("select-plant-btn")) {
+      e.preventDefault();
+      const plantId = e.target.dataset.plant_id;
+      const plantName = e.target.dataset.plant_name;
+
+      const selectedContainer = document.querySelector("#selected-plants ul");
+      const listItem = document.createElement("li");
+      listItem.textContent = plantName;
+      listItem.dataset.plant_id = plantId;
+
+      // Add a hidden field so the plant ID is submitted with the module form
+      const hiddenInput = document.createElement("input");
+      hiddenInput.type = "hidden";
+      hiddenInput.name = "plant_module[plant_ids][]";
+      hiddenInput.value = plantId;
+      listItem.appendChild(hiddenInput);
+
+      selectedContainer.appendChild(listItem);
+    }
   });
 </script>

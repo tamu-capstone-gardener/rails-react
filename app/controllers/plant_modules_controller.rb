@@ -20,6 +20,24 @@ class PlantModulesController < AuthenticatedApplicationController
     @plant_modules = current_user.plant_modules
   end
 
+  def new
+    @plant_module = PlantModule.new(location_type: "indoor")
+
+    # Read filter values from params (if present); default values as used in the service.
+    filters = {
+      max_height: params[:max_height],
+      max_width: params[:max_width],
+      maintenance: params[:maintenance],
+      edible: params[:edible]
+    }
+
+    @recommendations = PlantRecommendationService.new(
+      location_type: @plant_module.location_type,
+      filters: filters
+    ).recommendations
+  end
+  
+
   def create
     @plant_module = PlantModule.new(plant_module_params)
     @plant_module.user = current_user
@@ -42,4 +60,11 @@ class PlantModulesController < AuthenticatedApplicationController
     )
     redirect_to plant_modules_path, notice: "Module created successfully."
   end
+
+  private
+
+    def plant_module_params
+      params.require(:plant_module).permit(:name, :description, :location, :location_type, :zip_code)
+    end
+
 end
