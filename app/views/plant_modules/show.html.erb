@@ -2,17 +2,17 @@
   <!-- Navigation Link -->
   <div class="mb-6">
     <%= link_to sanitize("Back to Home"), root_path,
-        class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
+          class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
   <!-- Module Title & Description -->
-  <h1 class="text-3xl font-bold theme-text">
+  <h1 class="text-3xl font-bold theme-text-primary">
     <%= sanitize(@plant_module.name) %>
   </h1>
-  <p class="theme-text">
+  <p class="theme-text-secondary">
     <%= sanitize(@plant_module.description) %>
   </p>
-  <p class="text-sm theme-text">
+  <p class="text-sm theme-text-secondary">
     Location: <%= sanitize(@plant_module.location) %>
     <% if @plant_module.location_type.downcase == "outdoor" %>
       (ZIP: <%= sanitize(@plant_module.zip_code) %>)
@@ -23,8 +23,8 @@
   <div class="mt-8">
     <h2 class="text-2xl font-semibold theme-text-primary">Selected Plants</h2>
     <% @plant_module.plants.each do |plant| %>
-      <div class="plant-care-card border rounded-lg p-4 my-4 shadow-md">
-        <h3 class="text-xl font-bold theme-text">
+      <div class="text-box border rounded-lg p-4 my-4 shadow-md">
+        <h3 class="text-xl font-bold theme-text-primary">
           <%= sanitize(plant.common_name) %> (<%= sanitize(plant.genus) %> <%= sanitize(plant.species) %>)
         </h3>
         <ul class="mt-2 list-disc list-inside">
@@ -51,7 +51,7 @@
 
   <!-- Sensors & Time Series Data (unchanged) -->
   <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text">Sensors</h2>
+    <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
     <ul>
       <% @sensors.each do |sensor| %>
         <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
@@ -70,16 +70,16 @@
                 <%= line_chart @sensor_data[sensor.id], 
                   xtitle: "Time", 
                   ytitle: sanitize(sensor.measurement_unit),
-                  colors: ["#34D399", "#FFFFFF"], # Green color
+                  colors: ["#34D399", "#FFFFFF"],
                   library: { 
                     backgroundColor: "transparent",
-                    legend: { labels: { fontColor: "black" } }, # Default Light Mode
+                    legend: { labels: { fontColor: "var(--app-text-secondary)" } },
                     scales: {
-                      x: { ticks: { fontColor: "black" } },
-                      y: { ticks: { fontColor: "black" } }
+                      x: { ticks: { fontColor: "var(--app-text-secondary)" } },
+                      y: { ticks: { fontColor: "var(--app-text-secondary)" } }
                     },
                     datasets: [
-                      { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
+                      { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" }
                     ]
                   } %>
               <% else %>
@@ -93,7 +93,7 @@
       <% end %>
       <div class="mt-4">
         <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
-           params: { plant_module_id: @plant_module.id }, remote: true %>
+          params: { plant_module_id: @plant_module.id }, remote: true %>
       </div>
     </ul>
   </div>
