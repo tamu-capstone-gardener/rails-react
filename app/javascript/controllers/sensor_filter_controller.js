@@ -1,14 +1,21 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  update(event) {
-    let days = event.target.value;
-    
-    // Send a Turbo request with params
-    fetch(`/sensors/${this.element.dataset.sensorId}/time_series?days=${days}`, {
+  static targets = ["startDate"];
+  static values = { sensorId: String };
+
+  update() {
+    const startDate = this.startDateTarget.value;
+    const sensorId = this.sensorIdValue;
+
+    // Build query parameters if dates are provided.
+    const params = new URLSearchParams();
+    if (startDate) params.append("start_date", startDate);
+
+    fetch(`/sensors/${sensorId}/time_series?${params.toString()}`, {
       headers: { Accept: "text/vnd.turbo-stream.html" }
     })
-    .then(response => response.text())
-    .then(html => Turbo.renderStreamMessage(html));
+      .then(response => response.text())
+      .then(html => Turbo.renderStreamMessage(html));
   }
 }

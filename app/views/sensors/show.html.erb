@@ -1,28 +1,25 @@
-<div class="container mx-auto p-6 theme-text">
+<div class="container mx-auto p-6 theme-text-primary">
   <div class="mb-6">
     <%= link_to "Back to Plant Module", plant_module_path(@sensor.plant_module),
           class: "btn-secondary text-white px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
   <h1 class="text-3xl font-bold"><%= sanitize(@sensor.measurement_type) %> Data</h1>
-  <p class="theme-text"><strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %></p>
+  <p class="theme-text-secondary"><strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %></p>
 
-  <!-- Dropdown to Select Days -->
+  <!-- Date select to filter data -->
   <div class="mb-4 flex flex-row items-center gap-4">
-    <label for="days" class="block theme-text font-semibold">Show data for past:</label>
-    <select 
+    <label for="start_date" class="block theme-text-secondary font-semibold">Show data since:</label>
+    <input 
+      type="date" 
+      id="start_date"
       data-controller="sensor-filter" 
-      data-action="change->sensor-filter#update"
-      data-sensor-id="<%= @sensor.id %>"
-      id="days" 
-      class="select px-3 py-2 rounded cursor-pointer hover:cursor-pointer"
-    >
-      <option value="5">5 Days</option>
-      <option value="10">10 Days</option>
-      <option value="15">15 Days</option>
-      <option value="25">25 Days</option>
-      <option value="100">100 Days</option>
-    </select>
+      data-sensor-filter-target="startDate"
+      data-action="change->sensor-filter#update" 
+      data-sensor-filter-sensor-id-value="<%= @sensor.id %>"
+      class="px-3 py-2 rounded border border-gray-300"
+    />
+
   </div>
 
   <!-- Turbo Frame for Chart -->
