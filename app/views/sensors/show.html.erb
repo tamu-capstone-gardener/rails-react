@@ -14,10 +14,12 @@
       type="date" 
       id="start_date"
       data-controller="sensor-filter" 
+      data-sensor-filter-target="startDate"
       data-action="change->sensor-filter#update" 
-      data-sensor-id="<%= @sensor.id %>"
+      data-sensor-filter-sensor-id-value="<%= @sensor.id %>"
       class="px-3 py-2 rounded border border-gray-300"
-    >
+    />
+
   </div>
 
   <!-- Turbo Frame for Chart -->
