@@ -32,9 +32,6 @@ class MqttController < AuthenticatedApplicationController
     MQTT::Client.connect(
       host: @secrets[:url],
       port: @secrets[:port],
-      username: @secrets[:username],
-      password: @secrets[:password],
-      ssl: true
     ) do |client|
       client.publish(topic, message)
     end

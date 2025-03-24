@@ -1,34 +1,29 @@
-<div class="container mx-auto p-6">
+<div class="container mx-auto p-6 theme-text-primary">
   <div class="mb-6">
-    <%= link_to sanitize("Back to Plant Module"), plant_module_path(@sensor.plant_module),
-          class: "bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300 inline-block" %>
+    <%= link_to "Back to Plant Module", plant_module_path(@sensor.plant_module),
+          class: "btn-secondary text-white px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
   <h1 class="text-3xl font-bold"><%= sanitize(@sensor.measurement_type) %> Data</h1>
-  <p class="text-gray-600"><strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %></p>
-  <div class="h-120">
-    <% if @time_series_data.any? %>
-        <%= line_chart @time_series_data, 
-            xtitle: "Time", 
-            ytitle: sanitize(@sensor.measurement_unit),
-            colors: ["#34D399", "#FFFFFF"], # Green color
-            library: { 
-              backgroundColor: "transparent",
-              legend: { labels: { fontColor: "white" } },
-              scales: {
-                x: { ticks: { fontColor: "white" } },
-                y: { ticks: { fontColor: "white" } }
-              },
-              datasets: [
-                { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
-              ]
-            } %>
+  <p class="theme-text-secondary"><strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %></p>
 
+  <!-- Date select to filter data -->
+  <div class="mb-4 flex flex-row items-center gap-4">
+    <label for="start_date" class="block theme-text-secondary font-semibold">Show data since:</label>
+    <input 
+      type="date" 
+      id="start_date"
+      data-controller="sensor-filter" 
+      data-sensor-filter-target="startDate"
+      data-action="change->sensor-filter#update" 
+      data-sensor-filter-sensor-id-value="<%= @sensor.id %>"
+      class="px-3 py-2 rounded border border-gray-300"
+    />
 
-    <% else %>
-        <p class="text-gray-500 mt-4">No time series data available for this sensor.</p>
-    <% end %>
   </div>
 
-  <%= link_to "Back to Plant Module", plant_module_path(@sensor.plant_module), class: "text-blue-500 hover:underline mt-4 block" %>
+  <!-- Turbo Frame for Chart -->
+  <turbo-frame id="sensor_chart">
+    <%= render "sensors/chart", sensor: @sensor, time_series_data: @time_series_data %>
+  </turbo-frame>
 </div>

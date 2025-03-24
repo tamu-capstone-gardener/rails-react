@@ -1,0 +1,15 @@
+<% if plants.present? %>
+  <div class="space-y-4">
+    <% plants.each do |plant| %>
+      <div class="p-4 theme-bg-alt rounded-md shadow">
+        <p class="theme-text-primary">
+          <strong><%= plant.common_name %></strong> (<%= plant.genus %> <%= plant.species %>)
+          - Light: <%= plant.light_requirement %> hrs/day
+        </p>
+        <%= button_tag "Select", type: "button", class: "select-plant-btn py-1 px-3 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none", data: { plant_id: plant.id, plant_name: plant.common_name } %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="theme-text-primary">No plants found.</p>
+<% end %>
