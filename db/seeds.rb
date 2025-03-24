@@ -20,7 +20,7 @@ ModulePlant.destroy_all
 # -------------------------------
 # 2. Create or Collect Users
 # -------------------------------
-existing_users = User.where("email LIKE ?", "%@gmail.com").to_a
+existing_users = User.where("email LIKE ? OR email LIKE ?", "%@gmail.com", "%@tamu.edu").to_a
 users_needed = 5 - existing_users.count
 
 users_needed.times do
