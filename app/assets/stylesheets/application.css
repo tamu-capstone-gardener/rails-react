@@ -1,0 +1,78 @@
+/* Define your theme variables for light mode */
+:root {
+  --app-bg: #ffffff;       /* light background */
+  --app-btn-primary: #3461d3;  /* primary button color */
+  --app-btn-primary-rotate: #1e4bb8; /* primary button hover color */
+  --app-btn-secondary: #016630;
+  --app-btn-secondary-rotate: #008236; 
+  --app-bg-alt: #f0f0f0;     /* light alternative background */
+  --app-text-primary: #000000;     /* light text */
+  --app-text-secondary: #4a5568; /* light secondary text */
+  --app-primary: #3461d3;  /* primary color */
+  --app-secondary: #ffffff;/* secondary color */
+}
+  
+  /* Override variables when dark mode is active */
+html.dark {
+  --app-bg: #1a202c;       /* dark background */
+  --app-bg-alt: #2d3748;   /* dark alternative background */
+  --app-text-primary: #ffffff;     /* dark text */
+  --app-text-secondary: #e2e8f0; /* dark secondary text */
+  --app-primary: #34d399;  /* you can adjust as needed */
+  --app-secondary: #ffffff;
+}
+  
+  /* Utility classes that use the theme variables */
+.theme-bg {
+  background-color: var(--app-bg) !important;
+}
+
+.btn-primary {
+  background-color: var(--app-btn-primary) !important;
+  color: #ffffff !important;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--app-btn-primary-rotate) !important;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background-color: var(--app-btn-secondary) !important;
+  color: #ffffff !important;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--app-btn-secondary-rotate) !important;
+  cursor: pointer;
+}
+
+.select {
+  background-color: var(--app-bg-alt) !important;
+  color: var(--app-text) !important;
+  border: 1px solid var(--app-bg-alt) !important;
+  transition: background-color 0.3s ease;
+}
+
+.theme-bg-alt {
+  background-color: var(--app-bg-alt) !important;
+}
+  
+.theme-text-primary {
+  color: var(--app-text-primary) !important;
+}
+
+.theme-text-secondary {
+  color: var(--app-text-secondary) !important;
+}
+
+.text-box {
+  background-color: var(--app-bg-alt) !important;
+  color: var(--app-text-primary) !important;
+  border: 1px solid var(--app-bg-alt) !important;
+  transition: background-color 0.3s ease;
+  caret-color: var(--app-text-primary) !important;
+}
+  
