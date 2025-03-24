@@ -56,13 +56,7 @@ Ensure you have the following installed:
   ```sh
   rubocop
   ```  
-<<<<<<< HEAD
 ## Link to other repos
-=======
-
-### Link to other repos
->>>>>>> 6dfb49a (Update README.md)
-
 | Repository Name                | Description                                                   | Link                                                                 |
 |--------------------------------|---------------------------------------------------------------|----------------------------------------------------------------------|
 | Ruby on Rails Server           | Web server application for our project built with Ruby on Rails | [Repository](https://github.com/tamu-capstone-gardener/rails-react)   |
