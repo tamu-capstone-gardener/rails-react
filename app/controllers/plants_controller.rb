@@ -1,23 +1,20 @@
+# app/controllers/plants_controller.rb
 class PlantsController < ApplicationController
-  def index
-    if params[:query].present?
-      @plants = Plant.where("common_name ILIKE ? OR genus ILIKE ? OR species ILIKE ?", 
-                            "%#{params[:query]}%", "%#{params[:query]}%", "%#{params[:query]}%")
-    else
-      filters = {
-        max_height: params[:max_height],
-        max_width: params[:max_width],
-        maintenance: params[:maintenance],
-        edible: params[:edible]
-      }
-      # Here we assume indoor recommendations; adjust if you pass a location_type via params.
-      @plants = PlantRecommendationService.new(location_type: "indoor", filters: filters).recommendations
+    def index
+      if params[:query].present?
+        @plants = Plant.where("CommonName ILIKE ? OR Genus ILIKE ? OR Species ILIKE ?", "%#{params[:query]}%", "%#{params[:query]}%", "%#{params[:query]}%")
+      else
+        @plants = Plant.all.limit(50)
+      end
+  
+      respond_to do |format|
+        format.html  # renders index.html.erb
+        format.js    # used for AJAX search (if implemented)
+      end
     end
-
-    if turbo_frame_request?
-      render partial: "plants/recommendations", locals: { plants: @plants }
-    else
-      render :index
+  
+    def show
+      @plant = Plant.find(params[:id])
     end
   end
-end
+  

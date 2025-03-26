@@ -1,40 +1,36 @@
-<div class="max-w-3xl mx-auto p-6 pt-16">
-  <h1 class="text-3xl font-bold text-gray-800 mb-6">Search Plants</h1>
+<!-- app/views/plants/index.html.erb -->
+<h1>Search Plants</h1>
 
-  <%= form_with url: plants_path, method: :get, local: true, class: "mb-6" do |f| %>
-    <div class="flex flex-col md:flex-row md:items-center gap-4">
-      <div class="flex-1">
-        <%= f.label :query, "Search by Common Name, Genus or Species", class: "block text-sm font-medium text-gray-700" %>
-        <%= f.text_field :query, value: params[:query], placeholder: "Type your search...", class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" %>
-      </div>
-      <div>
-        <%= f.submit "Search", class: "py-2 px-4 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none" %>
-      </div>
+<%= form_with url: plants_path, method: :get, local: true do |f| %>
+  <div>
+    <%= f.label :query, "Search by Common Name, Genus or Species" %>
+    <%= f.text_field :query, value: params[:query] %>
+    <%= f.submit "Search" %>
+  </div>
+<% end %>
+
+<div>
+  <% @plants.each do |plant| %>
+    <div class="plant-result">
+      <p>
+        <strong><%= plant.CommonName %></strong> (<%= plant.Genus %> <%= plant.Species %>)
+        - Light: <%= plant.light_requirement %> hrs/day
+      </p>
+      <%= button_to "Select", "#", class: "select-plant-btn", data: { plant_id: plant.id, plant_name: plant.CommonName } %>
     </div>
   <% end %>
-
-  <div class="space-y-4">
-    <% @plants.each do |plant| %>
-      <div class="p-4 theme-bg-alt rounded-md shadow hover:shadow-lg transition-shadow">
-        <p class="theme-text-primary">
-          <strong><%= plant.common_name %></strong> (<%= plant.genus %> <%= plant.species %>)
-          - Light: <%= plant.light_requirement %> hrs/day
-        </p>
-        <div class="mt-2">
-          <%= button_to "Select", "#", class: "btn-primary py-1 px-3 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none", data: { plant_id: plant.id, plant_name: plant.common_name } %>
-        </div>
-      </div>
-    <% end %>
-  </div>
 </div>
 
 <script>
-  // Handle plant selection override.
+  // Example JavaScript to handle plant selection override.
+  // This script would typically communicate the selected plant back to the new module form.
   document.querySelectorAll('.select-plant-btn').forEach(function(button) {
     button.addEventListener('click', function(e) {
       e.preventDefault();
       var plantId = this.dataset.plant_id;
       var plantName = this.dataset.plant_name;
+      // For demonstration, simply alert the selected plant.
+      // In practice, you would update the form (e.g. adding a hidden field or replacing a recommendation).
       alert("Selected plant: " + plantName + " (ID: " + plantId + ")");
     });
   });

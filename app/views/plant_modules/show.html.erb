@@ -2,29 +2,36 @@
   <!-- Navigation Link -->
   <div class="mb-6">
     <%= link_to sanitize("Back to Home"), root_path,
-          class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
+        class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
   <!-- Module Title & Description -->
-  <h1 class="text-3xl font-bold theme-text-primary">
+  <h1 class="text-3xl font-bold theme-text">
     <%= sanitize(@plant_module.name) %>
   </h1>
-  <p class="theme-text-secondary">
+  <p class="theme-text">
     <%= sanitize(@plant_module.description) %>
   </p>
-  <p class="text-sm theme-text-secondary">
+  <p class="text-sm theme-text">
     Location: <%= sanitize(@plant_module.location) %>
     <% if @plant_module.location_type.downcase == "outdoor" %>
       (ZIP: <%= sanitize(@plant_module.zip_code) %>)
     <% end %>
   </p>
 
+  <!-- Static Advice/LLM Section -->
+  <div class="container mt-6 mx-auto flex items-center justify-center theme-bg-alt p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <p class="theme-text">
+      Placeholder for LLM Advice or Random Fun Fact
+    </p>
+  </div>
+
   <!-- Selected Plants & Care Guide -->
   <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text-primary">Selected Plants & Care Guide</h2>
+    <h2 class="text-2xl font-semibold theme-text">Selected Plants & Care Guide</h2>
     <% @plant_module.plants.each do |plant| %>
-      <div class="text-box border rounded-lg p-4 my-4 shadow-md">
-        <h3 class="text-xl font-bold theme-text-primary">
+      <div class="plant-care-card border rounded-lg p-4 my-4 shadow-md">
+        <h3 class="text-xl font-bold theme-text">
           <%= sanitize(plant.common_name) %> (<%= sanitize(plant.genus) %> <%= sanitize(plant.species) %>)
         </h3>
         <ul class="mt-2 list-disc list-inside">
@@ -39,8 +46,8 @@
       </div>
     <% end %>
     <div class="mt-4">
-      <h3 class="text-lg font-medium theme-text-primary">Module Default Schedule</h3>
-      <ul class="list-disc list-inside theme-text-secondary">
+      <h3 class="text-lg font-medium theme-text">Module Default Schedule</h3>
+      <ul class="list-disc list-inside">
         <li>Water every <%= @plant_module.care_schedule.watering_frequency %> days</li>
         <li>Fertilize every <%= @plant_module.care_schedule.fertilizer_frequency %> days</li>
         <li>Light exposure: <%= @plant_module.care_schedule.light_hours %> hrs/day</li>
@@ -51,52 +58,47 @@
 
   <!-- Sensors & Time Series Data -->
   <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
+    <h2 class="text-2xl font-semibold theme-text">Sensors</h2>
     <ul>
-      <% @sensors.each do |sensor| %>
-        <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
-          <div class="flex-shrink-0 w-full items-start mb-6">
-            <h2 class="text-xl font-bold theme-text-primary">
-              <%= sanitize(sensor.measurement_type) %>
-            </h2>
-          </div>
+      <div data-controller="chart">
+        <% @sensors.each do |sensor| %>
+          <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
+            <div class="flex-shrink-0 w-full items-start mb-6">
+              <h2 class="text-xl font-bold theme-text">
+                <%= sanitize(sensor.measurement_type) %>
+              </h2>
+            </div>
 
-          <!-- Date range inputs and chart container with both controllers -->
-          <div class="w-full" data-controller="sensor-filter dark-mode-chart"
-              data-sensor-filter-sensor-id-value="<%= sensor.id %>">
-            <!-- Date Inputs -->
-
-            <!-- Turbo Frame for Chart -->
-            <turbo-frame id="chart-<%= sensor.id %>">
-              <% if @sensor_data[sensor.id].any? %>
+            <% if @sensor_data[sensor.id].any? %>
+              <div class="mt-4 w-full" data-chart-target="chart" id="chart-<%= sensor.id %>">
                 <%= line_chart @sensor_data[sensor.id], 
                   xtitle: "Time", 
                   ytitle: sanitize(sensor.measurement_unit),
-                  colors: ["#34D399", "#FFFFFF"],
+                  colors: ["#34D399", "#FFFFFF"], # Green color
                   library: { 
                     backgroundColor: "transparent",
-                    legend: { labels: { fontColor: "var(--app-text-secondary)" } },
+                    legend: { labels: { fontColor: "black" } }, # Default Light Mode
                     scales: {
-                      x: { ticks: { fontColor: "var(--app-text-secondary)" } },
-                      y: { ticks: { fontColor: "var(--app-text-secondary)" } }
+                      x: { ticks: { fontColor: "black" } },
+                      y: { ticks: { fontColor: "black" } }
                     },
                     datasets: [
-                      { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" }
+                      { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" } # Green color
                     ]
                   } %>
-              <% else %>
-                <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
-              <% end %>
-            </turbo-frame>
-          </div>
+              </div>
+            <% else %>
+              <p class="theme-text mt-2">No time series data available for this sensor.</p>
+            <% end %>
+            <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
+                  class: "text-blue-500 hover:underline ml-2" %>
+          </li>
+        <% end %>  
+      </div>
 
-          <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
-                class: "text-blue-500 hover:underline ml-2" %>
-        </li>
-      <% end %>
       <div class="mt-4">
         <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
-          params: { plant_module_id: @plant_module.id }, remote: true %>
+           params: { plant_module_id: @plant_module.id }, remote: true %>
       </div>
     </ul>
   </div>
