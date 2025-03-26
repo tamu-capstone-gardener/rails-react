@@ -9,5 +9,4 @@ module PlantsHelper
       empty_stars = "☆" * (5 - stars)
       full_stars + empty_stars
     end
-  end
-  
+end

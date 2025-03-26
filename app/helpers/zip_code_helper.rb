@@ -1,7 +1,7 @@
 module ZipCodeHelper
-    require 'csv'
+    require "csv"
     CSV_FILE_PATH = Rails.root.join("app", "assets", "csv", "phzm_us_zipcode_2023.csv")
-  
+
     # Load CSV into a hash mapping zip codes to zone data.
     ZIP_ZONE_MAP = CSV.read(CSV_FILE_PATH, headers: true).each_with_object({}) do |row, hash|
       hash[row["zipcode"]] = {
@@ -10,11 +10,11 @@ module ZipCodeHelper
         zonetitle: row["zonetitle"]
       }
     end.freeze
-  
+
     def zone_for_zip(zip_code)
       ZIP_ZONE_MAP[zip_code]
     end
-  
+
     # Optionally, you can also add a helper method here to check if a plant is in the zone.
     def plant_in_zone?(plant, zip_code)
       return false if zip_code.blank?
@@ -25,5 +25,4 @@ module ZipCodeHelper
       plant_zones = JSON.parse(plant.hardiness_zones) rescue []
       plant_zones.include?(zone_num)
     end
-  end
-  
+end

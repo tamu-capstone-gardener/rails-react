@@ -33,7 +33,7 @@ class PlantRecommendationService
     return [] if @zip_code.blank?
     zone_data = zone_for_zip(@zip_code)
     return [] unless zone_data
-  
+
     zone_str = zone_data[:zone]       # e.g., "9b"
     zone_num = zone_str.match(/\d+/)[0] # extracts "9"
     Rails.logger.info "Using zone number: #{zone_num} for outdoor recommendations"
@@ -50,5 +50,4 @@ class PlantRecommendationService
 
     query.limit(15).to_a
   end
-  
 end

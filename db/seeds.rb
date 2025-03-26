@@ -44,7 +44,7 @@ existing_users.each do |user|
       name: Faker::Lorem.word.capitalize,
       description: Faker::Lorem.sentence,
       location: Faker::Address.city,
-      location_type: ['indoor', 'outdoor'].sample,  # Randomly assign indoor/outdoor for demo
+      location_type: [ 'indoor', 'outdoor' ].sample,  # Randomly assign indoor/outdoor for demo
       zip_code: (rand(10000..99999)).to_s             # Only used for outdoor modules
     )
 
@@ -62,8 +62,8 @@ existing_users.each do |user|
     3.times do
       sensor = plant_module.sensors.create!(
         id: SecureRandom.uuid,
-        measurement_unit: ['Celsius', 'Lux', 'Moisture'].sample,
-        measurement_type: ['Temperature', 'Light', 'Soil Moisture'].sample
+        measurement_unit: [ 'Celsius', 'Lux', 'Moisture' ].sample,
+        measurement_type: [ 'Temperature', 'Light', 'Soil Moisture' ].sample
       )
 
       # Generate up to 100 days of time series data

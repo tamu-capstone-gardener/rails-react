@@ -13,15 +13,15 @@ Rails.application.routes.draw do
 
   # Nested resources for plant_modules
   resources :plant_modules do
-    resources :sensors, only: [:index, :show] # Added :show to allow individual sensor pages
+    resources :sensors, only: [ :index, :show ] # Added :show to allow individual sensor pages
     resources :schedules
   end
 
   # Add routes for the plants page (for interactive plant selection/overrides)
-  resources :plants, only: [:index, :show]
+  resources :plants, only: [ :index, :show ]
 
   # Time series data routes
-  resources :time_series_data, only: [:index, :show]
+  resources :time_series_data, only: [ :index, :show ]
 
   # Custom route for viewing sensor time series data
   get "sensors/:id/time_series", to: "sensors#show", as: :sensor_time_series
