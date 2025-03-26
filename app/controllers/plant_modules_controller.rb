@@ -36,7 +36,7 @@ class PlantModulesController < AuthenticatedApplicationController
       filters: filters
     ).recommendations
   end
-  
+
 
   def create
     @plant_module = PlantModule.new(plant_module_params)
@@ -50,21 +50,9 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
-  def simple_create
-    PlantModule.create!(
-      id: SecureRandom.uuid,
-      user_id: current_user.uid,
-      name: "Example Module",
-      description: "Module description here",
-      location: "Module location"
-    )
-    redirect_to plant_modules_path, notice: "Module created successfully."
-  end
-
   private
 
     def plant_module_params
       params.require(:plant_module).permit(:name, :description, :location, :location_type, :zip_code)
     end
-
 end
