@@ -30,14 +30,14 @@
     </style>
   </head>
 
-  <body class="theme-text-primary theme-bg">
+  <body class="theme-text-primary theme-bg w-full">
     <header>
       <%= render "shared/navbar" %>
     </header>
     <div id="flash_messages" class="absolute w-full top-20 z-50">
       <%= render "shared/flash" %>
     </div>
-    <main class="absolute container mx-auto px-5 flex top-20">
+    <main class="absolute mx-auto px-5 flex top-20 w-full">
       <%= yield %>
     </main>
   </body>
