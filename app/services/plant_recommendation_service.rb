@@ -1,3 +1,4 @@
+# app/services/plant_recommendation_service.rb
 class PlantRecommendationService
   include ZipCodeHelper  # This makes zone_for_zip available
 

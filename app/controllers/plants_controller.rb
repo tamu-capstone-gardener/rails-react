@@ -1,3 +1,4 @@
+# app/controllers/plants_controller.rb
 class PlantsController < ApplicationController
   include ZipCodeHelper  # if you need to use helper methods here as well
 
@@ -36,4 +37,4 @@ class PlantsController < ApplicationController
       render :index
     end
   end
-end
+  
