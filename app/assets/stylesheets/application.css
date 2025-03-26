@@ -54,6 +54,7 @@ html.dark {
   color: var(--app-text) !important;
   border: 1px solid var(--app-bg-alt) !important;
   transition: background-color 0.3s ease;
+  padding: 5px;
 }
 
 .theme-bg-alt {
@@ -74,5 +75,6 @@ html.dark {
   border: 1px solid var(--app-bg-alt) !important;
   transition: background-color 0.3s ease;
   caret-color: var(--app-text-primary) !important;
+  padding: 5px; 
 }
   
