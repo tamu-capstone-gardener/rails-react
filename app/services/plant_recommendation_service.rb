@@ -50,4 +50,5 @@ class PlantRecommendationService
 
     query.limit(15).to_a
   end
+  
 end
