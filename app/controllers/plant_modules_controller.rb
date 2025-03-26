@@ -3,14 +3,14 @@ class PlantModulesController < AuthenticatedApplicationController
 =======
   def new
     @plant_module = PlantModule.new(location_type: "indoor")
-    
+
     filters = {
       max_height: params[:max_height],
       max_width: params[:max_width],
       maintenance: params[:maintenance],
       edible: params[:edible]
     }
-    
+
     @recommendations = PlantRecommendationService.new(
       location_type: @plant_module.location_type,
       filters: filters
@@ -21,8 +21,8 @@ class PlantModulesController < AuthenticatedApplicationController
     @plant_module = PlantModule.new(plant_module_params)
     @plant_module.user = current_user
     @plant_module.id = SecureRandom.uuid  # Optional if you add a similar before_create in PlantModule
-  
-    if @plant_module.save   
+
+    if @plant_module.save
       CareSchedule.create!(
         plant_module_id: @plant_module.id,
         watering_frequency: 7,
@@ -30,15 +30,15 @@ class PlantModulesController < AuthenticatedApplicationController
         light_hours: 8,
         soil_moisture_pref: "medium"
       )
-  
+
       redirect_to plant_modules_path, notice: "Plant module created successfully."
     else
       flash.now[:alert] = "Error creating plant module."
       render :new
     end
   end
-  
-  
+
+
 
   def show
     @plant_module = PlantModule.find_by(id: params[:id])
