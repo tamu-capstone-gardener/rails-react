@@ -5,9 +5,6 @@ class CareSchedule < ApplicationRecord
     self.primary_key = "id"
     before_create :assign_uuid
 
-    self.primary_key = "id"
-    before_create :assign_uuid
-
     private
 
     def assign_uuid

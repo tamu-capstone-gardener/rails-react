@@ -32,9 +32,6 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
-
-
-
   def show
     @plant_module = PlantModule.find_by(id: params[:id])
 
