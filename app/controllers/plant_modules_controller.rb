@@ -82,19 +82,19 @@ class PlantModulesController < AuthenticatedApplicationController
     @plant_module = PlantModule.new(plant_module_params)
     @plant_module.user = current_user
     @plant_module.id = SecureRandom.uuid
-  
+
     if @plant_module.save
       # Calculate care schedule based on associated plants
       schedule_attrs = CareScheduleCalculator.new(@plant_module.plants).calculate
       CareSchedule.create!(plant_module: @plant_module, **schedule_attrs)
-  
+
       redirect_to plant_modules_path, notice: "Plant module created successfully."
     else
       flash.now[:alert] = "Error creating plant module."
       render :new
     end
   end
-  
+
 
 
 

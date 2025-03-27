@@ -1,5 +1,5 @@
 class SensorsController < ApplicationController
-  before_action :set_plant_module, only: [:new, :create]
+  before_action :set_plant_module, only: [ :new, :create ]
 
   def show
     @sensor = Sensor.find(params[:id])
@@ -56,7 +56,7 @@ class SensorsController < ApplicationController
       render :new, status: :unprocessable_entity
     end
   end
-  
+
 
   private
 
