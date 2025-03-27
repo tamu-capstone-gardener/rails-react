@@ -8,5 +8,4 @@ class Plant < ApplicationRecord
         "6-8"
       end
     end
-  end
-  
+end
