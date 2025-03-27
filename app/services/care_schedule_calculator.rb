@@ -76,9 +76,9 @@ class CareScheduleCalculator
     def parse_soils(soils_string)
       return [] unless soils_string.present?
       begin
-        result = eval(soils_string)  # Use with caution—ensure your data is trusted!
+        result = JSON.parse(soils_string)
         result.is_a?(Array) ? result : []
-      rescue StandardError
+      rescue JSON::ParserError
         []
       end
     end
