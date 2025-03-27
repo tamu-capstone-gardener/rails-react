@@ -1,0 +1,50 @@
+<ul>
+    <% @sensors.each do |sensor| %>
+    <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
+        <div class="flex-shrink-0 w-full items-start mb-6">
+        <h2 class="text-xl font-bold theme-text-primary">
+            <%= sanitize(sensor.measurement_type) %>
+        </h2>
+        </div>
+        <!-- Date range inputs and chart container with both controllers -->
+        <div class="w-full" data-controller="sensor-filter dark-mode-chart"
+            data-sensor-filter-sensor-id-value="<%= sensor.id %>">
+        <!-- Date Inputs -->
+        <!-- Turbo Frame for Chart -->
+        <turbo-frame id="chart-<%= sensor.id %>">
+        <% if @sensor_data && @sensor_data[sensor.id] && @sensor_data[sensor.id].any? %>
+            <%= line_chart @sensor_data[sensor.id], 
+                xtitle: "Time", 
+                ytitle: sanitize(sensor.measurement_unit),
+                colors: ["#34D399", "#FFFFFF"],
+                library: { 
+                backgroundColor: "transparent",
+                legend: { labels: { fontColor: "var(--app-text-secondary)" } },
+                scales: {
+                    x: { ticks: { fontColor: "var(--app-text-secondary)" } },
+                    y: { ticks: { fontColor: "var(--app-text-secondary)" } }
+                },
+                datasets: [
+                    { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" }
+                ]
+                } %>
+            <% else %>
+            <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
+            <% end %>
+        </turbo-frame>
+        </div>
+        <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
+            data: { turbo: false },
+            class: "text-blue-500 hover:underline ml-2" %>
+
+    </li>
+    <% end %>
+    <div class="mt-4">
+    <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
+        params: { plant_module_id: @plant_module.id }, remote: true %>
+    </div>
+</ul>
+<div class="mb-4">
+  <!-- Render the new sensor form -->
+  <%= render "sensors/form", plant_module: plant_module, sensor: Sensor.new %>
+</div>

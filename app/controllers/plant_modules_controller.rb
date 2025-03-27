@@ -81,23 +81,20 @@ class PlantModulesController < AuthenticatedApplicationController
   def create
     @plant_module = PlantModule.new(plant_module_params)
     @plant_module.user = current_user
-    @plant_module.id = SecureRandom.uuid  # Optional if you add a similar before_create in PlantModule
-
+    @plant_module.id = SecureRandom.uuid
+  
     if @plant_module.save
-      CareSchedule.create!(
-        plant_module_id: @plant_module.id,
-        watering_frequency: 7,
-        fertilizer_frequency: 30,
-        light_hours: 8,
-        soil_moisture_pref: "medium"
-      )
-
+      # Calculate care schedule based on associated plants
+      schedule_attrs = CareScheduleCalculator.new(@plant_module.plants).calculate
+      CareSchedule.create!(plant_module: @plant_module, **schedule_attrs)
+  
       redirect_to plant_modules_path, notice: "Plant module created successfully."
     else
       flash.now[:alert] = "Error creating plant module."
       render :new
     end
   end
+  
 
 
 
