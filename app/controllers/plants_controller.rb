@@ -1,7 +1,7 @@
 class PlantsController < ApplicationController
   def index
     if params[:query].present?
-      @plants = Plant.where("common_name ILIKE ? OR genus ILIKE ? OR species ILIKE ?", 
+      @plants = Plant.where("common_name ILIKE ? OR genus ILIKE ? OR species ILIKE ?",
                             "%#{params[:query]}%", "%#{params[:query]}%", "%#{params[:query]}%")
     else
       filters = {
