@@ -2,11 +2,10 @@ class PlantsController < ApplicationController
   include ZipCodeHelper  # if you need to use helper methods here as well
 
   def index
-    Rails.logger.error "INDEX ACTION HIT"
     if params[:query].present?
       @plants = Plant.where("common_name ILIKE ? OR genus ILIKE ? OR species ILIKE ?",
                             "%#{params[:query]}%", "%#{params[:query]}%", "%#{params[:query]}%")
-      Rails.logger.error "Found #{@plants.count} plants matching query '#{params[:query]}'"
+      Rails.logger.info "Found #{@plants.count} plants matching query '#{params[:query]}'"
     else
       filters = {
         max_height: params[:max_height],
