@@ -1,4 +1,6 @@
 class SensorsController < ApplicationController
+  before_action :set_plant_module, only: [ :new, :create ]
+
   def show
     @sensor = Sensor.find(params[:id])
 
@@ -26,5 +28,43 @@ class SensorsController < ApplicationController
         )
       end
     end
+  end
+
+  def new
+    @sensor = @plant_module.sensors.new
+  end
+
+  def create
+    @sensor = @plant_module.sensors.new(sensor_params)
+    if @sensor.save
+      respond_to do |format|
+        format.turbo_stream do
+          @sensors = @plant_module.sensors
+          @sensor_data = {}
+          @sensors.each do |sensor|
+            @sensor_data[sensor.id] = sensor.time_series_data.group("DATE(timestamp)").pluck(Arel.sql("DATE(timestamp), SUM(value)"))
+          end
+          render turbo_stream: turbo_stream.replace(
+            "sensors_list",
+            partial: "sensors/list",
+            locals: { plant_module: @plant_module, sensors: @sensors, sensor_data: @sensor_data }
+          )
+        end
+        format.html { redirect_to plant_module_path(@plant_module), notice: "Sensor added successfully." }
+      end
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+
+  private
+
+  def set_plant_module
+    @plant_module = PlantModule.find(params[:plant_module_id])
+  end
+
+  def sensor_params
+    params.require(:sensor).permit(:measurement_type, :measurement_unit)
   end
 end

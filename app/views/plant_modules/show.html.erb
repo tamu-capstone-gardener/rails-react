@@ -1,7 +1,7 @@
 <div class="container mx-auto p-6">
   <!-- Navigation Link -->
   <div class="mb-6">
-    <%= link_to sanitize("Back to Home"), root_path,
+    <%= link_to sanitize("Back to Modules"), plant_modules_path,
           class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
@@ -19,9 +19,9 @@
     <% end %>
   </p>
 
-  <!-- Selected Plants & Care Guide -->
+  <!-- Selected Plants -->
   <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text-primary">Selected Plants & Care Guide</h2>
+    <h2 class="text-2xl font-semibold theme-text-primary">Selected Plants</h2>
     <% @plant_module.plants.each do |plant| %>
       <div class="text-box border rounded-lg p-4 my-4 shadow-md">
         <h3 class="text-xl font-bold theme-text-primary">
@@ -29,75 +29,31 @@
         </h3>
         <ul class="mt-2 list-disc list-inside">
           <li><strong>Light:</strong> <%= plant.light_requirement %> hrs/day</li>
-          <li><strong>Watering:</strong> Every <%= @plant_module.care_schedule&.watering_frequency %> days</li>
-          <li><strong>Fertilization:</strong> Every <%= @plant_module.care_schedule&.fertilizer_frequency %> days</li>
-          <li><strong>Soil Moisture:</strong> <%= sanitize(@plant_module.care_schedule&.soil_moisture_pref) %></li>
           <% if @plant_module.location_type.downcase == "outdoor" %>
             <li><strong>Hardiness Zones:</strong> <%= sanitize(plant.hardiness_zones) %></li>
           <% end %>
         </ul>
       </div>
     <% end %>
-    <div class="mt-4">
-      <h3 class="text-lg font-medium theme-text-primary">Module Default Schedule</h3>
-      <ul class="list-disc list-inside theme-text-secondary">
-        <li>Water every <%= @plant_module.care_schedule&.watering_frequency %> days</li>
-        <li>Fertilize every <%= @plant_module.care_schedule&.fertilizer_frequency %> days</li>
-        <li>Light exposure: <%= @plant_module.care_schedule&.light_hours %> hrs/day</li>
-      </ul>
-      <%= link_to "Edit Module", edit_plant_module_path(@plant_module), class: "text-blue-500 hover:underline mt-2 inline-block" %>
-    </div>
   </div>
 
-  <!-- Sensors & Time Series Data -->
+  <!-- Total (Module Default) Care Schedule -->
+  <div class="mt-4">
+    <h3 class="text-lg font-medium theme-text-primary">Module Default Schedule</h3>
+    <ul class="list-disc list-inside theme-text-secondary">
+      <li>Water every <%= @plant_module.care_schedule.watering_frequency %> days</li>
+      <li>Fertilize every <%= @plant_module.care_schedule.fertilizer_frequency %> days</li>
+      <li>Light exposure: <%= @plant_module.care_schedule.light_hours %> hrs/day</li>
+      <li>Soil Moisture Preference: <%= sanitize(@plant_module.care_schedule.soil_moisture_pref) %></li>
+    </ul>
+    <%= link_to "Edit Module", edit_plant_module_path(@plant_module), class: "text-blue-500 hover:underline mt-2 inline-block" %>
+  </div>
+
+  <!-- Sensors & Time Series Data (unchanged) -->
   <div class="mt-8">
     <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
-    <ul>
-      <% @sensors.each do |sensor| %>
-        <li class="flex flex-col mb-4 items-center theme-bg-alt p-4 shadow-lg rounded-lg">
-          <div class="flex-shrink-0 w-full items-start mb-6">
-            <h2 class="text-xl font-bold theme-text-primary">
-              <%= sanitize(sensor.measurement_type) %>
-            </h2>
-          </div>
-
-          <!-- Date range inputs and chart container with both controllers -->
-          <div class="w-full" data-controller="sensor-filter dark-mode-chart"
-              data-sensor-filter-sensor-id-value="<%= sensor.id %>">
-            <!-- Date Inputs -->
-
-            <!-- Turbo Frame for Chart -->
-            <turbo-frame id="chart-<%= sensor.id %>">
-              <% if @sensor_data[sensor.id].any? %>
-                <%= line_chart @sensor_data[sensor.id], 
-                  xtitle: "Time", 
-                  ytitle: sanitize(sensor.measurement_unit),
-                  colors: ["#34D399", "#FFFFFF"],
-                  library: { 
-                    backgroundColor: "transparent",
-                    legend: { labels: { fontColor: "var(--app-text-secondary)" } },
-                    scales: {
-                      x: { ticks: { fontColor: "var(--app-text-secondary)" } },
-                      y: { ticks: { fontColor: "var(--app-text-secondary)" } }
-                    },
-                    datasets: [
-                      { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" }
-                    ]
-                  } %>
-              <% else %>
-                <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
-              <% end %>
-            </turbo-frame>
-          </div>
-
-          <%= link_to sanitize("View History"), sensor_time_series_path(sensor),
-                class: "text-blue-500 hover:underline ml-2" %>
-        </li>
-      <% end %>
-      <div class="mt-4">
-        <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
-          params: { plant_module_id: @plant_module.id }, remote: true %>
-      </div>
-    </ul>
+    <turbo-frame id="sensors_list">
+      <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors %>
+    </turbo-frame>
   </div>
 </div>

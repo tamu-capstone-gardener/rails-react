@@ -13,7 +13,7 @@ Rails.application.routes.draw do
 
   # Nested resources for plant_modules
   resources :plant_modules do
-    resources :sensors, only: [ :index, :show ] # Added :show to allow individual sensor pages
+    resources :sensors, only: [ :index, :show, :create, :new ]
     resources :schedules
   end
 

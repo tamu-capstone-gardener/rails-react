@@ -1,0 +1,12 @@
+<%= form_with(model: [plant_module, sensor], local: false, data: { turbo_frame: "sensors_list" }) do |f| %>
+    <div class="mb-2">
+      <%= f.label :measurement_type, "Measurement Type", class: "block theme-text-secondary" %>
+      <%= f.text_field :measurement_type, class: "px-3 py-2 rounded text-box w-full" %>
+    </div>
+    <div class="mb-2">
+      <%= f.label :measurement_unit, "Measurement Unit", class: "block theme-text-secondary" %>
+      <%= f.text_field :measurement_unit, class: "px-3 py-2 rounded text-box w-full" %>
+    </div>
+    <%= f.submit "Add Sensor", class: "btn-primary px-4 py-2 rounded-lg" %>
+  <% end %>
+  

@@ -2,7 +2,12 @@
 class CareSchedule < ApplicationRecord
     belongs_to :plant_module
 
-  # Attributes might include:
-  # watering_frequency (integer, in days), fertilizer_frequency (integer, in days),
-  # light_hours (integer), soil_moisture_pref (string)
+    self.primary_key = "id"
+    before_create :assign_uuid
+
+    private
+
+    def assign_uuid
+      self.id ||= SecureRandom.uuid
+    end
 end
