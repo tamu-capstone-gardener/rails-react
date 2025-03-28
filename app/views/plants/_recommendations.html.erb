@@ -1,63 +1,70 @@
-<turbo-frame id="recommendations">
+
+  <p class="text-xs theme-text-secondary mb-2">
+    Page <%= plants.respond_to?(:current_page) ? plants.current_page : "?" %> of <%= plants.respond_to?(:total_pages) ? plants.total_pages : "?" %>
+    (Total: <%= plants.respond_to?(:total_count) ? plants.total_count : plants.size %>)
+  </p>
+
   <% if plants.present? %>
     
     <% plants.each do |plant| %>
-  <div class="p-4 theme-bg-alt rounded-md shadow relative mb-4" data-plant-card>
-    <% if plant_in_zone?(plant, params[:zip_code]) %>
-      <div class="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1">
-        Zone Match
-      </div>
-    <% end %>
-    <h3 class="theme-text-primary text-lg">
-      <%= plant.common_name %>
-    </h3>
-    <div class="flex flex-col mb-4">
-      <p class="theme-text-secondary mb-4 text-md">
-        (<%= plant.genus %> <%= plant.species %>)
-      </p>
-      <p class="theme-text-primary flex justify-evenly items-start">
-        <span class="w-full">Light: <span class="theme-text-secondary"><%= plant.light_requirement || "6-8" %></span> hrs &nbsp;</span> 
-        <span class="w-full">Flowering: <span class="theme-text-secondary"><%= plant.flower || "Unknown" %></span> &nbsp;</span>
-        <span class="w-full">Ripen: <span class="theme-text-secondary"><%= plant.ripen || "Unknown" %></span></span>
-      </p>
-      <p class="theme-text-primary flex justify-evenly">
-        <span class="w-full">Edibility: <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span> &nbsp;</span>
-        <span class="w-full">Medicinal: <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span> &nbsp;</span>
-        <span class="w-full">Other Uses: <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></span>
-      </p>
-    </div>
-    <div class="flex justify-end space-x-2">
-      <button type="button"
-              class="info-btn py-2 px-4 btn-primary rounded-lg focus:outline-none"
-              data-action="click->plant-module#toggleInfo">
-        Info
-      </button>
-      <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
-            data: { 
-              action: "click->plant-module#selectPlant", 
-              plant_id: plant.id, 
-              plant_name: plant.common_name,
-              plant_genus: plant.genus,
-              plant_species: plant.species,
-              plant_light: (plant.light_requirement.presence || "6-8"),
-              plant_edibility: render_star_rating(plant.edibility),
-              plant_medicinal: render_star_rating(plant.medicinal),
-              plant_other_uses: render_star_rating(plant.other_uses),
-              plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
-              plant_ripen: plant.ripen,
-              plant_flower: plant.flower
-            } %>
-    </div>
+      <div class="p-4 theme-bg-alt rounded-md shadow relative mb-4" data-plant-card>
+        <% if plant_in_zone?(plant, params[:zip_code]) %>
+          <div class="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1">
+            Zone Match
+          </div>
+        <% end %>
+        <h3 class="theme-text-primary text-lg">
+          <%= plant.common_name %>
+        </h3>
+        <div class="flex flex-col mb-4">
+          <p class="theme-text-secondary mb-4 text-md">
+            (<%= plant.genus %> <%= plant.species %>)
+          </p>
+          <p class="theme-text-primary flex justify-evenly items-start">
+            <span class="w-full">Light: <span class="theme-text-secondary"><%= plant.light_requirement || "6-8" %></span> hrs &nbsp;</span> 
+            <span class="w-full">Flowering: <span class="theme-text-secondary"><%= plant.flower || "Unknown" %></span> &nbsp;</span>
+            <span class="w-full">Ripen: <span class="theme-text-secondary"><%= plant.ripen || "Unknown" %></span></span>
+          </p>
+          <p class="theme-text-primary flex justify-evenly">
+            <span class="w-full">Edibility: <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span> &nbsp;</span>
+            <span class="w-full">Medicinal: <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span> &nbsp;</span>
+            <span class="w-full">Other Uses: <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></span>
+          </p>
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button"
+                  class="info-btn py-2 px-4 btn-primary rounded-lg focus:outline-none"
+                  data-action="click->plant-module#toggleInfo">
+            Info
+          </button>
+          <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
+                data: { 
+                  action: "click->plant-module#selectPlant", 
+                  plant_id: plant.id, 
+                  plant_name: plant.common_name,
+                  plant_genus: plant.genus,
+                  plant_species: plant.species,
+                  plant_light: (plant.light_requirement.presence || "6-8"),
+                  plant_edibility: render_star_rating(plant.edibility),
+                  plant_medicinal: render_star_rating(plant.medicinal),
+                  plant_other_uses: render_star_rating(plant.other_uses),
+                  plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
+                  plant_ripen: plant.ripen,
+                  plant_flower: plant.flower
+                } %>
+        </div>
     <!-- Hidden detailed info container -->
     <div class="plant-info mt-4 p-4 theme-bg-alt border-2 border-black rounded hidden">
       <%= render partial: 'plants/plant_info', locals: { plant: plant } %>
     </div>
   </div>
 <% end %>
+<div class="mt-4 flex justify-center">
+  <%= paginate plants, params: request.query_parameters.merge(_turbo_frame: "recommendations") %>
+</div>
 
   <% else %>
-    
     <p class="theme-text-primary">No plants found.</p>
   <% end %>
-</turbo-frame>
+
  

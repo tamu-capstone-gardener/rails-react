@@ -65,4 +65,7 @@ Ensure you have the following installed:
 | Team/Individuals Reports       | Contains all team and individual reports                      | [Repository](https://github.com/tamu-capstone-gardener/reports)        |
 
 ## Credits
-- Credit to [permaculture](https://github.com/jwnigel/permaculture/) for the plant database.
+- Credit to [PFAF](https://pfaf.org/) for the plant information.
+- Credit to [USDA](https://plants.usda.gov/) for the plant database.
+- Credit to [USDA](https://planthardiness.ars.usda.gov/) for the hardiness zone mappings to ZIP code as well.
+- Credit to [the permaculture repo](https://github.com/jwnigel/permaculture/) for the scraping PFAF.

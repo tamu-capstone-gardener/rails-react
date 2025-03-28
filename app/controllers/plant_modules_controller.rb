@@ -6,13 +6,20 @@ class PlantModulesController < AuthenticatedApplicationController
       max_height: params[:max_height],
       max_width: params[:max_width],
       maintenance: params[:maintenance],
-      edible: params[:edible]
+      edibility_rating: params[:edibility_rating],
+      page: params[:page]
     }
 
     @recommendations = PlantRecommendationService.new(
       location_type: @plant_module.location_type,
       filters: filters
     ).recommendations
+
+    if turbo_frame_request? && request.headers["Turbo-Frame"] == "recommendations"
+      render partial: "plants/recommendations_frame", locals: { plants: @recommendations }, layout: false
+    else
+      render :new
+    end
   end
 
   def create

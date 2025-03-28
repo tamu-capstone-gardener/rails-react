@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_27_220120) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_28_170325) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -77,6 +77,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_27_220120) do
     t.text "other_uses"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "foliage"
+    t.string "ph_split"
+    t.string "pollinators"
+    t.string "pfaf"
   end
 
   create_table "schedules", id: :string, force: :cascade do |t|

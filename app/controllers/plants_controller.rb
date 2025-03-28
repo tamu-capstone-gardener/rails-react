@@ -5,29 +5,29 @@ class PlantsController < ApplicationController
     if params[:query].present?
       @plants = Plant.where("common_name ILIKE ? OR genus ILIKE ? OR species ILIKE ?",
                             "%#{params[:query]}%", "%#{params[:query]}%", "%#{params[:query]}%")
-      Rails.logger.info "Found #{@plants.count} plants matching query '#{params[:query]}'"
+                     .page(params[:page])
+                     .per(5)
+      Rails.logger.info "Found #{@plants.total_count} plants matching query '#{params[:query]}'"
     else
       filters = {
         max_height: params[:max_height],
         max_width: params[:max_width],
         maintenance: params[:maintenance],
-        edibility_rating: params[:edibility_rating]
+        edibility_rating: params[:edibility_rating],
+        page: params[:page]
       }
-      # Decide on indoor vs. outdoor based on a parameter.
-      # For example, if params[:location_type] is "outdoor", pass zip_code and "outdoor".
+
       if params[:location_type].to_s.downcase == "outdoor"
         service = PlantRecommendationService.new(location_type: "outdoor", zip_code: params[:zip_code], filters: filters)
       else
         service = PlantRecommendationService.new(location_type: "indoor", filters: filters)
       end
+
       @plants = service.recommendations
     end
 
     if turbo_frame_request?
-      render turbo_stream: turbo_stream.replace("recommendations",
-        partial: "plants/recommendations",
-        locals: { plants: @plants }
-      )
+      render partial: "plants/recommendations_frame", locals: { plants: @plants }
     else
       render :index
     end

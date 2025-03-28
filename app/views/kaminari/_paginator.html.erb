@@ -1,0 +1,53 @@
+<% max_page_number = 1 %>
+<% current_page = paginator.instance_variable_get(:@options)[:current_page] %>
+
+<nav class="mt-4 flex justify-center space-x-2 items-center">
+
+  <!-- First Page -->
+  <% unless current_page == 1 %>
+    <%= link_to "«", url_for(params.merge(page: 1, _turbo_frame: "recommendations")),
+        class: "px-3 py-2 theme-bg-alt rounded-md border-bg-alt hover-theme-bg",
+        title: "First Page",
+        data: { turbo_frame: "recommendations" } %>
+  <% end %>
+
+  <!-- Previous Page -->
+  <% if current_page > 1 %>
+    <%= link_to "‹", url_for(params.merge(page: current_page - 1, _turbo_frame: "recommendations")),
+        class: "px-3 py-2 theme-bg-alt rounded-md border-bg-alt hover-theme-bg",
+        title: "Previous Page",
+        data: { turbo_frame: "recommendations" } %>
+  <% end %>
+
+  <% paginator.each_page do |page| %>
+    <% max_page_number = page.number if page.number > max_page_number %>
+
+    <% if page.left_outer? || page.right_outer? || page.inside_window? %>
+      <% if page.current? %>
+        <span class="px-4 py-2 bg-blue-600 text-white rounded-md"><%= page.number %></span>
+      <% else %>
+        <%= link_to page.number,
+    url_for(params.merge(page: page.number, _turbo_frame: "recommendations")),
+    class: "px-4 py-2 theme-bg-alt rounded-md border-bg-alt hover-theme-bg",
+    data: { turbo_frame: "recommendations" } %>
+
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <!-- Next Page -->
+  <% if current_page < max_page_number %>
+    <%= link_to "›", url_for(params.merge(page: current_page + 1, _turbo_frame: "recommendations")),
+        class: "px-3 py-2 theme-bg-alt rounded-md border-bg-alt hover-theme-bg",
+        title: "Next Page",
+        data: { turbo_frame: "recommendations" } %>
+  <% end %>
+
+  <!-- Last Page -->
+  <% if current_page < max_page_number %>
+    <%= link_to "»", url_for(params.merge(page: max_page_number, _turbo_frame: "recommendations")),
+        class: "px-3 py-2 theme-bg-alt rounded-md border-bg-alt hover-theme-bg",
+        title: "Last Page",
+        data: { turbo_frame: "recommendations" } %>
+  <% end %>
+</nav>

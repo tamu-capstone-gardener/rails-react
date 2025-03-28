@@ -107,7 +107,9 @@
 
     <!-- Recommendations List inside its own turbo frame -->
     <turbo-frame id="recommendations">
-      <%= render partial: "plants/recommendations", locals: { plants: (@plants || @recommendations) } %>
+      <% paginated_plants = @plants || @recommendations %>
+
+      <%= render partial: "plants/recommendations", locals: { plants: paginated_plants } %>
     </turbo-frame>
   </div>
 </div>

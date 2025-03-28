@@ -27,6 +27,14 @@ html.dark {
   background-color: var(--app-bg) !important;
 }
 
+.hover-theme-bg:hover {
+  background-color: var(--app-bg) !important;
+}
+
+a:hover {
+  background-color: red !important;
+}
+
 .btn-primary {
   background-color: var(--app-btn-primary) !important;
   color: #ffffff !important;
