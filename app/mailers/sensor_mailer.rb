@@ -6,11 +6,10 @@ class SensorMailer < ApplicationMailer
       @message    = params[:message]
 
       Rails.logger.info("Trying to send an email to #{@sensor.plant_module.user.email}")
-      
+
       mail(
         to: @sensor.plant_module.user.email,
         subject: "Sensor Alert: #{@sensor.measurement_type}"
       )
     end
-  end
-  
+end

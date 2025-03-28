@@ -19,26 +19,24 @@ def colorized(str, color)
 end
 
 class String
-
-    %w(white bold black red green yellow blue magenta cyan gray).each{|color|
+    %w[white bold black red green yellow blue magenta cyan gray].each { |color|
         color = :"#{color}"
-        define_method(color){
+        define_method(color) {
             colorized(self, color)
         }
     }
-
 end
 
-COMMANDS = %w(create check info fix reshard rebalance add-node 
-              del-node set-timeout call import help)
+COMMANDS = %w[create check info fix reshard rebalance add-node
+              del-node set-timeout call import help]
 
 ALLOWED_OPTIONS={
-    "create" => {"replicas" => true},
-    "add-node" => {"slave" => false, "master-id" => true},
-    "import" => {"from" => :required, "copy" => false, "replace" => false},
-    "reshard" => {"from" => true, "to" => true, "slots" => true, "yes" => false, "timeout" => true, "pipeline" => true},
-    "rebalance" => {"weight" => [], "auto-weights" => false, "use-empty-masters" => false, "timeout" => true, "simulate" => false, "pipeline" => true, "threshold" => true},
-    "fix" => {"timeout" => 0},
+    "create" => { "replicas" => true },
+    "add-node" => { "slave" => false, "master-id" => true },
+    "import" => { "from" => :required, "copy" => false, "replace" => false },
+    "reshard" => { "from" => true, "to" => true, "slots" => true, "yes" => false, "timeout" => true, "pipeline" => true },
+    "rebalance" => { "weight" => [], "auto-weights" => false, "use-empty-masters" => false, "timeout" => true, "simulate" => false, "pipeline" => true, "threshold" => true },
+    "fix" => { "timeout" => 0 }
 }
 
 def parse_options(cmd)
@@ -55,7 +53,7 @@ def parse_options(cmd)
                 options['verbose'] = true
                 next
             end
-            if ALLOWED_OPTIONS[cmd] == nil || 
+            if ALLOWED_OPTIONS[cmd] == nil ||
                ALLOWED_OPTIONS[cmd][option] == nil
                 next
             end
@@ -75,22 +73,22 @@ def parse_options(cmd)
                 options[option] = value
             end
         else
-            next if arg[0,1] == '-'
+            next if arg[0, 1] == '-'
             args << arg
         end
     end
 
-    return options,args
+    return options, args
 end
 
 def command_example(cmd, args, opts)
     cmd = "redis-cli --cluster #{cmd}"
-    args.each{|a| 
+    args.each { |a|
         a = a.to_s
         a = a.inspect if a[' ']
         cmd << " #{a}"
     }
-    opts.each{|opt, val|
+    opts.each { |opt, val|
         opt = " --cluster-#{opt.downcase}"
         if val != true
             val = val.join(' ') if val.is_a? Array

@@ -3,4 +3,3 @@ Sidekiq.configure_server do |config|
       chain.remove Sidekiq::JobRetry
     end
   end
-  

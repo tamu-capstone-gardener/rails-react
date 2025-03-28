@@ -8,7 +8,7 @@
 
 require 'shellwords'
 
-def redisCopy(opts={})
+def redisCopy(opts = {})
   src = "#{opts[:srchost]}:#{opts[:srcport]}"
   dst = "#{opts[:dsthost]}:#{opts[:dstport]}"
   `redis-copy #{src.shellescape} #{dst.shellescape}`
@@ -31,5 +31,5 @@ srcport = ARGV[1]
 dsthost = ARGV[2]
 dstport = ARGV[3]
 puts "Copying #{srchost}:#{srcport} into #{dsthost}:#{dstport}"
-redisCopy(:srchost => srchost, :srcport => srcport.to_i,
-          :dsthost => dsthost, :dstport => dstport.to_i)
+redisCopy(srchost: srchost, srcport: srcport.to_i,
+          dsthost: dsthost, dstport: dstport.to_i)

@@ -11,6 +11,5 @@ class TimeSeriesDatum < ApplicationRecord
     # SensorMailer.with(sensor: sensor, data_point: self, message: sensor.message)
     #         .notification_email
     #         .deliver_now
-
   end
 end

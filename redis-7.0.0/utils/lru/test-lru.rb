@@ -6,13 +6,13 @@ $o = {};    # Options set parsing arguments
 
 def testit(filename)
     r = Redis.new
-    r.config("SET","maxmemory","2000000")
+    r.config("SET", "maxmemory", "2000000")
     if $o[:ttl]
-        r.config("SET","maxmemory-policy","volatile-ttl")
+        r.config("SET", "maxmemory-policy", "volatile-ttl")
     else
-        r.config("SET","maxmemory-policy","allkeys-lru")
+        r.config("SET", "maxmemory-policy", "allkeys-lru")
     end
-    r.config("SET","maxmemory-samples",5)
+    r.config("SET", "maxmemory-samples", 5)
     r.config("RESETSTAT")
     r.flushall
 
@@ -53,7 +53,7 @@ EOF
     while true
         id += 1
         begin
-            r.set(id,"foo")
+            r.set(id, "foo")
         rescue
             break
         end
@@ -71,13 +71,13 @@ EOF
 
     if $o[:ttl]
         STDERR.puts "Set increasing expire value"
-        (1..first_set_max_id).each{|id|
-            r.expire(id,1000+id)
+        (1..first_set_max_id).each { |id|
+            r.expire(id, 1000+id)
             STDERR.print(".") if (id % 150) == 0
         }
     else
         STDERR.puts "Access keys sequentially"
-        (1..first_set_max_id).each{|id|
+        (1..first_set_max_id).each { |id|
             r.get(id)
             sleep 0.001
             STDERR.print(".") if (id % 150) == 0
@@ -101,10 +101,10 @@ EOF
         id += 1
         if id >= otherdb_start_idx && id <= otherdb_end_idx
             r.select(1)
-            r.set(id,"foo")
+            r.set(id, "foo")
             r.select(0)
         else
-            r.set(id,"foo")
+            r.set(id, "foo")
         end
         break if r.info['evicted_keys'].to_i >= half
     end
@@ -121,7 +121,7 @@ EOF
     error_per_key = 100000.0/first_set_max_id
     half_set_size = first_set_max_id/2
     maxerr = 0
-    (1..(first_set_max_id/2)).each{|id|
+    (1..(first_set_max_id/2)).each { |id|
         if id >= otherdb_start_idx && id <= otherdb_end_idx
             r.select(1)
             exists = r.exists(id)
@@ -148,7 +148,7 @@ EOF
     $runs << errors
 
     # Generate the graphical representation
-    (1..id).each{|id|
+    (1..id).each { |id|
         # Mark first set and added items in a different way.
         c = "box"
         if id >= otherdb_start_idx && id <= otherdb_end_idx
@@ -179,13 +179,13 @@ EOF
     </html>
 EOF
 
-    f = File.open(filename,"w")
+    f = File.open(filename, "w")
     f.write(html)
     f.close
 end
 
 def print_avg
-    avg = ($runs.reduce {|a,b| a+b}) / $runs.length
+    avg = ($runs.reduce { |a, b| a+b }) / $runs.length
     puts "#{$runs.length} runs, AVG is #{avg}"
 end
 

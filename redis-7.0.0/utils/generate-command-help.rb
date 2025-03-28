@@ -25,12 +25,12 @@ GROUPS = [
 ].freeze
 
 GROUPS_BY_NAME = Hash[*
-  GROUPS.each_with_index.map do |n,i|
-    [n,i]
+  GROUPS.each_with_index.map do |n, i|
+    [ n, i ]
   end.flatten
 ].freeze
 
-def argument arg
+def argument(arg)
   if "block" == arg["type"]
     name = arg["arguments"].map do |entry|
       argument entry
@@ -48,7 +48,7 @@ def argument arg
     name = "#{name} [#{name} ...]"
   end
   if arg["token"]
-    name = [arg["token"], name].compact.join " "
+    name = [ arg["token"], name ].compact.join " "
   end
   if arg["optional"]
     name = "[#{name}]"
@@ -56,7 +56,7 @@ def argument arg
   name
 end
 
-def arguments command
+def arguments(command)
   return "" unless command["arguments"]
   command["arguments"].map do |arg|
     argument arg
@@ -97,11 +97,11 @@ end
 def generate_groups
   GROUPS.map do |n|
     "\"#{n}\""
-  end.join(",\n    ");
+  end.join(",\n    ")
 end
 
 def generate_commands
-  commands.to_a.sort do |x,y|
+  commands.to_a.sort do |x, y|
     x[0] <=> y[0]
   end.map do |key, command|
     group = GROUPS_BY_NAME[command["group"]]
@@ -144,4 +144,3 @@ struct commandHelp {
 
 #endif
 HELP_H
-

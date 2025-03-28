@@ -12,10 +12,10 @@ require 'rubygems'
 require 'redis'
 require 'digest/sha1'
 
-def redisSha1(opts={})
+def redisSha1(opts = {})
     sha1=""
     r = Redis.new(opts)
-    r.keys('*').sort.each{|k|
+    r.keys('*').sort.each { |k|
         vtype = r.type?(k)
         if vtype == "string"
             len = 1
@@ -25,7 +25,7 @@ def redisSha1(opts={})
             len = r.llen(k)
             if len != 0
                 sha1 = Digest::SHA1.hexdigest(sha1+k)
-                sha1 = Digest::SHA1.hexdigest(sha1+r.list_range(k,0,-1).join("\x01"))
+                sha1 = Digest::SHA1.hexdigest(sha1+r.list_range(k, 0, -1).join("\x01"))
             end
         elsif vtype == "set"
             len = r.scard(k)
@@ -37,10 +37,10 @@ def redisSha1(opts={})
             len = r.zcard(k)
             if len != 0
                 sha1 = Digest::SHA1.hexdigest(sha1+k)
-                sha1 = Digest::SHA1.hexdigest(sha1+r.zrange(k,0,-1).join("\x01"))
+                sha1 = Digest::SHA1.hexdigest(sha1+r.zrange(k, 0, -1).join("\x01"))
             end
         end
-        # puts "#{k} => #{sha1}" if len != 0
+      # puts "#{k} => #{sha1}" if len != 0
     }
     sha1
 end
@@ -49,4 +49,4 @@ host = ARGV[0] || "127.0.0.1"
 port = ARGV[1] || "6379"
 db = ARGV[2] || "0"
 puts "Performing SHA1 of Redis server #{host} #{port} DB: #{db}"
-p "Dataset SHA1: #{redisSha1(:host => host, :port => port.to_i, :db => db)}"
+p "Dataset SHA1: #{redisSha1(host: host, port: port.to_i, db: db)}"

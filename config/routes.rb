@@ -21,7 +21,7 @@ Rails.application.routes.draw do
     end
     resources :schedules
   end
-  
+
 
   # Add routes for the plants page (for interactive plant selection/overrides)
   resources :plants, only: [ :index, :show ]
@@ -35,8 +35,8 @@ Rails.application.routes.draw do
   post "mqtt/schedule", to: "mqtt#set_schedule"
   post "mqtt/water", to: "mqtt#send_water_signal"
 
-  require 'sidekiq/web'
-  mount Sidekiq::Web => '/sidekiq'
+  require "sidekiq/web"
+  mount Sidekiq::Web => "/sidekiq"
 
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest

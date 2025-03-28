@@ -8,11 +8,10 @@ class PushNotificationService
         unit: sensor.measurement_unit,
         timestamp: data_point.timestamp
       }
-  
+
       # For demonstration, we simply log the payload.
       Rails.logger.info "Sending push notification to #{user.email}: #{payload.inspect}"
-      
+
       # TODO: Replace with actual push notification implementation.
     end
-  end
-  
+end
