@@ -43,6 +43,6 @@
 coverage/
 
 # redis 7.0.0
-redis-7.0.0/*
-redis-7.0.0/
+/redis-7.0.0/*
+/redis-7.0.0/
 
