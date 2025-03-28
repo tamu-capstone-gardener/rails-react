@@ -130,7 +130,7 @@ COLUMN_MAPPING = {
   "OtherUses"      => "other_uses"
 }
 
-csv_file_path = Rails.root.join('app/assets/csv/sven_plants.csv')
+csv_file_path = Rails.root.join('app/assets/csv/sven_plants_filled.csv')
 
 CSV.foreach(csv_file_path, headers: true) do |row|
   plant_attributes = row.to_hash.transform_keys do |key|
