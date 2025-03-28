@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_26_051553) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_27_220120) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_26_051553) do
     t.string "measurement_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "notifications", default: false, null: false
+    t.string "messages", default: [], array: true
+    t.string "thresholds", default: [], array: true
   end
 
   create_table "time_series_data", force: :cascade do |t|

@@ -51,6 +51,8 @@ class MqttListener
         return
       end
 
+      Rails.logger.error("Trying to get value in MQTTListener")
+
       value = message_json["value"]
       timestamp = message_json["timestamp"]
 

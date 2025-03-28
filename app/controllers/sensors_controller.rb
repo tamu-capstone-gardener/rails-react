@@ -57,6 +57,50 @@ class SensorsController < ApplicationController
     end
   end
 
+  def toggle_notification
+    @sensor = Sensor.find(params[:id])
+    @sensor.update(notifications: !@sensor.notifications)
+  
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "notification_section",
+          partial: "sensors/notification_section", 
+          locals: { sensor: @sensor }
+        )
+      end
+      format.html { redirect_to plant_module_sensor_path(@sensor.plant_module, @sensor) }
+    end
+  end
+  
+  
+  
+  def update_notification_settings
+    @sensor = Sensor.find(params[:id])
+    thresholds = params[:sensor][:thresholds].to_s.split(',').map(&:strip)
+    messages   = params[:sensor][:messages].to_s.split(',').map(&:strip)
+    notifications = params[:sensor][:notifications] == "1"
+  
+    if @sensor.update(thresholds: thresholds, messages: messages, notifications: notifications)
+      flash.now[:notice] = "Notification settings updated."
+    else
+      flash.now[:alert] = "Unable to update settings."
+    end
+  
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "notification_section",
+          partial: "sensors/notification_section",
+          locals: { sensor: @sensor }
+        )
+      end
+      format.html { redirect_to plant_module_sensor_path(@sensor.plant_module, @sensor) }
+    end
+  end
+  
+  
+
 
   private
 

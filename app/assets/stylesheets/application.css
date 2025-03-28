@@ -77,4 +77,8 @@ html.dark {
   caret-color: var(--app-text-primary) !important;
   padding: 5px; 
 }
+
+.border-bg-alt {
+  border: 1px solid var(--app-bg-alt);
+}
   
