@@ -1,4 +1,4 @@
-
+<div data-controller="plant-modal">
   <p class="text-xs theme-text-secondary mb-2">
     Page <%= plants.respond_to?(:current_page) ? plants.current_page : "?" %> of <%= plants.respond_to?(:total_pages) ? plants.total_pages : "?" %>
     (Total: <%= plants.respond_to?(:total_count) ? plants.total_count : plants.size %>)
@@ -32,39 +32,58 @@
           </p>
         </div>
         <div class="flex justify-end space-x-2">
-          <button type="button"
-                  class="info-btn py-2 px-4 btn-primary rounded-lg focus:outline-none"
-                  data-action="click->plant-module#toggleInfo">
-            Info
-          </button>
-          <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
-                data: { 
-                  action: "click->plant-module#selectPlant", 
-                  plant_id: plant.id, 
-                  plant_name: plant.common_name,
-                  plant_genus: plant.genus,
-                  plant_species: plant.species,
-                  plant_light: (plant.light_requirement.presence || "6-8"),
-                  plant_edibility: render_star_rating(plant.edibility),
-                  plant_medicinal: render_star_rating(plant.medicinal),
-                  plant_other_uses: render_star_rating(plant.other_uses),
-                  plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
-                  plant_ripen: plant.ripen,
-                  plant_flower: plant.flower
-                } %>
+        <% plant_data = plant.as_json(
+          only: [
+            :common_name, :genus, :species, :family, :growth_rate,
+            :hardiness_zones, :height, :width, :plant_type, :pollinators, :leaf, :flower,
+            :ripen, :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
+            :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf,
+          ]
+        ).to_json %>
+
+        <button type="button"
+                class="info-btn py-2 px-4 btn-primary rounded-lg focus:outline-none"
+                data-action="click->plant-modal#openModal"
+                data-plant="<%= html_escape(plant_data) %>">
+          Info
+        </button>
+        <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
+          data: { 
+            action: "click->plant-module#selectPlant", 
+            plant_id: plant.id, 
+            plant_name: plant.common_name,
+            plant_genus: plant.genus,
+            plant_species: plant.species,
+            plant_light: (plant.light_requirement.presence || "6-8"),
+            plant_edibility: render_star_rating(plant.edibility),
+            plant_medicinal: render_star_rating(plant.medicinal),
+            plant_other_uses: render_star_rating(plant.other_uses),
+            plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
+            plant_ripen: plant.ripen,
+            plant_flower: plant.flower,
+            plant_info: html_escape(plant_data) # ADD THIS
+          } %>
         </div>
-    <!-- Hidden detailed info container -->
-    <div class="plant-info mt-4 p-4 theme-bg-alt border-2 border-black rounded hidden">
-      <%= render partial: 'plants/plant_info', locals: { plant: plant } %>
-    </div>
   </div>
 <% end %>
 <div class="mt-4 flex justify-center">
   <%= paginate plants, params: request.query_parameters.merge(_turbo_frame: "recommendations") %>
 </div>
+<div id="plant-info-modal" class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" data-controller="plant-modal">
+  <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto">
+    <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
+      &times;
+    </button>
+    <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
+    <div id="plant-info-content" class="theme-text-primary space-y-2">
+      <!-- Plant info is injected here -->
+    </div>
+  </div>
+</div>
+
 
   <% else %>
     <p class="theme-text-primary">No plants found.</p>
   <% end %>
-
+</div>
  

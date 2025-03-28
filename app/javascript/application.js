@@ -57,13 +57,3 @@ const vapidPublicKey = document.querySelector(
   
     return subscription;
   };
-
-  document.querySelectorAll('a').forEach(link => {
-    link.addEventListener('mouseenter', () => {
-      console.log('hovered:', link.href);
-    });
-    link.addEventListener('click', e => {
-      console.log('clicked:', link.href);
-    });
-  });
-  
