@@ -63,3 +63,6 @@ Ensure you have the following installed:
 | Microcontroller Code for ESP32 | Hardware code that runs on the ESP32                          | [Repository](https://github.com/tamu-capstone-gardener/microcontroller)|
 | Team Agreement                 | Team agreement that we all signed and agreed to               | [Repository](https://github.com/tamu-capstone-gardener/team-agreement) |
 | Team/Individuals Reports       | Contains all team and individual reports                      | [Repository](https://github.com/tamu-capstone-gardener/reports)        |
+
+## Credits
+- Credit to [permaculture](https://github.com/jwnigel/permaculture/) for the plant database.
