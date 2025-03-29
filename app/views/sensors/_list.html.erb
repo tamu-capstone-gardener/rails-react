@@ -13,24 +13,10 @@
         <!-- Turbo Frame for Chart -->
         <turbo-frame id="chart-<%= sensor.id %>">
         <% if @sensor_data && @sensor_data[sensor.id] && @sensor_data[sensor.id].any? %>
-            <%= line_chart @sensor_data[sensor.id], 
-                xtitle: "Time", 
-                ytitle: sanitize(sensor.measurement_unit),
-                colors: ["#34D399", "#FFFFFF"],
-                library: { 
-                backgroundColor: "transparent",
-                legend: { labels: { fontColor: "var(--app-text-secondary)" } },
-                scales: {
-                    x: { ticks: { fontColor: "var(--app-text-secondary)" } },
-                    y: { ticks: { fontColor: "var(--app-text-secondary)" } }
-                },
-                datasets: [
-                    { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" }
-                ]
-                } %>
-            <% else %>
+            <%= render "sensors/sensor_chart_inline", sensor: sensor, data: @sensor_data[sensor.id] %>
+        <% else %>
             <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
-            <% end %>
+        <% end %>
         </turbo-frame>
         </div>
         <%= link_to sanitize("View History"), sensor_time_series_path(sensor),

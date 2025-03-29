@@ -51,7 +51,19 @@ class PlantModulesController < AuthenticatedApplicationController
     @sensors = @plant_module.sensors.includes(:time_series_data)
     @sensor_data = {}
     @sensors.each do |sensor|
-      @sensor_data[sensor.id] = sensor.time_series_data.group("DATE(timestamp)").pluck(Arel.sql("DATE(timestamp), SUM(value)"))
+      first_timestamp = sensor.time_series_data.minimum(:timestamp)
+
+      if first_timestamp
+        hourly_data = sensor.time_series_data
+                            .where("timestamp >= ?", first_timestamp)
+                            .group_by_hour(:timestamp)
+                            .average(:value)
+                            .transform_values { |v| v.to_f.round(2) }
+
+        @sensor_data[sensor.id] = hourly_data
+      else
+        @sensor_data[sensor.id] = {}
+      end
     end
   end
 
