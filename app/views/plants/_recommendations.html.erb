@@ -7,15 +7,32 @@
   <% if plants.present? %>
     
     <% plants.each do |plant| %>
+    <% plant_data = plant.as_json(
+            only: [
+              :common_name, :genus, :species, :family, :growth_rate,
+              :hardiness_zones, :height, :width, :plant_type, :pollinators, :leaf, :flower,
+              :ripen, :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
+              :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf,
+            ]
+          ).to_json %>
       <div class="p-4 theme-bg-alt rounded-md shadow relative mb-4" data-plant-card>
         <% if plant_in_zone?(plant, params[:zip_code]) %>
           <div class="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1">
             Zone Match
           </div>
         <% end %>
-        <h3 class="theme-text-primary text-lg">
-          <%= plant.common_name %>
-        </h3>
+        <div class="flex justify-between gap-4">
+        
+          <h3 class="theme-text-primary text-lg">
+            <%= plant.common_name %>
+          </h3>
+          <button type="button"
+                  class="px-[4px] text-2xl btn-primary rounded-full"
+                  data-action="click->plant-modal#openModal"
+                  data-plant="<%= html_escape(plant_data) %>">
+            &#9432;
+          </button>
+        </div>
         <div class="flex flex-col mb-4">
           <p class="theme-text-secondary mb-4 text-md">
             (<%= plant.genus %> <%= plant.species %>)
@@ -32,37 +49,22 @@
           </p>
         </div>
         <div class="flex justify-end space-x-2">
-        <% plant_data = plant.as_json(
-          only: [
-            :common_name, :genus, :species, :family, :growth_rate,
-            :hardiness_zones, :height, :width, :plant_type, :pollinators, :leaf, :flower,
-            :ripen, :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
-            :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf,
-          ]
-        ).to_json %>
-
-        <button type="button"
-                class="info-btn py-2 px-4 btn-primary rounded-lg focus:outline-none"
-                data-action="click->plant-modal#openModal"
-                data-plant="<%= html_escape(plant_data) %>">
-          Info
-        </button>
-        <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
-          data: { 
-            action: "click->plant-module#selectPlant", 
-            plant_id: plant.id, 
-            plant_name: plant.common_name,
-            plant_genus: plant.genus,
-            plant_species: plant.species,
-            plant_light: (plant.light_requirement.presence || "6-8"),
-            plant_edibility: render_star_rating(plant.edibility),
-            plant_medicinal: render_star_rating(plant.medicinal),
-            plant_other_uses: render_star_rating(plant.other_uses),
-            plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
-            plant_ripen: plant.ripen,
-            plant_flower: plant.flower,
-            plant_info: html_escape(plant_data) # ADD THIS
-          } %>
+          <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
+            data: { 
+              action: "click->plant-module#selectPlant", 
+              plant_id: plant.id, 
+              plant_name: plant.common_name,
+              plant_genus: plant.genus,
+              plant_species: plant.species,
+              plant_light: (plant.light_requirement.presence || "6-8"),
+              plant_edibility: render_star_rating(plant.edibility),
+              plant_medicinal: render_star_rating(plant.medicinal),
+              plant_other_uses: render_star_rating(plant.other_uses),
+              plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
+              plant_ripen: plant.ripen,
+              plant_flower: plant.flower,
+              plant_info: html_escape(plant_data) # ADD THIS
+            } %>
         </div>
   </div>
 <% end %>
