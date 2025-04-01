@@ -47,7 +47,7 @@ export const subscribe = async () => {
   if (!subscription) {
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: vapidPublicKey,
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
     });
 
     if (!subscription) {
