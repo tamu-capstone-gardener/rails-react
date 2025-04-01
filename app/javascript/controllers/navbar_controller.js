@@ -1,39 +1,30 @@
-// app/javascript/controllers/navbar_controller.js
-
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-    static values  = { state: Boolean }
-    static targets = [ "menu", "x", "bars" ]
+  static targets = ["menu", "bars", "x", "backdrop"]
+  static values = { state: Boolean }
 
-    toggle() {
-      this.stateValue = !this.stateValue
-  
-      if (this.stateValue) {
-        this.openMenu()
-        this.showX()
-      } else {
-        this.closeMenu()
-        this.showBars()
-      }
-    }
-  
-    openMenu() {
-      this.menuTarget.classList.remove("hidden");
-    }
-  
-    closeMenu() {
-      this.menuTarget.classList.add("hidden");
-    }
-  
-    showBars() {
-      this.xTarget.classList.add("hidden")
-      this.barsTarget.classList.remove("hidden")
-    }
-  
-    showX() {
-      this.xTarget.classList.remove("hidden")
-      this.barsTarget.classList.add("hidden")
-    }
+  connect() {
+    this.updateMenu()
+  }
+
+  toggle() {
+    this.stateValue = !this.stateValue
+    this.updateMenu()
+  }
+
+  close() {
+    this.stateValue = false
+    this.updateMenu()
+  }
+
+  updateMenu() {
+    this.menuTarget.classList.toggle("-translate-x-full", !this.stateValue)
+    this.menuTarget.classList.toggle("translate-x-0", this.stateValue)
+
+    this.backdropTarget.classList.toggle("hidden", !this.stateValue)
+
+    this.barsTarget.classList.toggle("hidden", this.stateValue)
+    this.xTarget.classList.toggle("hidden", !this.stateValue)
+  }
 }
-

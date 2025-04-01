@@ -1,88 +1,96 @@
 /* Define your theme variables for light mode */
 :root {
-  --app-bg: #ffffff;       /* light background */
-  --app-btn-primary: #3461d3;  /* primary button color */
-  --app-btn-primary-rotate: #1e4bb8; /* primary button hover color */
-  --app-btn-secondary: #016630;
-  --app-btn-secondary-rotate: #008236; 
-  --app-bg-alt: #f0f0f0;     /* light alternative background */
-  --app-text-primary: #000000;     /* light text */
-  --app-text-secondary: #4a5568; /* light secondary text */
-  --app-primary: #3461d3;  /* primary color */
-  --app-secondary: #ffffff;/* secondary color */
+  --bg: #ffffff;       /* light background */
+  --btn-primary: #3461d3;  /* primary button color */
+  --btn-primary-rotate: #1e4bb8; /* primary button hover color */
+  --btn-secondary: #016630;
+  --btn-secondary-rotate: #008236; 
+  --bg-alt: #f0f0f0;     /* light alternative background */
+  --text-primary: #000000;     /* light text */
+  --text-secondary: #4a5568; /* light secondary text */
+  --primary: #3461d3;  /* primary color */
+  --secondary: #ffffff;/* secondary color */
 }
   
   /* Override variables when dark mode is active */
 html.dark {
-  --app-bg: #1a202c;       /* dark background */
-  --app-bg-alt: #2d3748;   /* dark alternative background */
-  --app-text-primary: #ffffff;     /* dark text */
-  --app-text-secondary: #e2e8f0; /* dark secondary text */
-  --app-primary: #34d399;  /* you can adjust as needed */
-  --app-secondary: #ffffff;
+  --bg: #1a202c;       /* dark background */
+  --bg-alt: #2d3748;   /* dark alternative background */
+  --text-primary: #ffffff;     /* dark text */
+  --text-secondary: #e2e8f0; /* dark secondary text */
+  --primary: #34d399;  /* you can adjust as needed */
+  --secondary: #ffffff;
 }
   
   /* Utility classes that use the theme variables */
 .theme-bg {
-  background-color: var(--app-bg) !important;
+  background-color: var(--bg) !important;
 }
 
 .hover-theme-bg:hover {
-  background-color: var(--app-bg) !important;
+  background-color: var(--bg) !important;
 }
 
 .btn-primary {
-  background-color: var(--app-btn-primary) !important;
+  background-color: var(--btn-primary) !important;
   color: #ffffff !important;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-primary:hover {
-  background-color: var(--app-btn-primary-rotate) !important;
+  background-color: var(--btn-primary-rotate) !important;
   cursor: pointer;
 }
 
 .btn-secondary {
-  background-color: var(--app-btn-secondary) !important;
+  background-color: var(--btn-secondary) !important;
   color: #ffffff !important;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:hover {
-  background-color: var(--app-btn-secondary-rotate) !important;
+  background-color: var(--btn-secondary-rotate) !important;
   cursor: pointer;
 }
 
 .select {
-  background-color: var(--app-bg-alt) !important;
-  color: var(--app-text) !important;
-  border: 1px solid var(--app-bg-alt) !important;
-  transition: background-color 0.3s ease;
+  background-color: var(--bg-alt) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--bg-alt) !important;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 5px;
 }
 
 .theme-bg-alt {
-  background-color: var(--app-bg-alt) !important;
+  background-color: var(--bg-alt) !important;
 }
   
 .theme-text-primary {
-  color: var(--app-text-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 .theme-text-secondary {
-  color: var(--app-text-secondary) !important;
+  color: var(--text-secondary) !important;
 }
 
 .text-box {
-  background-color: var(--app-bg-alt) !important;
-  color: var(--app-text-primary) !important;
-  border: 1px solid var(--app-bg-alt) !important;
-  transition: background-color 0.3s ease;
-  caret-color: var(--app-text-primary) !important;
+  background-color: var(--bg-alt) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--bg-alt) !important;
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  caret-color: var(--text-primary) !important;
   padding: 5px; 
 }
 
+.border-bg-primary {
+  border-color: var(--bg);
+}
+
 .border-bg-alt {
-  border: 1px solid var(--app-bg-alt);
+  border-color: var(--bg-alt);
+}
+
+.border-text-primary {
+  border-color: var(--text-primary);
 }
   

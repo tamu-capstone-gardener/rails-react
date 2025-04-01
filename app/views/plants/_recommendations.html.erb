@@ -69,8 +69,12 @@
 <div class="mt-4 flex justify-center">
   <%= paginate plants, params: request.query_parameters.merge(_turbo_frame: "recommendations") %>
 </div>
-<div id="plant-info-modal" class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" data-controller="plant-modal">
-  <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto">
+<div id="plant-info-modal" 
+    class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
+    data-controller="plant-modal" 
+    data-action="click->plant-modal#closeOnBackgroundClick">
+  <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+      data-action="click->plant-modal#stopPropagation">
     <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
       &times;
     </button>

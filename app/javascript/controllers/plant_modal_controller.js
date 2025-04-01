@@ -1,19 +1,11 @@
-// app/javascript/controllers/plant_modal_controller.js
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  connect() {
-
-  }
-
   openModal(event) {
     const modal = document.getElementById("plant-info-modal")
     const content = document.getElementById("plant-info-content")
-
-    // Get plant data from the button
     const plant = JSON.parse(event.currentTarget.dataset.plant)
 
-    // Format plant data as HTML
     const html = Object.entries(plant)
       .filter(([_, val]) => val && val !== "[]")
       .map(([key, val]) => {
@@ -28,5 +20,13 @@ export default class extends Controller {
 
   closeModal() {
     document.getElementById("plant-info-modal").classList.add("hidden")
+  }
+
+  closeOnBackgroundClick() {
+    this.closeModal()
+  }
+
+  stopPropagation(event) {
+    event.stopPropagation()
   }
 }

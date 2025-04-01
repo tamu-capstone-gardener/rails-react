@@ -12,12 +12,18 @@
   <p class="theme-text-secondary">
     <%= sanitize(@plant_module.description) %>
   </p>
-  <p class="text-sm theme-text-secondary">
-    Location: <%= sanitize(@plant_module.location) %>
-    <% if @plant_module.location_type.downcase == "outdoor" %>
-      (ZIP: <%= sanitize(@plant_module.zip_code) %>)
-    <% end %>
-  </p>
+  <% if @plant_module.location %>
+    <p class="text-sm theme-text-secondary">
+      <% if @plant_module.location_type.downcase == "outdoor" %>
+        <% if @zone_data.present? %>
+          <%= sanitize(@plant_module.zip_code) %>: Zone <%= sanitize(@zone_data[:zone]) %>
+        <% else %>
+          <%= sanitize(@plant_module.zip_code) %>: Zone unknown
+        <% end %>
+      <% end %>
+    </p>
+  <% else %>
+  <% end %>
 
   <!-- Selected Plants -->
   <div class="mt-8">
@@ -58,7 +64,7 @@
   <!-- Sensors & Time Series Data (unchanged) -->
   <div class="mt-8">
     <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
-    <turbo-frame id="sensors_list">
+    <turbo-frame id="sensors_list" data-controller="notification">
       <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors %>
     </turbo-frame>
   </div>
