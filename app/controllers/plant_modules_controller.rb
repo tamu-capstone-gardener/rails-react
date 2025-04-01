@@ -67,7 +67,6 @@ class PlantModulesController < AuthenticatedApplicationController
     end
 
     if @plant_module.location_type.downcase == "outdoor" && @plant_module.zip_code.present?
-      include ZipCodeHelper  # If not already in ApplicationController
       @zone_data = zone_for_zip(@plant_module.zip_code)
     end
   end
