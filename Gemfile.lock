@@ -488,6 +488,7 @@ DEPENDENCIES
   jbuilder
   kamal
   kaminari
+  momentjs-rails (~> 2.20.1)
   mqtt
   omniauth
   omniauth-google-oauth2

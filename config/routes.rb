@@ -13,6 +13,7 @@ Rails.application.routes.draw do
 
   # Nested resources for plant_modules
   resources :plant_modules do
+    resources :control_signals, only: [ :edit, :update ]
     resources :sensors, only: [ :index, :show, :create, :new ] do
       member do
         patch :toggle_notification

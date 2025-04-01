@@ -1,0 +1,25 @@
+<div class="mt-8">
+  <h2 class="text-2xl font-semibold theme-text-primary">Control Signals</h2>
+
+  <% if control_signals.empty? %>
+    <p class="text-sm theme-text-secondary italic">No control signals registered yet.</p>
+  <% end %>
+
+  <ul class="grid md:grid-cols-2 gap-4 mt-4">
+    <% control_signals.each do |signal| %>
+      <li class="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-bold theme-text-primary capitalize">
+            <%= sanitize(signal.signal_type) %>
+          </h3>
+          <%= link_to "Edit", edit_plant_module_control_signal_path(plant_module, signal),
+              class: "text-blue-500 hover:underline text-sm" %>
+        </div>
+        <p class="theme-text-secondary text-sm mt-2">
+          Label: <%= sanitize(signal.label || "(none)") %><br/>
+          Delay: <%= signal.delay || "none" %> ms
+        </p>
+      </li>
+    <% end %>
+  </ul>
+</div>

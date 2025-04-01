@@ -1,0 +1,22 @@
+<%= form_with(model: [plant_module, control_signal], class: "space-y-4") do |f| %>
+    <div>
+      <%= f.label :signal_type, "Control Type", class: "theme-text-secondary block" %>
+      <%= f.select :signal_type, %w[pump light outlet fertilizer_routine],
+          {}, class: "text-box border p-2 rounded w-full" %>
+    </div>
+  
+    <div>
+      <%= f.label :label, "Label (optional)", class: "theme-text-secondary block" %>
+      <%= f.text_field :label, class: "text-box border p-2 rounded w-full" %>
+    </div>
+  
+    <div>
+      <%= f.label :delay, "Signal Duration (ms)", class: "theme-text-secondary block" %>
+      <%= f.number_field :delay, class: "text-box border p-2 rounded w-full" %>
+    </div>
+  
+    <div>
+      <%= f.submit class: "btn-primary px-4 py-2 rounded-lg" %>
+    </div>
+  <% end %>
+  

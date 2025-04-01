@@ -49,6 +49,12 @@
     <%= link_to "Edit Module", edit_plant_module_path(@plant_module), class: "text-blue-500 hover:underline mt-2 inline-block" %>
   </div>
 
+  
+  <div class="mt-8">
+    <h2 class="text-2xl font-semibold theme-text-primary">Control Signals</h2>
+    <%= render "control_signals/list", plant_module: @plant_module, control_signals: @plant_module.control_signals %>
+  </div>
+
   <!-- Sensors & Time Series Data (unchanged) -->
   <div class="mt-8">
     <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
