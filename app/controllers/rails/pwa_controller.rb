@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Rails::PwaController < Rails::ApplicationController
+class Rails::PwaController < ApplicationController
     skip_forgery_protection
 
     def service_worker
