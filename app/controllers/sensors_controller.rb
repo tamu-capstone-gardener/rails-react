@@ -16,7 +16,7 @@ class SensorsController < ApplicationController
                         .where("timestamp >= ?", start_time)
                         .group_by_minute(:timestamp)
                         .average(:value)
-                        .transform_values { |v| v.to_f.round(2) }
+                        .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
 
     respond_to do |format|
       format.html

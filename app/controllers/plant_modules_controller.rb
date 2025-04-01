@@ -58,7 +58,7 @@ class PlantModulesController < AuthenticatedApplicationController
                             .where("timestamp >= ?", first_timestamp)
                             .group_by_hour(:timestamp)
                             .average(:value)
-                            .transform_values { |v| v.to_f.round(2) }
+                            .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
 
         @sensor_data[sensor.id] = hourly_data
       else
