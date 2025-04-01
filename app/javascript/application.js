@@ -1,11 +1,12 @@
 import { application } from "controllers/application"
 import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
 import "@hotwired/turbo-rails"
-eagerLoadControllersFrom("controllers", application)
 import "controllers"
 import "chartkick"
 import "Chart.bundle"
+import "channels"
 
+eagerLoadControllersFrom("controllers", application)
 
 const registerServiceWorker = async () => {
   if (navigator.serviceWorker) {
@@ -17,28 +18,28 @@ const registerServiceWorker = async () => {
     }
   }
 };
-  
+
 registerServiceWorker();
 
 export const checkPermission = async () => {
   switch (Notification.permission) {
-      case 'granted':
+    case 'granted':
       console.log('Permission to receive notifications has been granted');
       break;
-      case 'denied':
+    case 'denied':
       console.log('Permission to receive notifications has been denied');
       break;
-      default:
+    default:
       const permission = await Notification.requestPermission();
       console.log(`Permission to receive notifications has been ${permission}`);
       break;
   }
 };
-  
+
 const vapidPublicKey = document.querySelector(
-    'meta[name="vapid-public-key"]',
-  ).content;
-  
+  'meta[name="vapid-public-key"]',
+)?.content;
+
 export const subscribe = async () => {
   const registration = await navigator.serviceWorker.ready;
 
@@ -57,3 +58,19 @@ export const subscribe = async () => {
 
   return subscription;
 };
+
+// Helper function to convert VAPID public key to Uint8Array
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}

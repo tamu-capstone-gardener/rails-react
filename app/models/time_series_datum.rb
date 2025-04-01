@@ -1,5 +1,7 @@
 class TimeSeriesDatum < ApplicationRecord
   belongs_to :sensor
+  serialize :notified_threshold_indices, coder: ActiveRecord::Coders::YAMLColumn.new(Array)
+
 
   after_create :check_sensor_notifications
 

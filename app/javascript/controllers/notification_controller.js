@@ -5,24 +5,12 @@ export default class extends Controller {
     this.element.addEventListener("turbo:submit-end", this.handleSubmitEnd.bind(this))
   }
 
-  handleSubmitEnd(event) {
-    if (event.detail.success) {
-      this.closeModal()
-    }
-  }
-
   openModal() {
-    const modal = document.getElementById("notification-modal")
-    if (modal) {
-      modal.classList.remove("hidden")
-    }
+    document.getElementById("notification-modal").classList.remove("hidden")
   }
 
   closeModal() {
-    const modal = document.getElementById("notification-modal")
-    if (modal) {
-      modal.classList.add("hidden")
-    }
+    document.getElementById("notification-modal").classList.add("hidden")
   }
 
   closeOnBackgroundClick() {
@@ -31,5 +19,11 @@ export default class extends Controller {
 
   stopPropagation(event) {
     event.stopPropagation()
+  }
+
+  handleSubmitEnd(event) {
+    if (event.detail.success) {
+      this.closeModal()
+    }
   }
 }

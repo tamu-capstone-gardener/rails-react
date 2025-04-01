@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       member do
         patch :toggle_notification
         patch :update_notification_settings
+        get :load_notification_settings
       end
     end
     resources :schedules

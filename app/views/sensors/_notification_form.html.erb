@@ -1,0 +1,20 @@
+<turbo-frame id="notification_modal_frame">
+    <%= form_with model: sensor, url: update_notification_settings_plant_module_sensor_path(sensor.plant_module, sensor),
+                method: :patch,
+                data: { turbo_frame: "notification_modal_frame" },
+                class: "theme-text-primary" do |f| %>
+    <div class="mb-4 flex items-center gap-4">
+        <%= f.label :notifications, "Notifications" %>
+        <%= f.check_box :notifications %>
+    </div>
+    <div class="mb-4">
+        <%= f.label :thresholds, "Thresholds (comma-separated)", class: "theme-text-secondary" %>
+        <%= f.text_field :thresholds, value: sensor.thresholds.join(', '), class: "text-box border p-2 rounded w-full" %>
+    </div>
+    <div class="mb-4">
+        <%= f.label :messages, "Messages (comma-separated)", class: "theme-text-secondary" %>
+        <%= f.text_field :messages, value: sensor.messages.join(', '), class: "text-box border p-2 rounded w-full" %>
+    </div>
+    <%= f.submit "Save Notification Settings", class: "btn-primary px-4 py-2 rounded-lg" %>
+    <% end %>
+</turbo-frame>

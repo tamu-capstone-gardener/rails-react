@@ -99,7 +99,10 @@ class SensorsController < ApplicationController
     end
   end
 
-
+  def load_notification_settings
+    @sensor = Sensor.find(params[:id])
+    render partial: "sensors/notification_form", locals: { sensor: @sensor }
+  end
 
 
   private
