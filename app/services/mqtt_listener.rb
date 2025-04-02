@@ -53,6 +53,11 @@ class MqttListener
   # Process incoming sensor data, trigger automatic and scheduled control signals.
   def self.process_mqtt_sensor_data(topic, message_json)
     sensor_id = extract_sensor_id_from_sensor_topic(topic)
+    unless sensor_id
+      Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
+      return
+    end
+
     Rails.logger.info("Processing sensor data for sensor: #{sensor_id}")
 
     value = message_json["value"]
