@@ -22,14 +22,15 @@ class ControlSignalsController < AuthenticatedApplicationController
         executed_at: Time.current
       )
 
-      # Call the MQTT publish method (assuming this is defined somewhere)
-      MqttListener.publish_control_command(control_signal)
+      # Pass the toggle parameter (if present) to your MQTT publish method.
+      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true")
 
       head :ok
     rescue => e
       Rails.logger.error "Trigger error: #{e.message}"
       head :unprocessable_entity
     end
+
 
 
     private
