@@ -1,4 +1,6 @@
 class ControlSignal < ApplicationRecord
     belongs_to :plant_module
-    validates :signal_type, presence: true
+    belongs_to :sensor, optional: true
+
+    validates :mode, presence: true
 end

@@ -24,6 +24,10 @@ class ControlSignalsController < AuthenticatedApplicationController
     end
 
     def control_signal_params
-      params.require(:control_signal).permit(:label, :delay)
+      params.require(:control_signal).permit(
+      :label, :signal_type, :delay, :length_ms,
+      :mode, :sensor_id, :comparison, :threshold_value,
+      :frequency, :unit, :enabled
+    )
     end
 end

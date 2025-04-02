@@ -1,22 +1,88 @@
-<%= form_with(model: [plant_module, control_signal], class: "space-y-4") do |f| %>
-    <div>
-      <%= f.label :signal_type, "Control Type", class: "theme-text-secondary block" %>
-      <%= f.select :signal_type, %w[pump light outlet fertilizer_routine],
-          {}, class: "text-box border p-2 rounded w-full" %>
+<%= form_with(model: [plant_module, control_signal], class: "space-y-6", data: { controller: "control-signal-form" }) do |f| %>
+  <!-- Mode Tabs -->
+  <div class="flex space-x-2 mb-4" data-control-signal-form-target="modeTabs">
+    <% %w[manual automatic scheduled].each do |m| %>
+      <button type="button"
+              id="mode_<%= m %>"
+              class="mode-tab cursor-pointer px-4 py-2 rounded-lg border"
+              data-mode="<%= m %>"
+              data-action="click->control-signal-form#selectMode">
+        <%= m.capitalize %>
+      </button>
+    <% end %>
+    <%= f.hidden_field :mode, value: @control_signal.mode, data: { "control-signal-form-target": "modeInput" } %>
+  </div>
+
+  <!-- Shared Fields -->
+  <div>
+    <%= f.label :signal_type, "Control Type" %>
+    <%= f.select :signal_type, %w[pump light outlet relay fertilizer_routine], {}, class: "text-box border p-2 rounded w-full" %>
+  </div>
+
+  <div>
+    <%= f.label :label, "Label (optional)" %>
+    <%= f.text_field :label, class: "text-box border p-2 rounded w-full" %>
+  </div>
+
+  <!-- Duration -->
+  <div>
+    <%= f.label :length_ms, "Signal Duration" %>
+    <div class="flex space-x-2 items-center">
+      <%= f.select :length_ms, [3000, 5000, 10000, 30000, 60000, 180000, 3600000].map { |v| ["#{v / 1000}s", v] } + [["Custom", "custom"]],
+        {}, class: "text-box border p-2 rounded", data: { action: "control-signal-form#toggleCustomLengthInput", "control-signal-form-target": "lengthSelect" } %>
+      <%= f.number_field :length_ms, class: "text-box border p-2 rounded", placeholder: "Custom ms", data: { "control-signal-form-target": "customLengthInput" } %>
     </div>
-  
-    <div>
-      <%= f.label :label, "Label (optional)", class: "theme-text-secondary block" %>
-      <%= f.text_field :label, class: "text-box border p-2 rounded w-full" %>
+  </div>
+
+  <!-- Automatic Fields -->
+  <div id="automatic_fields" class="hidden" data-control-signal-form-target="automaticFields">
+    <div class="flex items-center justify-start gap-8">
+      <div class="">
+        <%= f.label :sensor_id, "Sensor" %>
+        <select name="control_signal[sensor_id]" id="control_signal_sensor_id"
+                class="text-box border p-2 rounded w-full"
+                data-action="change->control-signal-form#updateSensorUnit"
+                data-control-signal-form-target="sensorSelect">
+          <% @plant_module.sensors.each do |sensor| %>
+            <option value="<%= sensor.id %>" data-unit="<%= sensor.measurement_unit %>" <%= "selected" if sensor.id == @control_signal.sensor_id %>>
+              <%= sensor.measurement_type %>
+            </option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="flex-shrink-1">
+        <%= f.label :comparison, "Comparison" %>
+        <%= f.select :comparison, %w[< <= == >= >], {}, class: "text-box border p-2 rounded w-full" %>
+      </div>
+
+      <div>
+        <%= f.label :threshold_value, "Threshold" %>
+        <div class="flex-2 flex space-x-2 items-center">
+          <%= f.select :threshold_value, [10, 25, 50, 100, 500, 1000, 2500, 10000].map { |v| ["#{v}", v] } + [["Custom", "custom"]],
+            {}, class: "text-box border p-2 rounded", data: { action: "control-signal-form#toggleCustomThresholdInput", "control-signal-form-target": "thresholdSelect" } %>
+          <%= f.number_field :threshold_value, step: 0.01, placeholder: "Custom", class: "text-box border p-2 rounded", data: { "control-signal-form-target": "customThresholdInput" } %>
+          <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.unit %></span>
+        </div>
+      </div>
     </div>
-  
+  </div>
+
+  <!-- Scheduled Fields -->
+  <div id="scheduled_fields" class="hidden" data-control-signal-form-target="scheduledFields">
     <div>
-      <%= f.label :delay, "Signal Duration (ms)", class: "theme-text-secondary block" %>
-      <%= f.number_field :delay, class: "text-box border p-2 rounded w-full" %>
+      <%= f.label :frequency, "Frequency" %>
+      <%= f.number_field :frequency, class: "text-box border p-2 rounded w-full", placeholder: "e.g., 3" %>
     </div>
-  
+
     <div>
-      <%= f.submit class: "btn-primary px-4 py-2 rounded-lg" %>
+      <%= f.label :unit, "Unit" %>
+      <%= f.select :unit, %w[minutes hours days], {}, class: "text-box border p-2 rounded w-full" %>
     </div>
-  <% end %>
-  
+  </div>
+
+  <!-- Submit -->
+  <div>
+    <%= f.submit class: "btn-primary px-4 py-2 rounded-lg" %>
+  </div>
+<% end %>

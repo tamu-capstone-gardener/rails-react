@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_01_204257) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_02_042153) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,6 +24,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_01_204257) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "control_executions", id: :string, force: :cascade do |t|
+    t.string "control_signal_id", null: false
+    t.string "source", null: false
+    t.integer "duration_ms", null: false
+    t.datetime "executed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["control_signal_id"], name: "index_control_executions_on_control_signal_id"
+  end
+
   create_table "control_signals", id: :string, force: :cascade do |t|
     t.string "plant_module_id", null: false
     t.string "signal_type", null: false
@@ -32,7 +42,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_01_204257) do
     t.integer "delay", default: 3000
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "mode", default: "manual", null: false
+    t.string "sensor_id"
+    t.string "comparison"
+    t.float "threshold_value"
+    t.integer "frequency"
+    t.string "unit"
+    t.boolean "enabled", default: true
+    t.integer "length_ms"
     t.index ["plant_module_id", "signal_type"], name: "index_control_signals_on_plant_module_id_and_signal_type"
+    t.index ["sensor_id"], name: "index_control_signals_on_sensor_id"
   end
 
   create_table "module_plants", id: :string, force: :cascade do |t|
@@ -138,7 +157,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_01_204257) do
   end
 
   add_foreign_key "care_schedules", "plant_modules"
+  add_foreign_key "control_executions", "control_signals"
   add_foreign_key "control_signals", "plant_modules"
+  add_foreign_key "control_signals", "sensors"
   add_foreign_key "module_plants", "plant_modules"
   add_foreign_key "module_plants", "plants"
   add_foreign_key "photos", "plant_modules"

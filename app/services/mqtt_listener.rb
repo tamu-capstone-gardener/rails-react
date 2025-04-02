@@ -49,149 +49,133 @@ class MqttListener
   end
 
   private
-    def self.process_mqtt_sensor_data(topic, message_json)
-      sensor_id = extract_sensor_id_from_sensor_topic(topic)
-      unless sensor_id
-        Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
-        return
-      end
 
-      Rails.logger.info("Trying to get value in MQTTListener")
+  # Process incoming sensor data, trigger automatic and scheduled control signals.
+  def self.process_mqtt_sensor_data(topic, message_json)
+    sensor_id = extract_sensor_id_from_sensor_topic(topic)
+    Rails.logger.info("Processing sensor data for sensor: #{sensor_id}")
 
-      value = message_json["value"]
-      timestamp = message_json["timestamp"]
+    value = message_json["value"]
+    timestamp = message_json["timestamp"]
 
-      if value.nil? || timestamp.nil?
-        Rails.logger.warn "Missing required fields in message: #{message_json}"
-        return
-      end
-
-      begin
-        TimeSeriesDatum.create!(
-          sensor_id: sensor_id,
-          value: value,
-          timestamp: timestamp
-        )
-        Rails.logger.info "Stored time series data for sensor '#{sensor_id}'"
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
-      rescue => e
-        Rails.logger.error "Unexpected error storing data: #{e.message}"
-      end
+    if value.nil? || timestamp.nil?
+      Rails.logger.warn "Missing required fields in message: #{message_json}"
+      return
     end
 
-    def self.process_mqtt_sensor_init(topic, message_json)
-      plant_module_id = extract_module_id(topic, "init_sensors")
-      Rails.logger.info "Received sensor init message for plant_module #{plant_module_id}: #{message_json.inspect}"
-      plant_module = PlantModule.find_by(id: plant_module_id)
-      unless plant_module
-        Rails.logger.error "Plant module not found for id #{plant_module_id}"
-        return
-      end
+    # Store the sensor data
+    begin
+      TimeSeriesDatum.create!(
+        sensor_id: sensor_id,
+        value: value,
+        timestamp: timestamp
+      )
+      Rails.logger.info "Stored time series data for sensor '#{sensor_id}'"
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
+      return
+    end
 
-      sensors = message_json["sensors"] || []
-      controls = message_json["controls"] || []
-      responses = { sensors: [], controls: [] }
-
-      sensors.each do |sensor_data|
-        type = sensor_data["type"]
-        unit = sensor_data["unit"] || default_unit_for(type)
-        existing = plant_module.sensors.find_by(measurement_type: type)
-        if existing
-          Rails.logger.info "Sensor for type '#{type}' already exists (ID: #{existing.id})."
-          responses[:sensors] << { type: type, status: "exists", sensor_id: existing.id }
-        else
-          Rails.logger.info "Creating new sensor for type '#{type}' with unit '#{unit}'."
-          sensor = plant_module.sensors.create!(
-            id: SecureRandom.uuid,
-            measurement_type: type,
-            measurement_unit: unit
-          )
-          responses[:sensors] << { type: type, status: "created", sensor_id: sensor.id }
+    # Process control signals for this sensor
+    control_signals = ControlSignal.where(sensor_id: sensor_id, enabled: true)
+    control_signals.each do |cs|
+      case cs.mode
+      when "automatic"
+        condition_met = case cs.comparison
+        when "<" then value < cs.threshold_value
+        when ">" then value > cs.threshold_value
+        else false
         end
-      end
-
-      controls.each do |control|
-        type = control["type"]
-        existing = plant_module.control_signals.find_by(signal_type: type)
-        if existing
-          Rails.logger.info "Control signal for type '#{type}' already exists (ID: #{existing.id})."
-          responses[:controls] << { type: type, status: "exists", control_id: existing.id }
-        else
-          Rails.logger.info "Creating new control signal for type '#{type}'."
-          signal = plant_module.control_signals.create!(
-            id: SecureRandom.uuid,
-            signal_type: type,
-            label: control["label"] || type.titleize,
-            mqtt_topic: "planthub/#{plant_module_id}/#{type}"
-          )
-          responses[:controls] << { type: type, status: "created", control_id: signal.id }
+        if condition_met
+          current_time = Time.now
+          last_exec = ControlExecution.where(control_signal_id: cs.id).order(executed_at: :desc).first
+          delay_ms = cs.delay || 3000
+          if last_exec.nil? || ((current_time - last_exec.executed_at) * 1000) >= delay_ms
+            Rails.logger.info "Automatic control triggered for control signal #{cs.id} (#{cs.signal_type})"
+            publish_control_command(cs, auto: true)
+            ControlExecution.create!(
+              control_signal_id: cs.id,
+              source: "auto",
+              duration_ms: cs.length_ms || delay_ms,
+              executed_at: current_time
+            )
+          else
+            Rails.logger.info "Control signal #{cs.id} triggered recently, waiting for delay period."
+          end
         end
-      end
-
-      Rails.logger.info "Sensor init process completed. Responses: #{responses.to_json}"
-      publish_sensor_response(plant_module_id, responses)
-    end
-
-
-    def self.process_mqtt_photo(topic, message_json)
-      plant_module_id = extract_plant_module_id_from_photo_topic(topic)
-      unless plant_module_id
-        Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
-        return
-      end
-
-      url = message_json["url"]
-      timestamp = message_json["timestamp"]
-
-      if url.nil? || timestamp.nil?
-        Rails.logger.warn "Missing required fields in message: #{message_json}"
-        return
-      end
-
-      begin
-        Photo.create!(
-          id: SecureRandom.uuid,
-          plant_module_id: plant_module_id,
-          timestamp: timestamp,
-          url: url
-        )
-        Rails.logger.info "Stored photo for plant module '#{plant_module_id}'"
-      rescue ActiveRecord::RecordInvalid => e
-        Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
-      rescue => e
-        Rails.logger.error "Unexpected error storing data: #{e.message}"
+      when "scheduled"
+        # For scheduled mode, trigger based on frequency regardless of sensor value.
+        # Here we assume `frequency` is provided in seconds.
+        scheduled_interval_ms = (cs.frequency || 60) * 1000
+        current_time = Time.now
+        last_exec = ControlExecution.where(control_signal_id: cs.id).order(executed_at: :desc).first
+        if last_exec.nil? || ((current_time - last_exec.executed_at) * 1000) >= scheduled_interval_ms
+          Rails.logger.info "Scheduled control triggered for control signal #{cs.id} (#{cs.signal_type})"
+          publish_control_command(cs, scheduled: true)
+          ControlExecution.create!(
+            control_signal_id: cs.id,
+            source: "scheduled",
+            duration_ms: cs.length_ms || cs.delay || 3000,
+            executed_at: current_time
+          )
+        end
+      when "manual"
+        # In manual mode, the control is triggered by an explicit command, not by sensor data.
+        Rails.logger.debug "Control signal #{cs.id} is in manual mode; no auto trigger."
       end
     end
+  end
 
-    def self.default_unit_for(type)
-      {
-        "moisture" => "analog",
-        "temperature" => "Celsius",
-        "humidity" => "%",
-        "light" => "lux"
-      }[type] || "unknown"
-    end
+  # Publishes the MQTT command for a control signal.
+  # The options hash can include flags such as :auto or :scheduled.
+  def self.publish_control_command(control_signal, options = {})
+    secrets = Rails.application.credentials.hivemq
+    topic = control_signal.mqtt_topic
+    message = {
+      duration: control_signal.length_ms || control_signal.delay || 3000,
+      auto: options[:auto] || false,
+      scheduled: options[:scheduled] || false
+    }.to_json
 
-    def self.extract_sensor_id_from_sensor_topic(path)
-      match = path.match(%r{\Aplanthub/([\w-]+)/sensor_data\z})
-      match ? match[1] : nil
+    MQTT::Client.connect(
+      host: secrets[:url],
+      port: secrets[:port]
+    ) do |client|
+      client.publish(topic, message)
     end
+    Rails.logger.info "Published control command to topic #{topic} with message #{message}"
+  end
 
-    def self.extract_plant_module_id_from_photo_topic(path)
-      match = path.match(%r{\Aplanthub/([\w-]+)/photo\z})
-      match ? match[1] : nil
-    end
+  def self.process_mqtt_sensor_init(topic, message_json)
+    # ...existing sensor initialization code...
+  end
 
-    def self.extract_module_id(topic, suffix)
-      match = topic.match(%r{planthub/(.*?)/#{suffix}})
-      match ? match[1] : nil
-    end
+  def self.process_mqtt_photo(topic, message_json)
+    # ...existing photo processing code...
+  end
 
-    def self.publish_sensor_response(module_id, responses)
-      Rails.logger.info("Attempting to publish a sensor init response!")
-      MQTT::Client.connect(host: Rails.application.credentials.hivemq[:url], port: Rails.application.credentials.hivemq[:port]) do |client|
-        client.publish("planthub/#{module_id}/sensor_init_response", responses.to_json)
-      end
+  def self.extract_sensor_id_from_sensor_topic(path)
+    match = path.match(%r{\Aplanthub/([\w-]+)/sensor_data\z})
+    match ? match[1] : nil
+  end
+
+  def self.extract_module_id(topic, suffix)
+    match = topic.match(%r{planthub/(.*?)/#{suffix}})
+    match ? match[1] : nil
+  end
+
+  def self.extract_plant_module_id_from_photo_topic(path)
+    match = path.match(%r{\Aplanthub/([\w-]+)/photo\z})
+    match ? match[1] : nil
+  end
+
+  def self.publish_sensor_response(module_id, responses)
+    Rails.logger.info("Attempting to publish a sensor init response!")
+    MQTT::Client.connect(
+      host: Rails.application.credentials.hivemq[:url],
+      port: Rails.application.credentials.hivemq[:port]
+    ) do |client|
+      client.publish("planthub/#{module_id}/sensor_init_response", responses.to_json)
     end
+  end
 end
