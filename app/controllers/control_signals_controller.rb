@@ -13,6 +13,25 @@ class ControlSignalsController < AuthenticatedApplicationController
       end
     end
 
+    def trigger
+      control_signal = ControlSignal.find(params[:id])
+      ::ControlExecution.create!(
+        control_signal_id: control_signal.id,
+        source: params[:source] || "manual",
+        duration_ms: control_signal.length_ms || 3000,
+        executed_at: Time.current
+      )
+
+      # Call the MQTT publish method (assuming this is defined somewhere)
+      MqttListener.publish_control_command(control_signal)
+
+      head :ok
+    rescue => e
+      Rails.logger.error "Trigger error: #{e.message}"
+      head :unprocessable_entity
+    end
+
+
     private
 
     def set_plant_module

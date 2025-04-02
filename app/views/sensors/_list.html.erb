@@ -44,15 +44,7 @@
         <turbo-frame id="notification_section"></turbo-frame>
     </li>
     <% end %>
-    <div class="mt-4">
-    <%= button_to sanitize("Water Now"), mqtt_water_path, class: "text-blue-500 hover:underline", method: :post,
-        params: { plant_module_id: @plant_module.id }, remote: true %>
-    </div>
 </ul>
-<div class="mb-4">
-  <!-- Render the new sensor form -->
-  <%= render "sensors/form", plant_module: plant_module, sensor: Sensor.new %>
-</div>
 
 <!-- Single, reusable notification modal -->
 <div id="notification-modal"

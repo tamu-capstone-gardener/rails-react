@@ -1,4 +1,4 @@
-<div class="container mx-auto p-6">
+<div class="container mx-auto p-6" data-controller="tabs">
   <!-- Navigation Link -->
   <div class="mb-6">
     <%= link_to sanitize("Back to Modules"), plant_modules_path,
@@ -22,12 +22,11 @@
         <% end %>
       <% end %>
     </p>
-  <% else %>
   <% end %>
 
   <!-- Selected Plants -->
   <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text-primary">Selected Plants</h2>
+    <h2 class="text-2xl font-semibold theme-text-primary">Plants</h2>
     <% @plant_module.plants.each do |plant| %>
       <div class="text-box border rounded-lg p-4 my-4 shadow-md">
         <h3 class="text-xl font-bold theme-text-primary">
@@ -43,29 +42,61 @@
     <% end %>
   </div>
 
-  <!-- Total (Module Default) Care Schedule -->
+  <!-- Manual Control Signal Toggles -->
   <div class="mt-4">
-    <h2 class="text-2xl font-semibold theme-text-primary">Care Schedule</h3>
-    <ul class="list-disc list-inside theme-text-secondary">
-      <li>Water every <%= @plant_module.care_schedule.watering_frequency %> days</li>
-      <li>Fertilize every <%= @plant_module.care_schedule.fertilizer_frequency %> days</li>
-      <li>Light exposure: <%= @plant_module.care_schedule.light_hours %> hrs/day</li>
-      <li>Soil Moisture Preference: <%= sanitize(@plant_module.care_schedule.soil_moisture_pref) %></li>
-    </ul>
-    <%= link_to "Edit Module", edit_plant_module_path(@plant_module), class: "text-blue-500 hover:underline mt-2 inline-block" %>
+    <h2 class="text-2xl font-semibold theme-text-primary mb-2">Manual Control Triggers</h2>
+    <div class="flex flex-wrap gap-4" data-controller="manual-trigger">
+      <% @plant_module.control_signals.each do |signal| %>
+        <button
+          type="button"
+          class="btn-primary px-4 py-2 rounded-lg transition hover:scale-105"
+          data-action="click->manual-trigger#trigger"
+          data-id="<%= signal.id %>"
+          data-plant-module-id="<%= @plant_module.id %>">
+          <%= signal.label.presence || signal.signal_type.titleize %>
+        </button>
+      <% end %>
+    </div>
   </div>
 
-  
-  <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text-primary">Control Signals</h2>
-    <%= render "control_signals/list", plant_module: @plant_module, control_signals: @plant_module.control_signals %>
+
+  <!-- Tab Buttons -->
+  <div class="flex space-x-4 mt-10 border-b pb-2" role="tablist">
+    <% %w[care control sensors].each do |tab| %>
+      <button
+        type="button"
+        class="tab-btn text-lg font-medium px-3 py-2 rounded-md transition hover:cursor-pointer"
+        data-action="tabs#switch"
+        data-tabs-target="tab"
+        data-tab="<%= tab %>">
+        <%= tab.capitalize.gsub("_", " ") %>
+      </button>
+    <% end %>
   </div>
 
-  <!-- Sensors & Time Series Data (unchanged) -->
-  <div class="mt-8">
-    <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
-    <turbo-frame id="sensors_list" data-controller="notification">
-      <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors %>
-    </turbo-frame>
+  <!-- Tab Content -->
+  <div class="mt-6 space-y-6">
+    <div data-tabs-target="panel" data-tab-panel="care" class="tab-panel">
+      <h2 class="text-2xl font-semibold theme-text-primary">Care Schedule</h2>
+      <ul class="list-disc list-inside theme-text-secondary">
+        <li>Water every <%= @plant_module.care_schedule.watering_frequency %> days</li>
+        <li>Fertilize every <%= @plant_module.care_schedule.fertilizer_frequency %> days</li>
+        <li>Light exposure: <%= @plant_module.care_schedule.light_hours %> hrs/day</li>
+        <li>Soil Moisture Preference: <%= sanitize(@plant_module.care_schedule.soil_moisture_pref) %></li>
+      </ul>
+      <%= link_to "Edit Module", edit_plant_module_path(@plant_module), class: "text-blue-500 hover:underline mt-2 inline-block" %>
+    </div>
+
+    <div data-tabs-target="panel" data-tab-panel="control" class="tab-panel hidden">
+      <h2 class="text-2xl font-semibold theme-text-primary">Control Signals</h2>
+      <%= render "control_signals/list", plant_module: @plant_module, control_signals: @plant_module.control_signals %>
+    </div>
+
+    <div data-tabs-target="panel" data-tab-panel="sensors" class="tab-panel hidden">
+      <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
+      <turbo-frame id="sensors_list" data-controller="notification">
+        <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors %>
+      </turbo-frame>
+    </div>
   </div>
 </div>
