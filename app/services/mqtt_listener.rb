@@ -258,4 +258,13 @@ class MqttListener
       client.publish("planthub/#{module_id}/sensor_init_response", responses.to_json)
     end
   end
+
+  def self.default_unit_for(type)
+    {
+      "moisture" => "analog",
+      "temperature" => "Celsius",
+      "humidity" => "%",
+      "light_analog" => "lux"
+    }[type] || "unknown"
+  end
 end
