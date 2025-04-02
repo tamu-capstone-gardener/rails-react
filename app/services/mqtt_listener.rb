@@ -147,11 +147,86 @@ class MqttListener
   end
 
   def self.process_mqtt_sensor_init(topic, message_json)
-    # ...existing sensor initialization code...
+    plant_module_id = extract_module_id(topic, "init_sensors")
+    Rails.logger.info "Received sensor init message for plant_module #{plant_module_id}: #{message_json.inspect}"
+    plant_module = PlantModule.find_by(id: plant_module_id)
+    unless plant_module
+      Rails.logger.error "Plant module not found for id #{plant_module_id}"
+      return
+    end
+
+    sensors = message_json["sensors"] || []
+    controls = message_json["controls"] || []
+    responses = { sensors: [], controls: [] }
+
+    sensors.each do |sensor_data|
+      type = sensor_data["type"]
+      unit = sensor_data["unit"] || default_unit_for(type)
+      existing = plant_module.sensors.find_by(measurement_type: type)
+      if existing
+        Rails.logger.info "Sensor for type '#{type}' already exists (ID: #{existing.id})."
+        responses[:sensors] << { type: type, status: "exists", sensor_id: existing.id }
+      else
+        Rails.logger.info "Creating new sensor for type '#{type}' with unit '#{unit}'."
+        sensor = plant_module.sensors.create!(
+          id: SecureRandom.uuid,
+          measurement_type: type,
+          measurement_unit: unit
+        )
+        responses[:sensors] << { type: type, status: "created", sensor_id: sensor.id }
+      end
+    end
+
+    controls.each do |control|
+      type = control["type"]
+      existing = plant_module.control_signals.find_by(signal_type: type)
+      if existing
+        Rails.logger.info "Control signal for type '#{type}' already exists (ID: #{existing.id})."
+        responses[:controls] << { type: type, status: "exists", control_id: existing.id }
+      else
+        Rails.logger.info "Creating new control signal for type '#{type}'."
+        signal = plant_module.control_signals.create!(
+          id: SecureRandom.uuid,
+          signal_type: type,
+          label: control["label"] || type.titleize,
+          mqtt_topic: "planthub/#{plant_module_id}/#{type}"
+        )
+        responses[:controls] << { type: type, status: "created", control_id: signal.id }
+      end
+    end
+
+    Rails.logger.info "Sensor init process completed. Responses: #{responses.to_json}"
+    publish_sensor_response(plant_module_id, responses)
   end
 
   def self.process_mqtt_photo(topic, message_json)
-    # ...existing photo processing code...
+    plant_module_id = extract_plant_module_id_from_photo_topic(topic)
+    unless plant_module_id
+      Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
+      return
+    end
+
+    url = message_json["url"]
+    timestamp = message_json["timestamp"]
+
+    if url.nil? || timestamp.nil?
+      Rails.logger.warn "Missing required fields in message: #{message_json}"
+      return
+    end
+
+    begin
+      Photo.create!(
+        id: SecureRandom.uuid,
+        plant_module_id: plant_module_id,
+        timestamp: timestamp,
+        url: url
+      )
+      Rails.logger.info "Stored photo for plant module '#{plant_module_id}'"
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
+    rescue => e
+      Rails.logger.error "Unexpected error storing data: #{e.message}"
+    end
   end
 
   def self.extract_sensor_id_from_sensor_topic(path)
