@@ -1,0 +1,135 @@
+<div class="container mx-auto p-6" data-controller="tabs" data-tabs-default-value="prerequisites">
+    <h1 class="text-3xl font-bold theme-text-primary mb-2">How to Setup Your PlantHub</h1>
+    <p class="text-sm italic theme-text-secondary mb-4">
+        TO DO: insert links for all sensors and control signals, add pictures of steps, finalize hydroponic stuff once module complete
+    </p>
+
+    <!-- Tab Buttons -->
+    <div class="flex space-x-4 border-b pb-4 mb-6" role="tablist">
+        <% %w[prerequisites hardware software].each do |tab| %>
+        <button
+            type="button"
+            class="tab-btn text-lg font-medium px-3 py-2 rounded-md transition hover:cursor-pointer"
+            data-action="tabs#switch"
+            data-tabs-target="tab"
+            data-tab="<%= tab %>">
+            <%= tab.capitalize %>
+        </button>
+        <% end %>
+    </div>
+
+    <div class="space-y-8">
+        <div data-tabs-target="panel" data-tab-panel="prerequisites" class="tab-panel">
+            <h2 class="text-2xl font-semibold theme-text-primary">Terminology</h2>
+            <ul class="list-disc list-inside theme-text-secondary space-y-2 mt-2">
+                <li><span class="text-lg font-bold mt-4">Plant Module:</span> 
+                    A module made up of plants, whether indoors or outdoors, and can have its own sensors and control signals. For example, a plant module could be an in-soil, auto-watering pot which is growing a tomato plant and garlic.
+                </li>
+                <li><span class="text-lg font-bold mt-4">Sensor:</span> 
+                    Any device that can detect a value for something. Examples include soil moisture, pH, light, total dissolved solids, humidity, etc.
+                </li>
+                <li><span class="text-lg font-bold mt-4">Control Signal:</span>
+                    A device or routine that can be controlled with a relay or set of relays. Examples include pumps, outlets, lights, cameras, fertilizing routine, etc.
+                </li>
+            </ul>
+        </div>
+
+        <div data-tabs-target="panel" data-tab-panel="hardware" class="tab-panel hidden">
+            <h2 class="text-2xl font-semibold theme-text-primary">Picking Hardware</h2>
+
+            <h3 class="text-xl font-bold mt-4">Microcontroller</h3>
+            <p class="theme-text-secondary mt-2">
+                While we went with the <em class="text-red-500">ESP-32</em>, there are other microcontrollers that would do just as well. <span class="block mt-2">
+                As a result, our code is written <em>for</em> an ESP-32 and we therefore recommend you use an ESP-32. <span class="block mt-2">
+                The ESP-32 just so happens to be cheap, widely available, and has plenty of ports to utilize for a plant module.
+            </p>
+            <h3 class="text-xl font-bold mt-4">Sensors</h3>
+            <p class="theme-text-secondary mt-2">
+                Currently, we have two plant modules with various sensors, but don't let our sensor choices limit your imagination. <span class="block mt-2">
+                For our in-soil garden, we used a <em class="text-red-500">digital humidity and temperature sensor, a dual digital and analog light sensor, and a soil moisture sensor</em>. <span class="block mt-2">
+                For our hydroponic garden, we used a water level sensor and a total dissolved solids sensor.
+            </p>
+            <h3 class="text-xl font-bold mt-4">Control Signals</h3>
+            <p class="theme-text-secondary mt-2">
+                Similarly for the control signals, we have different configurations for each demo module. <span class="block mt-2">
+                For our in-soil garden, we have an outlet relay (that toggles the lights and camera) and a pump relay which controls the watering mechanism. <span class="block mt-2">
+                For our hydroponic system, we have an outlet relay (for the same purpose) and a fertilizing routine which is made up of 4 pumps (one for each N-P-K and one for a mixing chamber). <span class="block mt-2"> 
+            </p>
+            <hr class="mt-2 mb-8">
+            <h2 class="text-2xl font-semibold theme-text-primary">Interfacing with Hardware</h2>
+            <h3 class="text-xl font-bold mt-4">Microcontroller</h3>
+            <p class="theme-text-secondary mt-2">
+                In order to interface with the ESP-32, you should install VS Code and the PlatformIO extension within the IDE. <span class="block mt-2">
+                Once this is complete clone our <em class="text-red-500">microcontroller repository</em>, and navigate to the setup.py file. <span class="block mt-2">
+                This file will help you to create your config file and setup the code based on your plant module's configuration. <span class="block mt-2">
+                Fill out the WiFi information at the top of the file and also configure the wifi_manager.cpp file to meet your WiFi's security standards. <span class="block mt-2">
+                Once you are done, simply run 'python setup.py' in the project directory and you will be asked to fill in your plant module's id as well as sensor, and control signal information. <span class="block mt-2">
+                Don't worry the following sections of hardware will explain the sensor and control signal setup; whereas, the software section will teach you everything about the website. <span class="block mt-2">    
+            </p>
+            <h3 class="text-xl font-bold mt-4">Sensors</h3>
+            <p class="theme-text-secondary mt-2">
+                Some sensors use analog reads, others use digital reads. <span class="block mt-2">
+                For example, the analog light measurement uses an analog read; whereas, the digital humidity and temperature (DHT) sensor uses a digital read. <span class="block mt-2">
+                This is important as, because we are sending data to <strong>PlantHub</strong>, we must utilize the ESP-32's onboard WiFi. <span class="block mt-2">
+                This WiFi connection uses up one of the two onboard analog to digital converter (ADC) modules (specifically ADC2). <span class="block mt-2">
+                As a result we must avoid selecting analog reads on ADC2. This means that all analog reads must be kept to the general purpose input/output (GPIO) pins 32-39. <span class="block mt-2">
+                Furthermore, GPIO pins 34-39 are only capable of analog reads, but because we don't need the ADC for digital reads and writes there are plenty of GPIO pins left up for grabs. <span class="block mt-2">
+                Select any GPIO pin 0-33 for digital reads and writes such as for a control signal or even a digital sensor such as the DHT sensor.
+            </p>
+            <h3 class="text-xl font-bold mt-4">Control Signals</h3>
+            <p class="theme-text-secondary mt-2">
+                As mentioned in previous sections, we have only used digital writes to take advantage of relays. <span class="block mt-2">
+                As a result, GPIO pins 0-33 are fit for any control signals.  
+            </p>
+            <h3 class="text-xl font-bold mt-4">Tips</h3>
+            <p class="theme-text-secondary mt-2">
+                Always connect your grounds together first! <span class="block mt-2">
+                Check the current draw of any sensors or relays. <span class="block mt-2">
+                Write down which "read or write" pin connects to which GPIO pin for later configuration. <span class="block mt-2">  
+            </p>
+        </div>
+
+        <div data-tabs-target="panel" data-tab-panel="software" class="tab-panel hidden">
+            <h2 class="text-2xl font-semibold theme-text-primary">Navigating and Using PlantHub</h2>
+            <h3 class="text-xl font-bold mt-4">Navbar</h3>
+            <p class="theme-text-secondary mt-2">
+                Take advantage of the hamburger menu to access the most important pages such as going home, viewing your plant modules, changing your settings, or even viewing this help again! 
+            </p>
+            <h3 class="text-xl font-bold mt-4">Home Page</h3>
+            <p class="theme-text-secondary mt-2">
+                The home page contains<em class="text-red-500">TODO: finish once home page done</em>
+            </p>
+            <h3 class="text-xl font-bold mt-4">Plant Modules</h3>
+            <p class="theme-text-secondary mt-2">
+                While this page may seem empty now, this is where you will soon be able to view your network of plant modules. <span class="block mt-2">
+                To start, click "Create Module" and pick a name and description for your module. <span class="block mt-2">
+                Next, you will have to decide whether this module will be monitoring plants indoors or just reminding you of your outdoor garden(s). <span class="block mt-2">
+                Once these steps are complete, it is time to start adding plants!. <span class="block mt-2">
+                Don't worry if the number of options are daunting, we have a beginner filter tailored just for first-time gardeners. <span class="block mt-2">
+                If you are more advanced or want a change of fauna, use our filters to sift through plants or use our search bar to hunt down a specific plant. <span class="block mt-2">
+                Once you have selected as many plants as your pot can hold and are satisfied with your plant module, click "Create Module" and get ready to garden! <span class="block mt-2">
+                In order to link a plant module on PlantHub to a real-life plant module, get the ID from the URL which is in the format: "plant_modules/{id}". <span class="block mt-2">
+                Once you have this, you are ready to run the setup.py script mentioned within the hardware section. <span class="block mt-2">
+                Once this script has ran, give the site a few seconds and refresh to see your PlantHub plant module configured the same way as your real-life plant module. <span class="block mt-2">
+                In no time you will be able to view your sensor data, control your relays, and set a care schedule for maximum automation. <span class="block mt-2">
+            </p>
+            <h3 class="text-xl font-bold mt-4">Sensors</h3>
+            <p class="theme-text-secondary mt-2">
+                Click on a sensor's history to view your data however you want, or change the name and unit to match your style and configuration. <span class="block mt-2">
+            </p>
+            <h3 class="text-xl font-bold mt-4">Control Signals</h3>
+            <p class="theme-text-secondary mt-2">
+                By default, control signals are set to manual mode, you can also configure them to be automatic (based on a sensor) or scheduled (based on time). <span class="block mt-2">
+                Furthermore, if you would like to change the duration of a control signal i.e. water my plants for 3 seconds as opposed to 5, modify the duration. <span class="block mt-2">
+                As before, feel free to change the default names to something that suits your garden setup. 
+            </p>
+            <h3 class="text-xl font-bold mt-4">Notifications</h3>
+            <p class="theme-text-secondary mt-2">
+                You can receive notifications about your sensors and control signals via email and/or push notification. <span class="block mt-2">
+                In order for push notifications to work, please allow notifications or, if on iOS, add the website to your home screen and then enable notifications. <span class="block mt-2">
+                You can set the notification settings on a per sensor and control signal basis as well as change the default message that you receive. <span class="block mt-2">
+            </p>
+            <h3 class="text-xl font-bold mt-4">Social Media</h3>
+            <em class="text-red-500">TODO: fill out social media.</em>
+        </div>
+</div>

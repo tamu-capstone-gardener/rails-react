@@ -10,7 +10,8 @@ class ApplicationController < ActionController::Base
   def set_navbar_links
     @page_links = [
       { name: "Home", path: root_path },
-      { name: "Modules", path: plant_modules_path }
+      { name: "Modules", path: plant_modules_path },
+      { name: "Help", path: help_path }
       # { name: 'Posts (TODO)', path: root_path },
       # { name: 'Advice (TODO)', path: root_path },
       # { name: 'Data (TODO)', path: root_path },

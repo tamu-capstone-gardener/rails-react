@@ -2,14 +2,17 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["tab", "panel"]
+  static values = {
+    default: String
+  }
 
   connect() {
-    this.switchTo("care") // default
+    const defaultTab = this.hasDefaultValue ? this.defaultValue : this.tabTargets[0]?.dataset.tab
+    if (defaultTab) this.switchTo(defaultTab)
   }
 
   switch(event) {
-    const targetTab = event.currentTarget.dataset.tab
-    this.switchTo(targetTab)
+    this.switchTo(event.currentTarget.dataset.tab)
   }
 
   switchTo(targetTab) {

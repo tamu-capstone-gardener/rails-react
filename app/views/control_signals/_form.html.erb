@@ -62,7 +62,7 @@
           <%= f.select :threshold_value, [10, 25, 50, 100, 500, 1000, 2500, 10000].map { |v| ["#{v}", v] } + [["Custom", "custom"]],
             {}, class: "text-box border p-2 rounded", data: { action: "control-signal-form#toggleCustomThresholdInput", "control-signal-form-target": "thresholdSelect" } %>
           <%= f.number_field :threshold_value, step: 0.01, placeholder: "Custom", class: "text-box border p-2 rounded", data: { "control-signal-form-target": "customThresholdInput" } %>
-          <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.unit %></span>
+          <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.measurement_unit %></span>
         </div>
       </div>
     </div>
