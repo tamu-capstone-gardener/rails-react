@@ -15,21 +15,19 @@ class ControlSignalsController < AuthenticatedApplicationController
 
     def trigger
       control_signal = ControlSignal.find(params[:id])
-      ::ControlExecution.create!(
-        control_signal_id: control_signal.id,
-        source: params[:source] || "manual",
-        duration_ms: control_signal.length_ms || 3000,
-        executed_at: Time.current
-      )
 
-      # Pass the toggle parameter (if present) to your MQTT publish method.
       MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true")
 
-      head :ok
+      if control_signal.mode == "manual"
+        render json: { message: "Control signal triggered successfully.", last_triggered: control_execution.executed_at }
+      else
+        head :ok
+      end
     rescue => e
       Rails.logger.error "Trigger error: #{e.message}"
-      head :unprocessable_entity
+      render json: { error: "Trigger failed: #{e.message}" }, status: :unprocessable_entity
     end
+
 
 
 
@@ -47,7 +45,7 @@ class ControlSignalsController < AuthenticatedApplicationController
       params.require(:control_signal).permit(
       :label, :signal_type, :delay, :length_ms,
       :mode, :sensor_id, :comparison, :threshold_value,
-      :frequency, :unit, :enabled
+      :frequency, :unit, :enabled, :scheduled_time
     )
     end
 end

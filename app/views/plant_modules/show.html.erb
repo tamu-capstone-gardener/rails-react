@@ -42,40 +42,6 @@
     <% end %>
   </div>
 
-  <!-- Manual Control Signal Triggers -->
-  <div class="mt-4">
-    <h2 class="text-2xl font-semibold theme-text-primary mb-2">Manual Control Triggers</h2>
-    <div class="flex flex-wrap gap-4" data-controller="manual-trigger">
-      <% @plant_module.control_signals.each do |signal| %>
-        <div class="flex gap-2">
-          <!-- Standard trigger button (toggle false) -->
-          <button
-            type="button"
-            class="btn-primary px-4 py-2 rounded-lg transition hover:scale-105"
-            data-action="click->manual-trigger#trigger"
-            data-id="<%= signal.id %>"
-            data-plant-module-id="<%= @plant_module.id %>"
-            data-toggle="false">
-            <%= signal.label.presence || signal.signal_type.titleize %>
-          </button>
-
-          <!-- Additional toggle trigger button (toggle true) -->
-          <button
-            type="button"
-            class="btn-secondary px-4 py-2 rounded-lg transition hover:scale-105"
-            data-action="click->manual-trigger#trigger"
-            data-id="<%= signal.id %>"
-            data-plant-module-id="<%= @plant_module.id %>"
-            data-toggle="true">
-            Toggle <%= signal.label.presence || signal.signal_type.titleize %>
-          </button>
-        </div>
-      <% end %>
-    </div>
-  </div>
-
-
-
   <!-- Tab Buttons -->
   <div class="flex space-x-4 mt-10 border-b pb-2" role="tablist">
     <% %w[care control sensors].each do |tab| %>
