@@ -105,10 +105,16 @@ class MqttListener
         current_time = Time.now
         next_trigger = next_scheduled_trigger(cs)
         last_exec = ControlExecution.where(control_signal_id: cs.id, source: "scheduled").order(executed_at: :desc).first
-        if (next_trigger - current_time).abs <= 60
-          publish_control_command(cs, mode: "scheduled")
-        else
-          Rails.logger.info "Control signal #{cs.id} has next_trigger: #{next_trigger} and current time: #{current_time}, this means it falls outside the threshold."
+        local_now = Time.now
+        Time.use_zone("Central Time (US & Canada)") do
+          local_next_trigger = next_trigger
+          difference = local_next_trigger - local_now
+          Rails.logger.info "next_trigger - current_time: #{next_trigger - current_time} and difference: #{difference}"
+          if (difference).abs <= 60
+            publish_control_command(cs, mode: "scheduled")
+          else
+            Rails.logger.info "Control signal #{cs.id} has next_trigger: #{next_trigger} and current time: #{current_time}, this means it falls outside the threshold."
+          end
         end
       end
     end
@@ -207,35 +213,34 @@ class MqttListener
 
   def self.next_scheduled_trigger(control_signal)
     last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "scheduled")
-                                .order(executed_at: :desc)
-                                .first
-
-    now = Time.current
-    scheduled_time_local = control_signal.scheduled_time.in_time_zone(Time.zone)
-    today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
-    tomorrow_scheduled_time = today_scheduled_time + 1.day
-    Rails.logger.info "last_exec: #{last_exec}; now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
-
-    if last_exec.present?
-      Rails.logger.info "last_exec.executed_at: #{last_exec.executed_at}"
-      if last_exec.executed_at < control_signal.updated_at
-        if now > today_scheduled_time
-          Rails.logger.info "Next scheduled trigger calculated as #{tomorrow_scheduled_time}"
-          return tomorrow_scheduled_time
+      .order(executed_at: :desc)
+      .first
+      now = Time.now
+      scheduled_time_local = control_signal.scheduled_time
+      Time.use_zone("Central Time (US & Canada)") do
+      today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
+      tomorrow_scheduled_time = today_scheduled_time + 1.day
+      Rails.logger.info "last_exec: #{last_exec.executed_at}; now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
+      if last_exec.present?
+        if last_exec.executed_at < control_signal.updated_at
+          if (now - today_scheduled_time).abs > 60
+            Rails.logger.info "Next scheduled trigger calculated as #{tomorrow_scheduled_time}"
+            return tomorrow_scheduled_time
+          else
+            Rails.logger.info "Next scheduled trigger calculated as #{today_scheduled_time}"
+            return today_scheduled_time
+          end
         else
-          Rails.logger.info "Next scheduled trigger calculated as #{today_scheduled_time}"
-          return today_scheduled_time
+          next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
         end
       else
-        next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
+        next_trigger = today_scheduled_time
+        next_trigger += 1.day if next_trigger < now
       end
-    else
-      next_trigger = today_scheduled_time
-      next_trigger += 1.day if next_trigger < now
-    end
 
-    Rails.logger.info "Next scheduled trigger calculated as #{next_trigger}"
-    next_trigger
+      Rails.logger.info "Next scheduled trigger calculated as #{next_trigger}"
+      next_trigger
+    end
   end
 
 
