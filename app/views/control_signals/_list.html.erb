@@ -18,14 +18,12 @@
               Delay: <%= signal.length_ms / 1000.0 || "none" %> s
             </p>
               <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
-              <% if last_execution && signal.mode == "scheduled" %>
+              <% if signal.mode == "scheduled" %>
                 <p class="text-sm text-gray-500 mt-2">
                   Next trigger: <%= time_ago_in_words(MqttListener.next_scheduled_trigger(signal)) %> from now.
                 </p>
-                <p class="text-sm text-gray-500">
-                  Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
-                </p>
-              <% elsif last_execution %>
+              <% end %>
+              <% if last_execution %>
                 <p class="text-sm text-gray-500">
                   Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
                 </p>
