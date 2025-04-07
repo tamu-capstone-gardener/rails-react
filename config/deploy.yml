@@ -7,11 +7,16 @@ image: planthub/ruby_react
 # Deploy to these servers.
 servers:
   web:
-    - 3.128.124.156
+    hosts:
+      - 3.128.124.156
+    options:
+        "add-host": host.docker.internal:host-gateway
   job:
     hosts:
       - 3.128.124.156
     cmd: bundle exec sidekiq -e production
+    options:
+        "add-host": host.docker.internal:host-gateway
 
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
 # Remove this section when using multiple web servers and ensure you terminate SSL at your load balancer.
@@ -35,10 +40,11 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
-  clear:
+    - REDIS_URL
+  # clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
-    SOLID_QUEUE_IN_PUMA: true
+    # SOLID_QUEUE_IN_PUMA: true
 
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
