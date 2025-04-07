@@ -17,11 +17,10 @@
               Type: <%= sanitize(signal.mode) %><br/>
               Delay: <%= signal.length_ms / 1000.0 || "none" %> s
             </p>
-            <% if signal.mode != "manual" %>
               <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
               <% if last_execution && signal.mode == "scheduled" %>
                 <p class="text-sm text-gray-500 mt-2">
-                  Next trigger: <%= MqttListener.next_scheduled_trigger(signal) %>
+                  Next trigger: <%= time_ago_in_words(MqttListener.next_scheduled_trigger(signal)) %> from now.
                 </p>
                 <p class="text-sm text-gray-500">
                   Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
@@ -33,7 +32,6 @@
               <% else %>
                 <p class="text-sm text-gray-500">Not triggered yet.</p>
               <% end %>
-            <% end %>
           </div>
           <div class="flex m-4 flex-1 items-end justify-center" data-controller="manual-trigger">
                 <%= button_to "Toggle #{signal.label.presence || signal.signal_type.titleize}",

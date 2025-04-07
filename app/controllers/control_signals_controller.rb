@@ -16,7 +16,7 @@ class ControlSignalsController < AuthenticatedApplicationController
     def trigger
       control_signal = ControlSignal.find(params[:id])
 
-      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true")
+      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual")
 
       if control_signal.mode == "manual"
         render json: { message: "Control signal triggered successfully.", last_triggered: control_execution.executed_at }

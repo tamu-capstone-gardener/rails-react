@@ -215,9 +215,9 @@ class MqttListener
     last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "scheduled")
       .order(executed_at: :desc)
       .first
-      now = Time.now
-      scheduled_time_local = control_signal.scheduled_time
-      Time.use_zone("Central Time (US & Canada)") do
+    now = Time.now
+    scheduled_time_local = control_signal.scheduled_time
+    Time.use_zone("Central Time (US & Canada)") do
       today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
       tomorrow_scheduled_time = today_scheduled_time + 1.day
       Rails.logger.info "last_exec: #{last_exec.executed_at}; now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
