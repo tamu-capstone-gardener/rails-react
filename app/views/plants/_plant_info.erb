@@ -1,0 +1,74 @@
+<div class="plant-details theme-bg-alt theme-text-primary">
+  <% if plant.family.present? %>
+    <p><strong>Family:</strong> <%= plant.family %></p>
+  <% end %>
+  <% if plant.genus.present? %>
+    <p><strong>Genus:</strong> <%= plant.genus %></p>
+  <% end %>
+  <% if plant.species.present? %>
+    <p><strong>Species:</strong> <%= plant.species %></p>
+  <% end %>
+  <% if plant.common_name.present? %>
+    <p><strong>Common Name:</strong> <%= plant.common_name %></p>
+  <% end %>
+  <% if plant.growth_rate.present? %>
+    <p><strong>Growth Rate:</strong> <%= plant.growth_rate %></p>
+  <% end %>
+  <% if plant.hardiness_zones.present? && plant.hardiness_zones != "[]" %>
+    <p><strong>Hardiness Zones:</strong> <%= plant.hardiness_zones %></p>
+  <% end %>
+  <% if plant.height.present? && plant.height > 0 %>
+    <p><strong>Height:</strong> <%= plant.height %></p>
+  <% end %>
+  <% if plant.width.present? && plant.width > 0 %>
+    <p><strong>Width:</strong> <%= plant.width %></p>
+  <% end %>
+  <% if plant.plant_type.present? %>
+    <p><strong>Plant Type:</strong> <%= plant.plant_type %></p>
+  <% end %>
+  <% if plant.leaf.present? %>
+    <p><strong>Leaf:</strong> <%= plant.leaf %></p>
+  <% end %>
+  <% if plant.flower.present? %>
+    <p><strong>Flower:</strong> <%= plant.flower %></p>
+  <% end %>
+  <% if plant.ripen.present? %>
+    <p><strong>Ripen:</strong> <%= plant.ripen %></p>
+  <% end %>
+  <% if plant.reproduction.present? %>
+    <p><strong>Reproduction:</strong> <%= plant.reproduction %></p>
+  <% end %>
+  <% if plant.soils.present? %>
+    <p><strong>Soils:</strong> <%= plant.soils %></p>
+  <% end %>
+  <% if plant.ph.present? %>
+    <p><strong>pH:</strong> <%= plant.ph %></p>
+  <% end %>
+  <% if plant.preferences.present? %>
+    <p><strong>Preferences:</strong> <%= plant.preferences %></p>
+  <% end %>
+  <% if plant.tolerances.present? %>
+    <p><strong>Tolerances:</strong> <%= plant.tolerances %></p>
+  <% end %>
+  <% if plant.habitat.present? %>
+    <p><strong>Habitat:</strong> <%= plant.habitat %></p>
+  <% end %>
+  <% if plant.habitat_range.present? %>
+    <p><strong>Habitat Range:</strong> <%= plant.habitat_range %></p>
+  <% end %>
+  <% if plant.edibility.present? %>
+    <p><strong>Edibility:</strong> <%= plant.edibility %></p>
+  <% end %>
+  <% if plant.medicinal.present? %>
+    <p><strong>Medicinal:</strong> <%= plant.medicinal %></p>
+  <% end %>
+  <% if plant.other_uses.present? %>
+    <p><strong>Other Uses:</strong> <%= plant.other_uses %></p>
+  <% end %>
+  <% if plant.created_at.present? %>
+    <p><strong>Created At:</strong> <%= plant.created_at %></p>
+  <% end %>
+  <% if plant.updated_at.present? %>
+    <p><strong>Updated At:</strong> <%= plant.updated_at %></p>
+  <% end %>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,11 +24,43 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "control_executions", id: :string, force: :cascade do |t|
+    t.string "control_signal_id", null: false
+    t.string "source", null: false
+    t.integer "duration_ms", null: false
+    t.datetime "executed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["control_signal_id"], name: "index_control_executions_on_control_signal_id"
+  end
+
+  create_table "control_signals", id: :string, force: :cascade do |t|
+    t.string "plant_module_id", null: false
+    t.string "signal_type", null: false
+    t.string "label"
+    t.string "mqtt_topic"
+    t.integer "delay", default: 3000
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "mode", default: "manual", null: false
+    t.string "sensor_id"
+    t.string "comparison"
+    t.float "threshold_value"
+    t.integer "frequency"
+    t.string "unit"
+    t.boolean "enabled", default: true
+    t.integer "length_ms"
+    t.time "scheduled_time"
+    t.index ["plant_module_id", "signal_type"], name: "index_control_signals_on_plant_module_id_and_signal_type"
+    t.index ["sensor_id"], name: "index_control_signals_on_sensor_id"
+  end
+
   create_table "module_plants", id: :string, force: :cascade do |t|
     t.string "plant_module_id", null: false
     t.string "plant_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["plant_module_id", "plant_id"], name: "index_unique_module_plants", unique: true
   end
 
   create_table "photos", id: :string, force: :cascade do |t|
@@ -49,6 +81,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
     t.datetime "updated_at", null: false
     t.string "location_type", default: "indoor", null: false
     t.string "zip_code"
+    t.jsonb "hardware_config", default: {}
   end
 
   create_table "plants", id: :string, force: :cascade do |t|
@@ -76,6 +109,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
     t.text "other_uses"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "foliage"
+    t.string "ph_split"
+    t.string "pollinators"
+    t.string "pfaf"
   end
 
   create_table "schedules", id: :string, force: :cascade do |t|
@@ -92,6 +129,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
     t.string "measurement_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "notifications", default: false, null: false
+    t.string "messages", default: [], array: true
+    t.string "thresholds", default: [], array: true
   end
 
   create_table "time_series_data", force: :cascade do |t|
@@ -100,6 +140,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
     t.float "value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "notified_threshold_indices"
   end
 
   create_table "users", force: :cascade do |t|
@@ -117,6 +158,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_18_000113) do
   end
 
   add_foreign_key "care_schedules", "plant_modules"
+  add_foreign_key "control_executions", "control_signals"
+  add_foreign_key "control_signals", "plant_modules"
+  add_foreign_key "control_signals", "sensors"
   add_foreign_key "module_plants", "plant_modules"
   add_foreign_key "module_plants", "plants"
   add_foreign_key "photos", "plant_modules"

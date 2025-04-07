@@ -20,7 +20,7 @@ ModulePlant.destroy_all
 # -------------------------------
 # 2. Create or Collect Users
 # -------------------------------
-existing_users = User.where("email LIKE ? OR email LIKE ?", "%@gmail.com", "%@tamu.edu").to_a
+existing_users = User.where("email LIKE ?", "%@gmail.com").to_a
 users_needed = 5 - existing_users.count
 
 users_needed.times do
@@ -44,7 +44,7 @@ existing_users.each do |user|
       name: Faker::Lorem.word.capitalize,
       description: Faker::Lorem.sentence,
       location: Faker::Address.city,
-      location_type: ['indoor', 'outdoor'].sample,  # Randomly assign indoor/outdoor for demo
+      location_type: [ 'indoor', 'outdoor' ].sample,  # Randomly assign indoor/outdoor for demo
       zip_code: (rand(10000..99999)).to_s             # Only used for outdoor modules
     )
 
@@ -62,8 +62,8 @@ existing_users.each do |user|
     3.times do
       sensor = plant_module.sensors.create!(
         id: SecureRandom.uuid,
-        measurement_unit: ['Celsius', 'Lux', 'Moisture'].sample,
-        measurement_type: ['Temperature', 'Light', 'Soil Moisture'].sample
+        measurement_unit: [ 'Celsius', 'Lux', 'Moisture' ].sample,
+        measurement_type: [ 'Temperature', 'Light', 'Soil Moisture' ].sample
       )
 
       # Generate up to 100 days of time series data
@@ -102,9 +102,8 @@ existing_users.each do |user|
 end
 
 # -------------------------------
-# 5. Import Plants from CSV
+# 5. Import Plants from CSV (Deduplicated)
 # -------------------------------
-# Mapping from CSV header names to model attribute names.
 COLUMN_MAPPING = {
   "Family"         => "family",
   "Genus"          => "genus",
@@ -115,30 +114,44 @@ COLUMN_MAPPING = {
   "Height"         => "height",
   "Width"          => "width",
   "Type"           => "plant_type",  # Using plant_type instead of 'type'
+  "Foliage"        => "foliage",
+  "Pollinators"    => "pollinators",
   "Leaf"           => "leaf",
   "Flower"         => "flower",
   "Ripen"          => "ripen",
   "Reproduction"   => "reproduction",
   "Soils"          => "soils",
   "pH"             => "ph",
+  "pH_split"       => "ph_split",
   "Preferences"    => "preferences",
   "Tolerances"     => "tolerances",
   "Habitat"        => "habitat",
   "HabitatRange"   => "habitat_range",
   "Edibility"      => "edibility",
   "Medicinal"      => "medicinal",
-  "OtherUses"      => "other_uses"
+  "OtherUses"      => "other_uses",
+  "PFAF"           => "pfaf"
 }
 
-csv_file_path = Rails.root.join('app/assets/csv/sven_plants.csv')
+csv_file_path = Rails.root.join('app/assets/csv/pfaf_plants.csv')
 
 CSV.foreach(csv_file_path, headers: true) do |row|
   plant_attributes = row.to_hash.transform_keys do |key|
     COLUMN_MAPPING[key] || key.downcase
   end
 
+  genus = plant_attributes['genus']&.strip&.downcase
+  species = plant_attributes['species']&.strip&.downcase
+  common_name = plant_attributes['common_name']&.strip&.downcase
+
+  next if genus.present? && species.present? &&
+    Plant.where('LOWER(genus) = ? AND LOWER(species) = ?', genus, species).exists?
+
+  next if (genus.blank? || species.blank?) && common_name.present? &&
+    Plant.where('LOWER(common_name) = ?', common_name).exists?
+
   # Merge in a generated UUID for the id.
   Plant.create!(plant_attributes.merge("id" => SecureRandom.uuid))
 end
 
-puts "✅ Seeded database with users, plant modules, sensors, time series data, care schedules, and plants!"
+puts "✅ Seeded database with users, plant modules, sensors, time series data, care schedules, and unique plants!"

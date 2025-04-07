@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html data-controller="dark-mode">
   <head>
-    <title><%= content_for(:title) || "Ruby React" %></title>
+    <title><%= content_for(:title) || "PlantHub" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -11,17 +11,17 @@
     <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+    <%= tag.meta name: "vapid-public-key", content: Rails.configuration.x.vapid.public_key %>
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="icon" href="/icons/planthub.png" type="image/png">
+    <link rel="icon" href="/icons/planthub.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/planthub.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-
 
     <style>
       .flash__alert { color: red; }
@@ -30,14 +30,14 @@
     </style>
   </head>
 
-  <body class="theme-text-primary theme-bg">
+  <body class="theme-text-primary theme-bg w-full">
     <header>
       <%= render "shared/navbar" %>
     </header>
-    <div id="flash_messages" class="absolute w-full top-20">
+    <div id="flash_messages" class="absolute w-full top-20 z-50">
       <%= render "shared/flash" %>
     </div>
-    <main class="container mx-auto px-5 flex">
+    <main class="absolute mx-auto px-5 flex top-20 w-full">
       <%= yield %>
     </main>
   </body>

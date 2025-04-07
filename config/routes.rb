@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
   root "home#welcome"
+  get "help", to: "home#help", as: :help
 
   # Health check route
   get "up" => "rails/health#show", as: :rails_health_check
@@ -13,15 +14,25 @@ Rails.application.routes.draw do
 
   # Nested resources for plant_modules
   resources :plant_modules do
-    resources :sensors, only: [:index, :show] # Added :show to allow individual sensor pages
+    resources :control_signals, only: [ :edit, :update ] do
+      post :trigger, on: :member
+    end
+    resources :sensors, only: [ :index, :show, :create, :new ] do
+      member do
+        patch :toggle_notification
+        patch :update_notification_settings
+        get :load_notification_settings
+      end
+    end
     resources :schedules
   end
 
+
   # Add routes for the plants page (for interactive plant selection/overrides)
-  resources :plants, only: [:index, :show]
+  resources :plants, only: [ :index, :show ]
 
   # Time series data routes
-  resources :time_series_data, only: [:index, :show]
+  resources :time_series_data, only: [ :index, :show ]
 
   # Custom route for viewing sensor time series data
   get "sensors/:id/time_series", to: "sensors#show", as: :sensor_time_series
@@ -29,5 +40,9 @@ Rails.application.routes.draw do
   post "mqtt/schedule", to: "mqtt#set_schedule"
   post "mqtt/water", to: "mqtt#send_water_signal"
 
-  post "plant_modules/simple_create", to: "plant_modules#simple_create", as: :plant_module_simple_create
+  require "sidekiq/web"
+  mount Sidekiq::Web => "/sidekiq"
+
+  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 end

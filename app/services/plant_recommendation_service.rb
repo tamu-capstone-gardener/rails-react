@@ -1,4 +1,5 @@
 class PlantRecommendationService
+  include ZipCodeHelper
   def initialize(location_type:, zip_code: nil, filters: {})
     @location_type = location_type
     @zip_code = zip_code
@@ -16,37 +17,53 @@ class PlantRecommendationService
   end
 
   def recommend_indoor
-    # Use filter values if provided; defaults below
     max_height = (@filters[:max_height].presence || 10.0).to_f
     max_width  = (@filters[:max_width].presence || 10.0).to_f
-    maintenance = (@filters[:maintenance].presence || "slow").downcase
-    edible = (@filters[:edible].presence || "yes").downcase
 
-    query = Plant.where("height < ? AND width < ?", max_height, max_width)
+    edibility_rating = (@filters[:edibility_rating].presence || "3").to_i
 
-    # Apply edible filter: if "yes", require rating >= 3; if "no", rating < 3; if "either", do nothing.
-    case edible
-    when "yes"
-      query = query.where("CAST(substring(edibility from '\\((\\d+)') AS int) >= ?", 4)
-    when "no"
-      query = query.where("CAST(substring(edibility from '\\((\\d+)') AS int) < ?", 3)
+    Rails.logger.info("Trying to filter height: #{max_height} and width: #{max_width} and edibility: #{edibility_rating}")
+
+    if max_height == 10.0 and max_width == 10.0 and edibility_rating == 3
+      Plant
+        .all
+        .page(@filters[:page])
+        .per(10)
+    else
+      Plant
+        .where("height < ? AND width < ?", max_height, max_width)
+        .where("CAST(edibility AS int) >= ?", edibility_rating)
+        .page(@filters[:page])
+        .per(10)
     end
-
-    # Apply maintenance filter: check growth_rate or preferences contain the given keyword.
-    query = query.where("(growth_rate ILIKE ? OR preferences ILIKE ?)", "%#{maintenance}%", "%#{maintenance}%")
-
-    query.limit(15).to_a
   end
+
 
   def recommend_outdoor
-    zone = lookup_zone(@zip_code)
-    Plant.where("hardiness_zones ILIKE ?", "%#{zone}%")
-         .limit(15)
-         .to_a
-  end
+    max_height = (@filters[:max_height].presence || 10.0).to_f
+    max_width  = (@filters[:max_width].presence || 10.0).to_f
+    edibility_rating = (@filters[:edibility_rating].presence || "3").to_i
 
-  def lookup_zone(zip)
-    # Replace with your real lookup logic.
-    "9b"
+    return Plant.all.page(@filters[:page]).per(10) if @zip_code == "" && max_height == 10.0 && max_width == 10.0 && edibility_rating == 3
+    return Plant.where("height < ? AND width < ?", max_height, max_width)
+                .where("CAST(edibility AS int) >= ?", edibility_rating)
+                .page(@filters[:page]).per(10) if @zip_code == ""
+
+    zone_data = zone_for_zip(@zip_code)
+    return Plant.none unless zone_data
+
+    zone_num = zone_data[:zone].match(/\d+/)[0]
+
+    if max_height == 10.0 and max_width == 10.0 and edibility_rating == 3
+      Plant.where("hardiness_zones ILIKE ?", "%#{zone_num}%")
+           .page(@filters[:page])
+           .per(10)
+    else
+      Plant.where("hardiness_zones ILIKE ?", "%#{zone_num}%")
+           .where("height < ? AND width < ?", max_height, max_width)
+           .where("CAST(edibility AS int) >= ?", edibility_rating)
+           .page(@filters[:page])
+           .per(10)
+    end
   end
 end

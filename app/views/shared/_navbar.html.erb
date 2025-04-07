@@ -1,56 +1,60 @@
-<nav data-controller="navbar" data-navbar-state-value="false" class="fixed top-0 w-full theme-bg-alt border-gray-200 ">
-  <div class="max-w-screen-xl flex items-center justify-between lg:justify-evenly mx-auto p-4">
-    <h2 class="text-2xl font-bold theme-text-primary">Plant<span class="p-1 theme-text-primary">Hub</span></h2>
-    <!-- Toggle button visible on mobile only -->
+<nav data-controller="navbar" data-navbar-state-value="false" class="fixed top-0 left-0 w-full z-50 theme-bg-alt border-b border-gray-200">
+  <div class="flex items-center justify-between p-4 max-w-screen-xl mx-auto relative">
+    
+    <!-- Hamburger button (always shown) -->
     <button type="button"
-            class="theme-text-primary !focus:text-green-300 focus:outline-none !hover:text-green-300 block lg:hidden hover:cursor-pointer"
+            class="theme-text-primary focus:outline-none hover:text-green-300 hover:cursor-pointer"
             data-action="click->navbar#toggle">
       <span class="sr-only">Open main menu</span>
-      <svg class="h-8 w-8 fill-current" xmlns="http://www.w3.org/2000/svg"
-           fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-        <!-- X icon for closing (hidden by default) -->
+      <svg class="h-8 w-8 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path data-navbar-target="x" stroke-linecap="round" stroke-linejoin="round"
               d="M6 18L18 6M6 6l12 12" class="hidden" />
-        <!-- Bars icon for opening -->
         <path data-navbar-target="bars" stroke-linecap="round" stroke-linejoin="round"
               d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
       </svg>
     </button>
-    <!-- Desktop inline menu -->
-    <div class="hidden lg:flex space-x-2">
-      <% @page_links.each do |link| %>
-        <%= link_to link[:name], link[:path], class: "font-semibold btn-primary rounded px-2 py-1" %>
+
+    <!-- Center Title -->
+    <h2 class="theme-text-primary text-2xl font-bold absolute left-1/2 transform -translate-x-1/2">
+      <%= link_to root_path do %> Plant<span class="p-1 theme-text-primary">Hub</span> <% end %>
+    </h2>
+
+    <!-- Right side: Login or Profile -->
+    <div class="flex items-center space-x-4">
+      <% if current_user %>
+        <%= image_tag(current_user.avatar_url, class: "rounded-full w-8 h-8 object-cover") %>
+      <% else %>
+        <%= button_to user_google_oauth2_omniauth_authorize_path, class: "text-white btn-primary px-4 py-2 rounded-lg text-sm font-semibold hover:cursor-pointer", method: :post, data: { turbo: "false" } do %>
+          Login
+        <% end %>
       <% end %>
     </div>
-    <button 
-      type="button" 
-      data-action="dark-mode#toggle"
-      class="px-4 py-2 btn-secondary rounded-lg text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-    >
-      Toggle Dark Mode
-    </button>
   </div>
-  <!-- Mobile dropdown menu (initially hidden) positioned below the navbar -->
-  <div data-navbar-target="menu" class="hidden absolute left-0 right-0 top-full bg-white border-t theme-bg-alt">
-    <% @page_links.each do |link| %>
-      <%= link_to link[:name], link[:path], class: "block btn-primary font-semibold px-4 py-2" %>
-    <% end %>
-  </div>
-</nav>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-    // On page load, set the global variable based on the current mode
-    window.isDarkMode = document.documentElement.classList.contains("dark");
 
-    const toggleBtn = document.getElementById("dark-mode-toggle");
-    if (toggleBtn) {
-        toggleBtn.addEventListener("click", function() {
-        // Toggle dark mode class on <html>
-        const htmlEl = document.documentElement;
-        const darkMode = htmlEl.classList.toggle("dark");
-        // Update the global variable
-        window.isDarkMode = darkMode;
-        });
-    }
-    });
-</script>
+  <!-- Slide-in Side Menu -->
+  <div data-navbar-target="menu"
+       class="fixed top-0 left-0 h-full w-64 border-r-1 border-text-primary theme-bg-alt shadow-lg transform -translate-x-full transition-transform duration-300 ease-in-out z-40">
+    <div class="p-4 space-y-2">
+      <% @page_links.each do |link| %>
+        <% if link[:name] == "Login" && !current_user %>
+          <%= button_to user_google_oauth2_omniauth_authorize_path, class: "w-full text-left btn-primary font-semibold px-4 py-2", method: :post, data: { turbo: "false" } do %>
+            Login
+          <% end %>
+        <% elsif link[:name] != "Login" || current_user %>
+          <%= link_to link[:name], link[:path], class: "block btn-primary font-semibold px-4 py-2" %>
+        <% end %>
+      <% end %>
+      <button 
+        type="button" 
+        data-action="dark-mode#toggle"
+        class="w-full text-left btn-primary font-semibold px-4 py-2"
+      >
+        Toggle Dark Mode
+      </button>
+    </div>
+  </div>
+
+  <div data-navbar-target="backdrop"
+     data-action="click->navbar#close"
+     class="fixed inset-0 z-30 hidden"></div>
+</nav>

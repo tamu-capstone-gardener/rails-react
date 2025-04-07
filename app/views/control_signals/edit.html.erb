@@ -1,0 +1,8 @@
+<div class="container mx-auto p-6">
+  <div class="mb-6">
+  <%= link_to sanitize("Back to #{@plant_module.name}"), plant_module_path(@plant_module),
+        class: "btn-secondary px-4 py-2 rounded-lg transition duration-300 inline-block" %>
+  </div>
+  <h1 class="text-2xl font-bold theme-text-primary mb-4">Edit Control Signal</h1>
+  <%= render "form", control_signal: @control_signal, plant_module: @plant_module %>
+</div>
