@@ -18,11 +18,20 @@ class ControlSignalsController < AuthenticatedApplicationController
 
       MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual")
 
-      if control_signal.mode == "manual"
-        render json: { message: "Control signal triggered successfully.", last_triggered: control_execution.executed_at }
+      sleep(1)
+
+      last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "manual")
+      .order(executed_at: :desc)
+      .first
+
+
+      if Time.now - last_exec.executed_at < 120
+        flash[:success] = "Trigger succeeded"
       else
-        head :ok
+        flash[:alert] = "Trigger failed"
       end
+
+      redirect_to plant_module_path(@plant_module)
     rescue => e
       Rails.logger.error "Trigger error: #{e.message}"
       render json: { error: "Trigger failed: #{e.message}" }, status: :unprocessable_entity
