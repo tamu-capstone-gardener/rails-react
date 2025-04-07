@@ -16,7 +16,7 @@ class SensorsController < ApplicationController
                         .where("timestamp >= ?", start_time)
                         .group_by_minute(:timestamp)
                         .average(:value)
-                        .transform_values { |v| v.to_f.round(2) }
+                        .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
 
     respond_to do |format|
       format.html
@@ -55,6 +55,53 @@ class SensorsController < ApplicationController
     else
       render :new, status: :unprocessable_entity
     end
+  end
+
+  def toggle_notification
+    @sensor = Sensor.find(params[:id])
+    @sensor.update(notifications: !@sensor.notifications)
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "notification_section",
+          partial: "sensors/notification_section",
+          locals: { sensor: @sensor }
+        )
+      end
+      format.html { redirect_to plant_module_sensor_path(@sensor.plant_module, @sensor) }
+    end
+  end
+
+
+
+  def update_notification_settings
+    @sensor = Sensor.find(params[:id])
+    thresholds = params[:sensor][:thresholds].to_s.split(",").map(&:strip)
+    messages   = params[:sensor][:messages].to_s.split(",").map(&:strip)
+    notifications = params[:sensor][:notifications] == "1"
+
+    if @sensor.update(thresholds: thresholds, messages: messages, notifications: notifications)
+      flash.now[:notice] = "Notification settings updated."
+    else
+      flash.now[:alert] = "Unable to update settings."
+    end
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "notification_section",
+          partial: "sensors/notification_section",
+          locals: { sensor: @sensor }
+        )
+      end
+      format.html { redirect_to plant_module_sensor_path(@sensor.plant_module, @sensor) }
+    end
+  end
+
+  def load_notification_settings
+    @sensor = Sensor.find(params[:id])
+    render partial: "sensors/notification_form", locals: { sensor: @sensor }
   end
 
 

@@ -27,7 +27,7 @@
     </div>
 
     <div id="zip_code_field" data-zip-toggle-target="zipField" class="mb-4" style="display: none;">
-      <%= f.label :zip_code, "ZIP Code (for outdoor modules)", class: "block text-sm font-medium theme-text-secondary" %>
+      <%= f.label :zip_code, "ZIP Code", class: "block text-sm font-medium theme-text-secondary" %>
       <%= f.text_field :zip_code, class: "mt-1 block w-full rounded-md text-box shadow-sm" %>
     </div>
 
@@ -37,7 +37,7 @@
     <turbo-frame id="selected-plants-frame">
       <div id="selected-plants" class="mb-6">
         <h3 class="text-xl font-semibold mb-2 theme-text-primary">Selected Plants</h3>
-        <div id="selected-plants-list"></div>
+        <div id="selected-plants-list" data-controller="plant-modal"></div>
       </div>
     </turbo-frame>
 
@@ -107,7 +107,9 @@
 
     <!-- Recommendations List inside its own turbo frame -->
     <turbo-frame id="recommendations">
-      <%= render partial: "plants/recommendations", locals: { plants: (@plants || @recommendations) } %>
+      <% paginated_plants = @plants || @recommendations %>
+
+      <%= render partial: "plants/recommendations", locals: { plants: paginated_plants } %>
     </turbo-frame>
   </div>
 </div>

@@ -6,13 +6,20 @@ class PlantModulesController < AuthenticatedApplicationController
       max_height: params[:max_height],
       max_width: params[:max_width],
       maintenance: params[:maintenance],
-      edible: params[:edible]
+      edibility_rating: params[:edibility_rating],
+      page: params[:page]
     }
 
     @recommendations = PlantRecommendationService.new(
       location_type: @plant_module.location_type,
       filters: filters
     ).recommendations
+
+    if turbo_frame_request? && request.headers["Turbo-Frame"] == "recommendations"
+      render partial: "plants/recommendations_frame", locals: { plants: @recommendations }, layout: false
+    else
+      render :new
+    end
   end
 
   def create
@@ -44,7 +51,23 @@ class PlantModulesController < AuthenticatedApplicationController
     @sensors = @plant_module.sensors.includes(:time_series_data)
     @sensor_data = {}
     @sensors.each do |sensor|
-      @sensor_data[sensor.id] = sensor.time_series_data.group("DATE(timestamp)").pluck(Arel.sql("DATE(timestamp), SUM(value)"))
+      first_timestamp = sensor.time_series_data.minimum(:timestamp)
+
+      if first_timestamp
+        hourly_data = sensor.time_series_data
+                            .where("timestamp >= ?", first_timestamp)
+                            .group_by_hour(:timestamp)
+                            .average(:value)
+                            .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
+
+        @sensor_data[sensor.id] = hourly_data
+      else
+        @sensor_data[sensor.id] = {}
+      end
+    end
+
+    if @plant_module.location_type.downcase == "outdoor" && @plant_module.zip_code.present?
+      @zone_data = zone_for_zip(@plant_module.zip_code)
     end
   end
 

@@ -6,4 +6,5 @@ class PlantModule < ApplicationRecord
   has_one :care_schedule, dependent: :destroy
   has_many :schedules, dependent: :destroy
   has_many :photos, dependent: :destroy
+  has_many :control_signals, dependent: :destroy
 end

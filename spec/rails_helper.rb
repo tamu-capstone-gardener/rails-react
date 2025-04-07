@@ -19,6 +19,10 @@ require 'rspec/rails'
 # spec/rails_helper.rb
 Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 
+require 'sidekiq/testing'
+Sidekiq::Testing.inline! # or fake! depending on your preference
+
+
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end

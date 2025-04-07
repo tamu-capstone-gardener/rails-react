@@ -1,15 +1,30 @@
-<div class="container mx-auto p-6 theme-text-primary">
+<div class="container mx-auto p-6 theme-text-primary" data-controller="notification">
   <div class="mb-6">
     <%= link_to "Back to Plant Module", plant_module_path(@sensor.plant_module),
           class: "btn-secondary text-white px-4 py-2 rounded-lg transition duration-300 inline-block" %>
   </div>
 
   <h1 class="text-3xl font-bold"><%= sanitize(@sensor.measurement_type) %> Data</h1>
-  <p class="theme-text-secondary"><strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %></p>
+  
+  <!-- Unit info and bell icon on the right -->
+  <div class="flex items-center justify-between theme-text-secondary">
+    <p>
+      <strong>Unit:</strong> <%= sanitize(@sensor.measurement_unit) %>
+    </p>
+    <!-- Bell Icon Button triggers the modal popup -->
+    <button data-action="click->notification#openModal" class="text-yellow-500 focus:outline-none hover:cursor-pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    </button>
+  </div>
 
   <!-- Date select to filter data -->
   <div class="mb-4 flex flex-row items-center gap-4">
-    <label for="start_date" class="block theme-text-secondary font-semibold">Show data since:</label>
+    <label for="start_date" class="block theme-text-secondary font-semibold">
+      Show data since:
+    </label>
     <input 
       type="date" 
       id="start_date"
@@ -19,11 +34,41 @@
       data-sensor-filter-sensor-id-value="<%= @sensor.id %>"
       class="px-3 py-2 rounded border border-gray-300"
     />
-
   </div>
 
   <!-- Turbo Frame for Chart -->
   <turbo-frame id="sensor_chart">
     <%= render "sensors/chart", sensor: @sensor, time_series_data: @time_series_data %>
   </turbo-frame>
+
+  <!-- Turbo Frame for Notification state updates (if needed) -->
+  <turbo-frame id="notification_section"></turbo-frame>
+
+  <!-- Notification Settings Modal Popup (always rendered, hidden by default) -->
+  <div id="notification-modal" 
+      class="fixed inset-0 flex items-center justify-center bg-opacity-50 hidden"
+      data-action="click->notification#closeOnBackgroundClick">
+    <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12"
+        data-action="click->notification#stopPropagation">
+      <button data-action="click->notification#closeModal" class="hover:cursor-pointer absolute top-2 right-4 text-red-500 hover:text-red-700 text-2xl">
+        &times;
+      </button>
+      <h2 class="text-xl font-bold mb-4 theme-text-primary">Notification Settings</h2>
+      <%= form_with model: @sensor, url: update_notification_settings_plant_module_sensor_path(@sensor.plant_module, @sensor), method: :patch, data: { turbo_frame: "notification_section" }, class: "theme-text-primary" do |f| %>
+        <div class="mb-4 flex items-center gap-4">
+          <%= f.label :notifications, "Notifications" %>
+          <%= f.check_box :notifications %>
+        </div>
+        <div class="mb-4">
+          <%= f.label :thresholds, "Thresholds (comma-separated)", class: "theme-text-secondary" %>
+          <%= f.text_field :thresholds, value: @sensor.thresholds.join(', '), class: "text-box border p-2 rounded w-full" %>
+        </div>
+        <div class="mb-4">
+          <%= f.label :messages, "Messages (comma-separated)", class: "theme-text-secondary" %>
+          <%= f.text_field :messages, value: @sensor.messages.join(', '), class: "text-box border p-2 rounded w-full" %>
+        </div>
+        <%= f.submit "Save Notification Settings", class: "btn-primary px-4 py-2 rounded-lg" %>
+      <% end %>      
+    </div>
+  </div>
 </div>

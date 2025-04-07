@@ -1,0 +1,47 @@
+<div class="mt-4">
+  <% if control_signals.empty? %>
+    <p class="text-sm theme-text-secondary italic">No control signals registered yet.</p>
+  <% else %>
+    <ul class="grid md:grid-cols-2 gap-4 h-64">
+      <% control_signals.each do |signal| %>
+        <li class="border rounded-lg p-4 shadow-sm bg-white dark:bg-gray-800 flex flex-col justify-between">
+          <div class="flex justify-between items-start flex-0">
+            <h3 class="text-xl font-bold theme-text-primary capitalize">
+              <%= sanitize(signal.signal_type) %>
+            </h3>
+            <%= link_to "Edit", edit_plant_module_control_signal_path(plant_module, signal),
+                class: "text-blue-500 hover:underline text-sm" %>
+          </div>
+          <div class="flex flex-col justify-start flex-1">
+            <p class="theme-text-secondary text-sm mt-2" >
+              Type: <%= sanitize(signal.mode) %><br/>
+              Delay: <%= signal.length_ms / 1000.0 || "none" %> s
+            </p>
+              <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
+              <% if last_execution && signal.mode == "scheduled" %>
+                <p class="text-sm text-gray-500 mt-2">
+                  Next trigger: <%= time_ago_in_words(MqttListener.next_scheduled_trigger(signal)) %> from now.
+                </p>
+                <p class="text-sm text-gray-500">
+                  Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
+                </p>
+              <% elsif last_execution %>
+                <p class="text-sm text-gray-500">
+                  Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
+                </p>
+              <% else %>
+                <p class="text-sm text-gray-500">Not triggered yet.</p>
+              <% end %>
+          </div>
+          <div class="flex m-4 flex-1 items-end justify-center" data-controller="manual-trigger">
+                <%= button_to "Toggle #{signal.label.presence || signal.signal_type.titleize}",
+                              trigger_plant_module_control_signal_path(@plant_module, signal),
+                              method: :post,
+                              params: { toggle: true },
+                              class: "btn-secondary px-4 py-2 rounded-lg transition hover:scale-105" %>
+            </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>
