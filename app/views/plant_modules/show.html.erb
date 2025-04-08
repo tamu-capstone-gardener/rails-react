@@ -27,19 +27,7 @@
   <!-- Selected Plants -->
   <div class="mt-8">
     <h2 class="text-2xl font-semibold theme-text-primary">Plants</h2>
-    <% @plant_module.plants.each do |plant| %>
-      <div class="text-box border rounded-lg p-4 my-4 shadow-md">
-        <h3 class="text-xl font-bold theme-text-primary">
-          <%= sanitize(plant.common_name) %> (<%= sanitize(plant.genus) %> <%= sanitize(plant.species) %>)
-        </h3>
-        <ul class="mt-2 list-disc list-inside">
-          <li><strong>Light:</strong> <%= plant.light_requirement %> hrs/day</li>
-          <% if @plant_module.location_type.downcase == "outdoor" %>
-            <li><strong>Hardiness Zones:</strong> <%= sanitize(plant.hardiness_zones) %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
+    <%= render "plants/list", plants: @plant_module.plants %>
   </div>
 
   <!-- Tab Buttons -->

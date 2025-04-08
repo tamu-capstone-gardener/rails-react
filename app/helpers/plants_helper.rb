@@ -5,4 +5,8 @@ module PlantsHelper
     empty_stars = "☆" * (5 - stars)
     full_stars + empty_stars
   end
+
+  def clean_array_string(raw)
+    raw.to_s.gsub(/[\[\]'"]/, "").strip
+  end
 end

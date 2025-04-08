@@ -1,0 +1,17 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-4 w-full py-8">
+  <% plant_modules.each do |plant_module| %>
+    <div class="theme-bg-alt p-4 shadow-lg rounded-lg h-full flex flex-col justify-between items-start">
+    <div>
+        <h2 class="text-3xl font-semibold theme-text-primary"><%= sanitize(plant_module.name) %></h2>
+        <p class="theme-text-secondary"><%= sanitize(plant_module.description) %></p>
+    </div>
+      <% if plant_module.location and plant_module.location_type.downcase == "outdoors" %>
+        <p class="text-sm theme-text-secondary">Location: <%= sanitize(plant_module.location) %></p>
+      <% end %>
+      <div class="flex w-full justify-center sm:justify-start lg:justify-center">
+      <%= render "control_signals/list", plant_module: plant_module, control_signals: plant_module.control_signals %>
+      </div>
+      <%= link_to "View Module", plant_module_path(plant_module), class: "text-blue-500 hover:underline mt-4" %>
+    </div>
+  <% end %>
+</div>
