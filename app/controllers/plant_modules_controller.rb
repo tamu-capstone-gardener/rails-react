@@ -75,6 +75,49 @@ class PlantModulesController < AuthenticatedApplicationController
     @plant_modules = current_user.plant_modules
   end
 
+  def edit
+    @plant_module = current_user.plant_modules.find_by(id: params[:id])
+    redirect_to plant_modules_path, alert: "Module not found." unless @plant_module
+
+    filters = {
+    max_height: params[:max_height],
+    max_width: params[:max_width],
+    maintenance: params[:maintenance],
+    edibility_rating: params[:edibility_rating],
+    page: params[:page]
+  }
+
+  @recommendations = PlantRecommendationService.new(
+    location_type: @plant_module.location_type,
+    filters: filters
+  ).recommendations
+  end
+
+  def update
+    @plant_module = current_user.plant_modules.find_by(id: params[:id])
+    unless @plant_module
+      redirect_to plant_modules_path, alert: "Module not found." and return
+    end
+
+    if @plant_module.update(plant_module_params)
+      redirect_to @plant_module, notice: "Module updated successfully."
+    else
+      flash.now[:alert] = "Error updating module."
+      render :edit
+    end
+  end
+
+  def destroy
+    @plant_module = current_user.plant_modules.find_by(id: params[:id])
+    if @plant_module
+      @plant_module.destroy
+      redirect_to plant_modules_path, notice: "Module deleted successfully."
+    else
+      redirect_to plant_modules_path, alert: "Module not found."
+    end
+  end
+
+
   private
 
   def plant_module_params

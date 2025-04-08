@@ -1,7 +1,5 @@
 <div class="max-w-3xl mx-auto p-6 w-full" data-controller="plant-module filters zip-toggle">
-  <h1 class="text-3xl font-bold mb-6 theme-text-primary">Create New Plant Module</h1>
-  
-  <!-- Module Form Section -->
+  <h1 class="text-3xl font-bold mb-6 theme-text-primary">Edit Plant Module</h1>
   <%= render "form", plant_module: @plant_module %>
 
   <!-- Filters Form Section -->
@@ -69,4 +67,21 @@
       <%= render partial: "plants/recommendations", locals: { plants: paginated_plants } %>
     </turbo-frame>
   </div>
+
+  <div id="plant-info-modal" 
+        class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
+        data-controller="plant-modal" 
+        data-action="click->plant-modal#closeOnBackgroundClick">
+    <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+        data-action="click->plant-modal#stopPropagation">
+        <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
+        &times;
+        </button>
+        <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
+        <div id="plant-info-content" class="theme-text-primary space-y-2">
+        <!-- Plant info is injected here -->
+        </div>
+    </div>
+  </div>
+
 </div>

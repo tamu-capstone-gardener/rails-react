@@ -7,89 +7,25 @@
   <% if plants.present? %>
     
     <% plants.each do |plant| %>
-    <% plant_data = plant.as_json(
-            only: [
-              :common_name, :genus, :species, :family, :growth_rate,
-              :hardiness_zones, :height, :width, :plant_type, :pollinators, :leaf, :flower,
-              :ripen, :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
-              :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf,
-            ]
-          ).to_json %>
-      <div class="p-4 theme-bg-alt rounded-md shadow relative mb-4" data-plant-card>
-        <% if plant_in_zone?(plant, params[:zip_code]) %>
-          <div class="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1">
-            Zone Match
-          </div>
-        <% end %>
-        <div class="flex justify-between gap-4">
-        
-          <h3 class="theme-text-primary text-lg">
-            <%= plant.common_name %>
-          </h3>
-          <button type="button"
-                  class="px-[4px] text-2xl btn-primary rounded-full"
-                  data-action="click->plant-modal#openModal"
-                  data-plant="<%= html_escape(plant_data) %>">
-            &#9432;
-          </button>
-        </div>
-        <div class="flex flex-col mb-4">
-          <p class="theme-text-secondary mb-4 text-md">
-            (<%= plant.genus %> <%= plant.species %>)
-          </p>
-          <p class="theme-text-primary flex justify-evenly items-start">
-            <span class="w-full">Light: <span class="theme-text-secondary"><%= plant.light_requirement || "6-8" %></span> hrs &nbsp;</span> 
-            <span class="w-full">Flowering: <span class="theme-text-secondary"><%= plant.flower || "Unknown" %></span> &nbsp;</span>
-            <span class="w-full">Ripen: <span class="theme-text-secondary"><%= plant.ripen || "Unknown" %></span></span>
-          </p>
-          <p class="theme-text-primary flex justify-evenly">
-            <span class="w-full">Edibility: <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span> &nbsp;</span>
-            <span class="w-full">Medicinal: <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span> &nbsp;</span>
-            <span class="w-full">Other Uses: <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></span>
-          </p>
-        </div>
-        <div class="flex justify-end space-x-2">
-          <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
-            data: { 
-              action: "click->plant-module#selectPlant", 
-              plant_id: plant.id, 
-              plant_name: plant.common_name,
-              plant_genus: plant.genus,
-              plant_species: plant.species,
-              plant_light: (plant.light_requirement.presence || "6-8"),
-              plant_edibility: render_star_rating(plant.edibility),
-              plant_medicinal: render_star_rating(plant.medicinal),
-              plant_other_uses: render_star_rating(plant.other_uses),
-              plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
-              plant_ripen: plant.ripen,
-              plant_flower: plant.flower,
-              plant_info: html_escape(plant_data) # ADD THIS
-            } %>
-        </div>
-  </div>
-<% end %>
-<div class="mt-4 flex justify-center">
-  <%= paginate plants, params: request.query_parameters.merge(_turbo_frame: "recommendations") %>
-</div>
-<div id="plant-info-modal" 
-    class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
-    data-controller="plant-modal" 
-    data-action="click->plant-modal#closeOnBackgroundClick">
-  <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
-      data-action="click->plant-modal#stopPropagation">
-    <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
-      &times;
-    </button>
-    <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
-    <div id="plant-info-content" class="theme-text-primary space-y-2">
-      <!-- Plant info is injected here -->
+      <%= render partial: "plants/card", locals: { plant: plant, selected: false } %>
+    <% end %>
+  <% end %>
+
+  <div id="plant-info-modal" 
+      class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
+      data-controller="plant-modal" 
+      data-action="click->plant-modal#closeOnBackgroundClick">
+    <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+        data-action="click->plant-modal#stopPropagation">
+      <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
+        &times;
+      </button>
+      <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
+      <div id="plant-info-content" class="theme-text-primary space-y-2">
+        <!-- Plant info is injected here -->
+      </div>
     </div>
   </div>
-</div>
 
-
-  <% else %>
-    <p class="theme-text-primary">No plants found.</p>
-  <% end %>
 </div>
  

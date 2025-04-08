@@ -8,7 +8,7 @@
       ]).to_json %>
 
     <div class="p-4 theme-bg-alt rounded-md shadow relative flex flex-col justify-between items-start" data-plant-card >
-      <div class="w-full min-h-[72px]">
+      <div class="w-full min-h-[85px]">
         <div class="flex justify-between items-start gap-2">
             <h3 class="theme-text-primary text-lg font-bold"><%= plant.common_name.to_s.split(",").first.strip || "Unknown" %></h3>
             <button type="button"
@@ -26,7 +26,7 @@
 
       <hr class="border-b-[0.5] mb-4 border-bg w-full">
       
-      <ul class="text-sm theme-text-primary space-y-1 mb-2 min-h-[72px]">
+      <ul class="text-sm theme-text-primary space-y-1 mb-2 min-h-[85px]">
         <% if plant.flower.present? %>
           <li><strong>Flowering:</strong> <%= plant.flower %></li>
         <% end %>
@@ -40,7 +40,7 @@
 
       <hr class="border-b-[0.5] mb-4 border-bg w-full">
 
-      <div class="text-sm space-y-1 min-h-[72px]">
+      <div class="text-sm space-y-1 min-h-[85px]">
         <p><strong>Edibility:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span></p>
         <p><strong>Medicinal:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span></p>
         <p><strong>Other Uses:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></p>
