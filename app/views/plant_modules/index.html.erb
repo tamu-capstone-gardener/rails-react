@@ -1,14 +1,5 @@
 <div class="container mx-auto p-6">
   <h1 class="text-3xl font-bold text-center mb-4 theme-text-primary">Plant<span class="p-1 theme-text-primary">Hub</span> Dashboard</h1>
   <%= link_to "Create Module", new_plant_module_path, class: "py-2 px-4 btn-primary text-white rounded-md my-4" %>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-4">
-    <% @plant_modules.each do |plant_module| %>
-      <div class="theme-bg-alt p-4 shadow-lg rounded-lg">
-        <h2 class="text-xl font-semibold theme-text-primary"><%= sanitize(plant_module.name) %></h2>
-        <p class="theme-text-secondary"><%= sanitize(plant_module.description) %></p>
-        <p class="text-sm theme-text-secondary">Location: <%= sanitize(plant_module.location) %></p>
-        <%= link_to "View Module", plant_module_path(plant_module), class: "text-blue-500 hover:underline" %>
-      </div>
-    <% end %>
-  </div>
+  <%= render partial: "plant_modules/list", locals: { plant_modules: @plant_modules } %>
 </div>
