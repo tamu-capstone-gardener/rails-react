@@ -9,7 +9,7 @@
         <p class="text-sm theme-text-secondary">Location: <%= sanitize(plant_module.location) %></p>
       <% end %>
       <div class="flex w-full justify-center sm:justify-start lg:justify-center">
-      <%= render "control_signals/list", plant_module: plant_module, control_signals: plant_module.control_signals %>
+      <%= render "control_signals/list", plant_module: plant_module, control_signals: plant_module.control_signals.order(:signal_type) %>
       </div>
       <%= link_to "View Module", plant_module_path(plant_module), class: "text-blue-500 hover:underline mt-4" %>
     </div>
