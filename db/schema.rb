@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_09_044920) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,7 +49,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
     t.integer "frequency"
     t.string "unit"
     t.boolean "enabled", default: true
-    t.integer "length_ms"
+    t.integer "length_ms", default: 3000
     t.time "scheduled_time"
     t.index ["plant_module_id", "signal_type"], name: "index_control_signals_on_plant_module_id_and_signal_type"
     t.index ["sensor_id"], name: "index_control_signals_on_sensor_id"

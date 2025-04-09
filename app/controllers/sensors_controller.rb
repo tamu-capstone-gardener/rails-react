@@ -77,8 +77,10 @@ class SensorsController < ApplicationController
 
   def update_notification_settings
     @sensor = Sensor.find(params[:id])
-    thresholds = params[:sensor][:thresholds].to_s.split(",").map(&:strip)
-    messages   = params[:sensor][:messages].to_s.split(",").map(&:strip)
+    comparisons = params[:comparisons] || []
+    values = params[:values] || []
+    messages = params[:messages] || []
+    thresholds = comparisons.zip(values).map { |comp, val| "#{comp} #{val}" }
     notifications = params[:sensor][:notifications] == "1"
 
     if @sensor.update(thresholds: thresholds, messages: messages, notifications: notifications)
@@ -98,6 +100,7 @@ class SensorsController < ApplicationController
       format.html { redirect_to plant_module_sensor_path(@sensor.plant_module, @sensor) }
     end
   end
+
 
   def load_notification_settings
     @sensor = Sensor.find(params[:id])
