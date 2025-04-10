@@ -63,13 +63,13 @@
 
     <div data-tabs-target="panel" data-tab-panel="control" class="tab-panel hidden">
       <h2 class="text-2xl font-semibold theme-text-primary">Control Signals</h2>
-      <%= render "control_signals/list", plant_module: @plant_module, control_signals: @plant_module.control_signals %>
+      <%= render "control_signals/list", plant_module: @plant_module, control_signals: @plant_module.control_signals.order(:signal_type) %>
     </div>
 
     <div data-tabs-target="panel" data-tab-panel="sensors" class="tab-panel hidden">
       <h2 class="text-2xl font-semibold theme-text-primary">Sensors</h2>
       <turbo-frame id="sensors_list" data-controller="notification">
-        <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors %>
+        <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors.order(:measurement_type) %>
       </turbo-frame>
     </div>
   </div>

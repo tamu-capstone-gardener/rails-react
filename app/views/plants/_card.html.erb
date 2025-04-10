@@ -19,9 +19,9 @@
       <%= plant.common_name %>
     </h3>
     <button type="button"
-            class="px-[4px] text-2xl btn-primary rounded-full"
+            class="px-[4px] max-h-[32px] text-2xl btn-primary rounded-full"
             data-action="click->plant-modal#openModal"
-            data-plant="<%= html_escape(plant_data) %>">
+            data-plant-id="<%= plant.id %>">
       &#9432;
     </button>
   </div>

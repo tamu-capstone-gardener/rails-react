@@ -29,7 +29,11 @@ Rails.application.routes.draw do
 
 
   # Add routes for the plants page (for interactive plant selection/overrides)
-  resources :plants, only: [ :index, :show ]
+  resources :plants, only: [ :index, :show ] do
+    member do
+      get :info
+    end
+  end
 
   # Time series data routes
   resources :time_series_data, only: [ :index, :show ]

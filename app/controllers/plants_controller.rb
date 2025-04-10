@@ -32,4 +32,9 @@ class PlantsController < ApplicationController
       render :index
     end
   end
+
+  def info
+    @plant = Plant.find(params[:id])
+    render partial: "plants/info", locals: { plant: @plant }
+  end
 end

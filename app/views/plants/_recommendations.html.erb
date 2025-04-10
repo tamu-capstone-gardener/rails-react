@@ -11,19 +11,21 @@
     <% end %>
   <% end %>
 
-  <div id="plant-info-modal" 
-      class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
-      data-controller="plant-modal" 
+  <div id="plant-info-modal"
+      class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden"
       data-action="click->plant-modal#closeOnBackgroundClick">
-    <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+
+    <div class="theme-bg border-1 border-text-primary shadow rounded-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
         data-action="click->plant-modal#stopPropagation">
-      <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
+
+      <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700">
         &times;
       </button>
+
       <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
-      <div id="plant-info-content" class="theme-text-primary space-y-2">
-        <!-- Plant info is injected here -->
-      </div>
+
+      <!-- Turbo will auto-fetch this on `.src =` -->
+      <turbo-frame id="plant-info-content"></turbo-frame>
     </div>
   </div>
 
