@@ -1,0 +1,19 @@
+<div class="mt-4">
+  <% if control_signals.empty? %>
+    <p class="text-sm theme-text-secondary italic">No control signals registered yet.</p>
+  <% else %>
+    <ul class="grid sm:grid-cols-2 gap-4 h-auto">
+      <% control_signals.each do |signal| %>
+        <li class="">
+          <div class="flex m-4 flex-1 items-end justify-center" data-controller="manual-trigger">
+                <%= button_to "Pulse #{signal.label.presence || signal.signal_type.titleize} for #{format_duration(signal.length_ms)}",
+                              trigger_plant_module_control_signal_path(plant_module, signal),
+                              method: :post,
+                              params: { toggle: true },
+                              class: "btn-secondary px-4 py-2 rounded-lg" %>
+            </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

@@ -3,6 +3,8 @@
     <% if user_signed_in? %>
       <% if current_user.plant_modules.any? %>
         <%= render partial: "plant_modules/list", locals: { plant_modules: current_user.plant_modules } %>
+      <% else %>
+        <%= button_to sanitize("Get Started"), help_path, method: :get, class: "py-2 px-4 text-lg btn-primary rounded-lg m-16" %>
       <% end %>
     <% else %>
       <p>Log in with Google to view/create plant modules.</p>
@@ -18,7 +20,7 @@
   <div class="flex w-full lg:w-1/3 flex-col justify-center items-center gap-8 border-bg-primary theme-bg-alt rounded-lg p-8">
     <h2 class="text-2xl self-start">Want to contribute?</h2>
     <%= link_to "View GitHub Repos", "https://github.com/orgs/tamu-capstone-gardener/repositories", 
-        class: "btn-primary px-4 py-2 rounded-lg text-white text-lg inline-block text-center", 
+        class: "btn-secondary px-4 py-2 rounded-lg text-white text-lg inline-block text-center", 
         target: "_blank", rel: "noopener" %>
   </div>
 </div>

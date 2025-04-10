@@ -20,6 +20,7 @@ class ApplicationController < ActionController::Base
       # { name: 'Profile (TODO)', path: root_path },
     ]
     if user_signed_in?
+      @page_links << { name: "Create Module", path: new_plant_module_path }
       @page_links << { name: "Logout", path: destroy_user_session_path, method: :delete }
     else
       @page_links << { name: "Login", path: new_user_session_path }

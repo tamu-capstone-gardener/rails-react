@@ -2,9 +2,49 @@ class ControlSignalsController < AuthenticatedApplicationController
     before_action :set_plant_module
     before_action :set_control_signal, only: [ :edit, :update ]
 
-    def edit; end
+    def edit
+      ms = @control_signal.length_ms
+
+      if ms.nil? || ms.zero?
+        @length_value = nil
+        @length_unit = "seconds"
+      else
+        if ms % 86_400_000 == 0
+          @length_value = ms / 86_400_000
+          @length_unit = "days"
+        elsif ms % 3_600_000 == 0
+          @length_value = ms / 3_600_000
+          @length_unit = "hours"
+        elsif ms % 60_000 == 0
+          @length_value = ms / 60_000
+          @length_unit = "minutes"
+        elsif ms % 1_000 == 0
+          @length_value = ms / 1_000
+          @length_unit = "seconds"
+        else
+          @length_value = ms
+          @length_unit = "milliseconds"
+        end
+      end
+    end
+
 
     def update
+      # Combine value and unit to compute length_ms
+      length_value = params[:length_value].to_i
+      length_unit  = params[:length_unit]
+
+      length_ms = case length_unit
+      when "days" then length_value * 86_400_000
+      when "hours" then length_value * 3_600_000
+      when "minutes" then length_value * 60_000
+      when "seconds" then length_value * 1_000
+      else length_value
+      end
+
+      # Inject computed length_ms into control_signal params
+      params[:control_signal][:length_ms] = length_ms
+
       if @control_signal.update(control_signal_params)
         redirect_to plant_module_path(@plant_module), notice: "Control signal updated."
       else
@@ -12,6 +52,7 @@ class ControlSignalsController < AuthenticatedApplicationController
         render :edit
       end
     end
+
 
     def trigger
       control_signal = ControlSignal.find(params[:id])

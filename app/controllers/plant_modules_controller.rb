@@ -71,10 +71,6 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
-  def index
-    @plant_modules = current_user.plant_modules
-  end
-
   def edit
     @plant_module = current_user.plant_modules.find_by(id: params[:id])
     redirect_to plant_modules_path, alert: "Module not found." unless @plant_module

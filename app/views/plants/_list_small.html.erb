@@ -24,14 +24,6 @@
             (<%= plant.genus %> <%= plant.species %>)
         </p>
       </div>
-
-      <hr class="border-b-[0.5] mb-4 border-bg w-full">
-
-      <div class="text-sm space-y-1 min-h-[85px]">
-        <p><strong>Edibility:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span></p>
-        <p><strong>Medicinal:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span></p>
-        <p><strong>Other Uses:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></p>
-      </div>
     </div>
   <% end %>
   <div id="plant-info-modal"

@@ -70,6 +70,9 @@ class MqttListener
 
     # Store the sensor data
     begin
+      if value > 10000
+        return
+      end
       TimeSeriesDatum.create!(
         sensor_id: sensor_id,
         value: value,
@@ -220,10 +223,10 @@ class MqttListener
     Time.use_zone("Central Time (US & Canada)") do
       today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
       tomorrow_scheduled_time = today_scheduled_time + 1.day
-      # Rails.logger.info "last_exec: #{last_exec.executed_at}; now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
+      # Rails.logger.info "now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
       if last_exec.present?
         if last_exec.executed_at < control_signal.updated_at
-          if (now - today_scheduled_time).abs > 60
+          if now - today_scheduled_time > 0
             Rails.logger.info "Next scheduled trigger calculated as #{tomorrow_scheduled_time}"
             return tomorrow_scheduled_time
           else
