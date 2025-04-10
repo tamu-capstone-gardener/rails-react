@@ -73,6 +73,10 @@ html.dark {
   color: var(--text-secondary) !important;
 }
 
+.theme-text-alt {
+  color: var(--btn-secondary-rotate);
+}
+
 .text-box {
   background-color: var(--bg-alt) !important;
   color: var(--text-primary) !important;

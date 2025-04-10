@@ -1,17 +1,22 @@
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-4 w-full py-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-4 w-full py-8 items-stretch auto-rows-fr">
   <% plant_modules.each do |plant_module| %>
     <div class="theme-bg-alt shadow-lg rounded-lg h-full flex flex-col justify-between items-start">
-      <div class="w-full p-4">
-          <h2 class="text-3xl font-semibold theme-text-primary"><%= sanitize(plant_module.name) %></h2>
+      <div class="w-full p-4 h-full flex-1">
+          <%= link_to sanitize(plant_module.name), plant_module_path(plant_module), class: "text-3xl theme-text-alt hover:underline font-semibold" %>
       </div>
-      <hr class="border-b-[0.5] mb-4 border-bg w-full">
-      <div class="flex px-4 w-full justify-center sm:justify-start lg:justify-center">
+      <hr class="border-b-[0.5] mb-4 border-bg w-full flex-1">
+      <div class="flex px-4 w-full justify-start h-full flex-1">
         <%= render "plants/list_small", plants: plant_module.plants %>
       </div>
-      <div class="flex w-full justify-center sm:justify-start lg:justify-center">
+      <div class="flex w-full justify-center sm:justify-start lg:justify-center h-full flex-1">
         <%= render "control_signals/list_small", plant_module: plant_module, control_signals: plant_module.control_signals.order(:signal_type) %>
       </div>
-      <%= link_to "View Module", plant_module_path(plant_module), class: "text-blue-500 hover:underline m-4" %>
+      <div class="flex w-full justify-start px-4 pb-4 h-full flex-1">
+        <p class="theme-text-secondary italic text-lg">
+          <%= sanitize(plant_module.description) %>
+        </p>
+      </div>
+      
     </div>
   <% end %>
 </div>

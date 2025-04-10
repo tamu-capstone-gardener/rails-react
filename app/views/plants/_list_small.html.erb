@@ -7,7 +7,7 @@
         :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf
       ]).to_json %>
 
-    <div class="p-4 theme-bg-alt rounded-md shadow relative flex flex-col justify-between items-start" data-plant-card >
+    <div class="p-4 theme-bg-alt rounded-md relative flex flex-col justify-between items-start" data-plant-card >
       <div class="w-full min-h-[85px]">
         <div class="flex justify-between items-start gap-2">
             <h3 class="theme-text-primary text-lg font-bold"><%= plant.common_name.to_s.split(",").first.strip || "Unknown" %></h3>
