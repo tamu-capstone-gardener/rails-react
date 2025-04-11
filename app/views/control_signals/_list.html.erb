@@ -17,13 +17,18 @@
             <p class="theme-text-primary text-sm mt-2" >
               Type: <%= sanitize(signal.mode) %><br/>
               Pulse Length: <%= format_duration(signal.length_ms) || "none" %>
+              
             </p>
+            <div id="control_execution_<%= signal.last_execution.id %>">
+              <%= turbo_stream_from "control_executions" %>
+              <%= render partial: "control_executions/control_execution", locals: { control_execution: signal.last_execution }%>
+            </div>
           </div>
           <div class="px-4">
             <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
             <% if last_execution && signal.mode == "scheduled" %>
               <p class="text-sm theme-text-secondary mt-2">
-                Next trigger is <%= time_ago_in_words(MqttListener.next_scheduled_trigger(signal)) %> from now. 
+                Next trigger is <%= time_ago_in_words(MqttListener.next_scheduled_trigger(signal) + 5.hours) %> from now. 
               </p>
               <p class="text-sm theme-text-secondary">
                 Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
@@ -37,7 +42,7 @@
             <% end %>
           </div>
           <div class="flex m-4 flex-1 items-end justify-center" data-controller="manual-trigger">
-                <%= button_to "Pulse #{signal.label.presence || signal.signal_type.titleize} for #{format_duration(signal.length_ms)}",
+                <%= button_to "Turn on for #{format_duration(signal.length_ms)}",
                               trigger_plant_module_control_signal_path(plant_module, signal),
                               method: :post,
                               params: { toggle: true },

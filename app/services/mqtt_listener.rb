@@ -117,8 +117,13 @@ class MqttListener
     # Use length_ms as the toggle "on" duration (defaulting to 3000 ms if not provided)
     toggle_duration = options[:duration] || control_signal.length_ms || 3000
 
-    mode = options[:mode] || control_signal.mode
+    mode = options[:mode] ? options[:mode] : control_signal.mode
     status = options[:status]
+
+    last_exec = ControlExecution
+                  .where(control_signal_id: control_signal.id)
+                  .order(executed_at: :desc)
+                  .first
     Rails.logger.info "publish_control_command invoked for control_signal #{control_signal.id} with mode: #{mode}, status: #{status}, scheduled_time: #{control_signal.scheduled_time}, frequency: #{control_signal.frequency}, unit: #{control_signal.unit}, toggle_duration: #{toggle_duration / 1000.0}s"
     # if the toggle duration is less than a minute, lets handle it with a thread
     if toggle_duration < 60 * 1000
@@ -146,7 +151,8 @@ class MqttListener
       client.publish(topic, { toggle: true }.to_json)
     end
 
-    create_execution_data(control_signal, mode, status, toggle_duration)
+    Rails.logger.info "creating execution data with status #{!last_exec.status}"
+    create_execution_data(control_signal, mode, !last_exec.status, toggle_duration)
   end
 
   def self.next_scheduled_trigger(control_signal)
@@ -344,10 +350,11 @@ class MqttListener
 
 
     last_duration = last_exec_on&.duration_ms || control_signal.length_ms
-    elapsed_since_on = (last_exec_off.updated_at - (last_exec_on&.executed_at || 1.year)) * 1000
+    Rails.logger.info "trying elapsed since on"
+    elapsed_since_on = (last_exec_off.updated_at - (last_exec_on&.executed_at || 1.year.ago)) * 1000
     expected_on_duration = last_duration
 
-    if elapsed_since_on < expected_on_duration
+    if elapsed_since_on < expected_on_duration and last_exec != last_exec_off
       time_until_next_off = expected_on_duration - elapsed_since_on
     else
       time_until_next_off = -1
@@ -356,36 +363,41 @@ class MqttListener
 
 
     if control_signal.mode == "scheduled"
-      time_until_next_trigger = next_scheduled_trigger(control_signal) - Time.current
-    end
+      Rails.logger.info "trying time until next trigger time.current: #{Time.current}"
 
-    if !last_exec and control_signal.mode == "scheduled" and time_until_next_trigger < 60
-      sleep(time_until_next_trigger)
-      publish_control_command
+      now = Time.use_zone("Central Time (US & Canada)") { Time.current }
+      Rails.logger.info "trying time until next trigger now: #{now}"
+      time_until_next_on = next_scheduled_trigger(control_signal) - now
     end
 
     last_status = last_exec.status ? "on" : "off"
 
     # debug logs
     Rails.logger.info "processing status with first check status: #{last_status} != #{message_json["status"]}?; last_exec_on: #{last_exec_on}; time_until_next_off: #{time_until_next_off}"
-    Rails.logger.info "and last_duration: #{last_duration}"
-    Rails.logger.info "#{last_exec.executed_at} - #{(last_exec_on&.updated_at || 1)} == #{last_exec.executed_at - (last_exec_on&.updated_at || 1)}"
+    Rails.logger.info "and last_duration: #{last_duration}; time_until_next_on: #{time_until_next_on}"
     # see if we need to send any toggle to the ESP to either
     # a - make sure it is staying on if it is supposed to
     # b - make sure we turn stuff off when it should be turned off
     # c - turn on the scheduled stuff too
     # d - handle the most recent pushes to show successes (add notifications later maybe?)
-    if last_status != message_json["status"] # a
+    if last_status != message_json["status"] and time_until_next_off != -1 # a
       Rails.logger.info "statuses aren't the same, turn on!"
       publish_control_command(control_signal, status: last_exec.status, duration: time_until_next_off, mode: "manual")
     elsif time_until_next_off != -1 and time_until_next_off < 60 # b
-      sleep(time_until_next_off)
-      publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
-    elsif control_signal.mode == "scheduled" and time_until_next_trigger < 60 # c
-      sleep(time_until_next_trigger)
-      publish_control_command(control_signal, status: true, duration: control_signal.length_ms, mode: "scheduled")
+      Rails.logger.info "its time to turn off soon! sleep and then turn off"
+      Thread.new do
+        sleep(time_until_next_off)
+        publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
+      end
+    elsif control_signal.mode == "scheduled" and time_until_next_on < 60 and time_until_next_off != -1 # c
+      Rails.logger.info "we are scheduled and time"
+      Thread.new do
+        sleep(time_until_next_on)
+        publish_control_command(control_signal, status: true, duration: control_signal.length_ms, mode: "scheduled")
+      end
     elsif !last_updated_exec.status and time_until_next_off != -1
-      publish_control_command(control_signal, status: true, duration: time_until_next_off)
+      # Rails.logger.info "umm "
+      # publish_control_command(control_signal, status: true, duration: time_until_next_off)
     elsif last_exec == last_exec_on
       last_exec_on&.touch
     else

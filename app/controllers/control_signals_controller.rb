@@ -81,7 +81,7 @@ class ControlSignalsController < AuthenticatedApplicationController
     def trigger
       control_signal = ControlSignal.find(params[:id])
 
-      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length_ms)
+      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length_ms, status: true)
 
     rescue => e
       Rails.logger.error "Trigger error: #{e.message}"

@@ -66,6 +66,8 @@ class PlantModulesController < AuthenticatedApplicationController
       end
     end
 
+    @control_signals = @plant_module.control_signals.includes(:last_execution).order(:signal_type)
+
     if @plant_module.location_type.downcase == "outdoor" && @plant_module.zip_code.present?
       @zone_data = zone_for_zip(@plant_module.zip_code)
     end
