@@ -1,5 +1,6 @@
-<%= form_with(model: [plant_module, control_signal], class: "space-y-6", data: { controller: "control-signal-form" }) do |f| %>
+<%= form_with(model: [plant_module, control_signal], class: "space-y-6", data: { controller: "control-signal-form", "control-signal-form-default-threshold-value": @control_signal.threshold_value.to_s }) do |f| %>
   <!-- Mode Tabs -->
+  <% Rails.logger.debug "default threshold: #{@default_threshold_value.to_s}" %>
   <div class="flex space-x-2 mb-4" data-control-signal-form-target="modeTabs">
     <% %w[manual automatic scheduled].each do |m| %>
       <button type="button"
@@ -68,13 +69,27 @@
 
       <div>
         <%= f.label :threshold_value, "Threshold" %>
-        <div class="flex-2 flex space-x-2 items-center">
-          <%= f.select :threshold_value, [10, 25, 50, 100, 500, 1000, 2500, 10000].map { |v| ["#{v}", v] } + [["Custom", "custom"]],
-            {}, class: "text-box border p-2 rounded", data: { action: "control-signal-form#toggleCustomThresholdInput", "control-signal-form-target": "thresholdSelect" } %>
-          <%= f.number_field :threshold_value, step: 0.01, placeholder: "Custom", class: "text-box border p-2 rounded", data: { "control-signal-form-target": "customThresholdInput" } %>
-          <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.measurement_unit %></span>
-        </div>
+      <div class="flex-2 flex space-x-2 items-center">
+        <%= select_tag "threshold_preset",
+              options_for_select(["10", "25", "50", "100", "500", "1000", "2500", "10000"].map { |v| [v, v] } + [["Custom", "custom"]], @threshold_preset),
+              class: "text-box border p-2 rounded",
+              data: {
+                action: "control-signal-form#toggleCustomThresholdInput",
+                "control-signal-form-target": "thresholdSelect"
+              } %>
+
+        <%= number_field_tag "threshold_custom",
+              @custom_threshold_value,
+              step: 0.01,
+              placeholder: "Custom",
+              class: "text-box border p-2 rounded",
+              data: { "control-signal-form-target": "customThresholdInput" } %>
+
+        <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.measurement_unit %></span>
       </div>
+
+      </div>
+
     </div>
   </div>
 
