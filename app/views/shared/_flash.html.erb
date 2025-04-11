@@ -1,4 +1,5 @@
-<% flash.each do |key, value| -%>
+<%= turbo_frame_tag "flash" do %>
+  <% flash.each do |key, value| -%>
     <% bg_color = case key
        when "alert" then "bg-red-500 border-red-800"
        when "notice" then "bg-blue-500 border-blue-800"
@@ -10,4 +11,4 @@
       <section class="theme-text-primary opacity-100 z-20"><%= value.html_safe %></section>
     </div>
   <% end %>
-  
+<% end %>

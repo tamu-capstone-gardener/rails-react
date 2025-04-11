@@ -82,10 +82,16 @@ class ControlSignalsController < AuthenticatedApplicationController
       control_signal = ControlSignal.find(params[:id])
 
       MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length_ms, status: true)
+      flash.now[:notice] = "Triggered #{control_signal.label || control_signal.signal_type} #{control_signal.control_executions.order(executed_at: :desc).first.status ? "On" : "Off"} "
+      render turbo_stream: [
+        turbo_stream.update("flash", partial: "shared/flash"),
+        turbo_stream.update("control_execution", partial: "control_executions/control_execution", locals: { control_execution: control_signal.control_executions.order(executed_at: :desc).first })
+      ]
 
     rescue => e
       Rails.logger.error "Trigger error: #{e.message}"
-      render json: { error: "Trigger failed: #{e.message}" }, status: :unprocessable_entity
+      flash.now[:alert] = "Trigger failed: #{e.message}"
+      render turbo_stream: turbo_stream.update("flash", partial: "shared/flash"), status: :unprocessable_entity
     end
 
 

@@ -5,12 +5,14 @@ class ControlExecution < ApplicationRecord
   self.primary_key = "id"
   before_create :assign_uuid
 
-  after_create_commit do
-    broadcast_replace_to "control_executions",
-      target: ActionController::Base.helpers.dom_id(self),
-      partial: "control_executions/control_execution",
-      locals: { control_execution: self }
-  end
+  # after_create_commit do
+  #   Turbo::StreamsChannel.broadcast_replace_to(
+  #     "control_executions",
+  #     target: "control_execution_#{control_signal_id}",
+  #     partial: "control_executions/control_execution",
+  #     locals: { control_execution: self }
+  #   )
+  # end
 
   private
 

@@ -160,20 +160,20 @@ class MqttListener
       .order(executed_at: :desc)
       .first
     now = Time.current
+
     scheduled_time_local = control_signal.scheduled_time
+
     Time.use_zone("Central Time (US & Canada)") do
       today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
       tomorrow_scheduled_time = today_scheduled_time + 1.day
-      # Rails.logger.info "now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
+
+      Rails.logger.info "now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
       if last_exec.present?
         if last_exec.executed_at < control_signal.updated_at
-          if now - today_scheduled_time > 0
-            Rails.logger.info "Next scheduled trigger calculated as #{tomorrow_scheduled_time}"
-            return tomorrow_scheduled_time
-          else
             Rails.logger.info "Next scheduled trigger calculated as #{today_scheduled_time}"
             return today_scheduled_time
-          end
+        elsif now > today_scheduled_time
+          next_trigger = tomorrow_scheduled_time
         else
           next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
         end
@@ -389,7 +389,7 @@ class MqttListener
         sleep(time_until_next_off)
         publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
       end
-    elsif control_signal.mode == "scheduled" and time_until_next_on < 60 and time_until_next_off != -1 # c
+    elsif control_signal.mode == "scheduled" and time_until_next_on < 60 and time_until_next_on >= 0 and time_until_next_off != -1 # c
       Rails.logger.info "we are scheduled and time"
       Thread.new do
         sleep(time_until_next_on)
