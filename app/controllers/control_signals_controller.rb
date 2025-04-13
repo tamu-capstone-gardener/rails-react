@@ -80,8 +80,12 @@ class ControlSignalsController < AuthenticatedApplicationController
 
     def trigger
       control_signal = ControlSignal.find(params[:id])
+      last_exec = ControlExecution.where(control_signal_id: control_signal.id)
+                                  .order(executed_at: :desc)
+                                  .first
 
-      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length_ms, status: true)
+
+      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length_ms, status: !last_exec.status)
       flash.now[:notice] = "Triggered #{control_signal.label || control_signal.signal_type} #{control_signal.control_executions.order(executed_at: :desc).first.status ? "On" : "Off"} "
       render turbo_stream: [
         turbo_stream.update("flash", partial: "shared/flash"),
