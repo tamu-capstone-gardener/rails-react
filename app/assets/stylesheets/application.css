@@ -94,6 +94,10 @@ html.dark {
   border-color: var(--bg-alt);
 }
 
+.border-bg-text-secondary {
+  border-color: var(--text-secondary)
+} 
+
 .border-text-primary {
   border-color: var(--text-primary);
 }

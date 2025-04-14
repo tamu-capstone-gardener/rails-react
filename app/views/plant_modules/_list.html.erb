@@ -1,9 +1,30 @@
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-4 w-full py-8 items-stretch auto-rows-fr">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 my-4 w-full py-8 items-stretch auto-rows-fr">
   <% plant_modules.each do |plant_module| %>
-    <div class="theme-bg-alt shadow-lg rounded-lg h-full flex flex-col justify-between items-start">
-      <div class="w-full p-4 h-full flex-1">
-          <%= link_to sanitize(plant_module.name), plant_module_path(plant_module), class: "text-3xl theme-text-alt hover:underline font-semibold" %>
+    <div class="relative theme-bg-alt shadow-lg rounded-lg h-full flex flex-col justify-between items-start" data-controller="modal">
+
+      <div class="w-full p-4 h-full flex-1 flex justify-between gap-4 items-center">
+        <%= link_to sanitize(plant_module.name), plant_module_path(plant_module), class: "text-3xl theme-text-primary hover:underline font-semibold" %>
+        <button data-action="click->modal#open" class="text-xl px-1 pb-[10px] rounded-full  btn-secondary hover:cursor-pointer">
+          ...
+        </button>
       </div>
+
+      <!-- modal -->
+      <div data-modal-target="modal" class="hidden absolute inset-0 rounded-lg flex items-center justify-center z-20" data-action="click->modal#close">
+        <div class="theme-bg-alt rounded-xl p-6 shadow-lg w-64 border-1 border-text-secondary" data-action="click->modal#stopPropagation">
+          <h3 class="text-lg font-semibold mb-4 theme-text-primary">Plant Module Options</h3>
+          <ul class="space-y-2">
+            <li><%= link_to "View", plant_module_path(plant_module), class: "block hover:underline" %></li>
+            <li><%= link_to "Edit", edit_plant_module_path(plant_module), class: "block hover:underline" %></li>
+            <li>
+              <%= button_to "Delete", plant_module_path(plant_module), method: :delete, data: { turbo_confirm: "Are you sure?" }, class: "text-red-500  hover:cursor-pointer hover:underline" %>
+            </li>
+          </ul>
+          <button data-action="click->modal#close" class="mt-4 text-sm text-gray-400 hover:cursor-pointer hover:underline">Close</button>
+        </div>
+      </div>
+
+      <!-- rest of your card content -->
       <hr class="border-b-[0.5] mb-4 border-bg w-full flex-1">
       <div class="flex px-4 w-full justify-start h-full flex-1">
         <%= render "plants/list_small", plants: plant_module.plants %>
@@ -16,7 +37,13 @@
           <%= sanitize(plant_module.description) %>
         </p>
       </div>
-      
     </div>
   <% end %>
+
+
+  <!-- New Plant Module Card -->
+  <div class="theme-bg-alt shadow-lg rounded-lg h-full flex flex-col justify-center items-center p-6 border-1 border-dashed border-text-secondary hover:border-blue-500">
+    <h2 class="text-2xl theme-text-primary font-semibold mb-4">New Plant Module</h2>
+    <%= link_to "Create Plant Module", new_plant_module_path, class: "btn-primary text-white text-lg py-2 px-4 rounded-lg" %>
+  </div>
 </div>

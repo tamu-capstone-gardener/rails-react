@@ -120,14 +120,6 @@ class MqttListener
     mode = options[:mode] ? options[:mode] : control_signal.mode
     status = options[:status]
 
-    last_exec = ControlExecution
-                  .where(control_signal_id: control_signal.id)
-                  .order(executed_at: :desc)
-                  .first
-
-    if (Time.now - last_exec.executed_at) < 30 and last_exec.duration_ms > (30 * 1000)
-      return
-    end
     Rails.logger.info "publish_control_command invoked for control_signal #{control_signal.id} with mode: #{mode}, status: #{status}, scheduled_time: #{control_signal.scheduled_time}, frequency: #{control_signal.frequency}, unit: #{control_signal.unit}, toggle_duration: #{toggle_duration / 1000.0}s"
     # if the toggle duration is less than a minute, lets handle it with a thread
     if toggle_duration < 60 * 1000
@@ -154,8 +146,7 @@ class MqttListener
         client.publish(topic, { toggle: true }.to_json)
       end
 
-      Rails.logger.info "creating execution data with status #{!last_exec.status}"
-      create_execution_data(control_signal, mode, !last_exec.status, toggle_duration)
+      create_execution_data(control_signal, mode, status, toggle_duration)
     end
   end
 
@@ -208,6 +199,7 @@ class MqttListener
   end
 
   def self.create_execution_data(cs, source, status, duration)
+    Rails.logger.info "creating execution data for #{cs.signal_type} with source #{source} and status #{status} for duration #{duration}"
     ControlExecution.create!(
             control_signal_id: cs.id,
             source: source,
@@ -353,7 +345,7 @@ class MqttListener
                       .first
 
     # add a check to make sure if the esp was off at scheduled time to retrigger
-    last_status = last_exec.status ? "on" : "off"
+    last_status = last_updated_exec.status ? "on" : "off"
 
     last_duration = last_exec_on&.duration_ms || control_signal.length_ms
     Rails.logger.info "trying elapsed since on"

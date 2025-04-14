@@ -1,12 +1,12 @@
 import { application } from "controllers/application"
-import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
+import { lazyLoadControllersFrom } from "@hotwired/stimulus-loading"
 import "@hotwired/turbo-rails"
 import "controllers"
 import "chartkick"
 import "Chart.bundle"
 import "channels"
 
-eagerLoadControllersFrom("controllers", application)
+lazyLoadControllersFrom("controllers", application)
 
 const registerServiceWorker = async () => {
   if (navigator.serviceWorker) {

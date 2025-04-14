@@ -44,7 +44,7 @@
               <p class="text-sm theme-text-secondary">Not triggered yet.</p>
             <% end %>
           </div>
-          <div class="flex m-4 flex-1 items-end justify-center" data-controller="manual-trigger">
+          <div class="flex m-4 flex-1 items-end justify-center">
                 <%= button_to "Turn on for #{format_duration(signal.length_ms)}",
                               trigger_plant_module_control_signal_path(plant_module, signal),
                               method: :post,

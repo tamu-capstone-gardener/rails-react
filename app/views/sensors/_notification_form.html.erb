@@ -1,3 +1,9 @@
+<%# Ensure there's at least one threshold if none are present %>
+<% if sensor.thresholds.empty? %>
+  <% sensor.thresholds << "< 100" %>
+  <% sensor.messages << "Your #{sensor.measurement_type.titleize} is low!" %>
+<% end %>
+
 <turbo-frame id="notification_modal_frame">
   <%= form_with model: sensor, url: update_notification_settings_plant_module_sensor_path(sensor.plant_module, sensor),
                 method: :patch,
@@ -17,8 +23,8 @@
                 <option value="<%= op %>" <%= threshold.strip.start_with?(op) ? "selected" : "" %>><%= op %></option>
               <% end %>
             </select>
-            <input type="text" name="values[]" value="<%= threshold.gsub(/^[<>=]{1,2}\s*/, '') %>" class="border p-1 rounded w-1/3" placeholder="Threshold value" />
-            <input type="text" name="messages[]" value="<%= sensor.messages[index] %>" class="border p-1 rounded w-1/2" placeholder="Message" />
+            <input type="text" name="values[]" value="<%= threshold.gsub(/^[<>=]{1,2}\s*/, '') %>" class="text-box p-1 rounded w-1/3" placeholder="Threshold value" />
+            <input type="text" name="messages[]" value="<%= sensor.messages[index] %>" class="text-box p-1 rounded w-1/2" placeholder="Message" />
             <button type="button" data-action="click->thresholds#remove" class="text-red-500">&times;</button>
           </div>
         <% end %>
@@ -27,7 +33,6 @@
       <button type="button" data-action="click->thresholds#add" class="btn-secondary px-4 py-2 rounded-lg mt-2">+ Add Rule</button>
     </div>
 
-    <!-- ✅ Submit Button -->
     <%= f.submit "Save Notification Settings", class: "btn-primary px-4 py-2 rounded-lg mt-4" %>
   <% end %>
 </turbo-frame>
