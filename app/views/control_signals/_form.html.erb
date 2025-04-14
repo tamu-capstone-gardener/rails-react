@@ -69,27 +69,11 @@
 
       <div>
         <%= f.label :threshold_value, "Threshold" %>
-      <div class="flex-2 flex space-x-2 items-center">
-        <%= select_tag "threshold_preset",
-              options_for_select(["10", "25", "50", "100", "500", "1000", "2500", "10000"].map { |v| [v, v] } + [["Custom", "custom"]], @threshold_preset),
-              class: "text-box border p-2 rounded",
-              data: {
-                action: "control-signal-form#toggleCustomThresholdInput",
-                "control-signal-form-target": "thresholdSelect"
-              } %>
-
-        <%= number_field_tag "threshold_custom",
-              @custom_threshold_value,
-              step: 0.01,
-              placeholder: "Custom",
-              class: "text-box border p-2 rounded",
-              data: { "control-signal-form-target": "customThresholdInput" } %>
-
-        <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.measurement_unit %></span>
+        <div class="flex items-center space-x-2">
+          <%= f.number_field :threshold_value, step: 0.01, class: "text-box border p-2 rounded w-full" %>
+          <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.measurement_unit %></span>
+        </div>
       </div>
-
-      </div>
-
     </div>
   </div>
 

@@ -26,20 +26,6 @@ class ControlSignalsController < AuthenticatedApplicationController
           @length_unit = "milliseconds"
         end
       end
-
-      raw_value = @control_signal.threshold_value.to_i.to_s
-
-      preset_thresholds = [ "10", "25", "50", "100", "500", "1000", "2500", "10000" ]
-
-      if preset_thresholds.include?(raw_value)
-        @threshold_preset = raw_value
-        @custom_threshold_value = nil
-        @default_threshold_value = raw_value
-      else
-        @threshold_preset = "custom"
-        @custom_threshold_value = @control_signal.threshold_value
-        @default_threshold_value = @control_signal.threshold_value
-      end
     end
 
 
@@ -58,15 +44,6 @@ class ControlSignalsController < AuthenticatedApplicationController
 
       # Inject computed length_ms into control_signal params
       params[:control_signal][:length_ms] = length_ms
-
-      threshold_preset = params[:control_signal].delete(:threshold_preset)
-      threshold_custom = params[:control_signal].delete(:threshold_custom)
-
-      final_threshold = threshold_preset == "custom" ? threshold_custom : threshold_preset
-      params[:control_signal][:threshold_value] = final_threshold.to_f
-
-
-      Rails.logger.info "updating control signal to thresh value: #{final_threshold}"
 
 
       if @control_signal.update(control_signal_params)

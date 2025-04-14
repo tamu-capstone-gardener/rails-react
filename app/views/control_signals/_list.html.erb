@@ -13,32 +13,42 @@
                 class: "text-blue-500 hover:underline text-sm" %>
           </div>
           <hr class="border-b-[0.5] border-bg w-full">
+
+          <%= turbo_frame_tag "control_execution", class: "px-4" do %>
+              
+            <%= render partial: "control_executions/control_execution", locals: { control_execution: signal.control_executions.order(executed_at: :desc).first }%>
+          <% end %>
           <div class="flex px-4  flex-col justify-start flex-1">
-            <p class="theme-text-primary text-sm mt-2" >
-              Type: <%= sanitize(signal.mode) %><br/>
-              Pulse Length: <%= format_duration(signal.length_ms) || "none" %>
+            <p class="theme-text-primary font-semibold text-sm mt-2" >
+              Type: <span class="theme-text-secondary font-normal"><%= sanitize(signal.mode.titleize) %></span><br/>
+              Pulse Length: <span class="theme-text-secondary font-normal"><%= format_duration(signal.length_ms) || "none" %></span>
               
             </p>
-            <%= turbo_frame_tag "control_execution" do %>
-              
-              <%= render partial: "control_executions/control_execution", locals: { control_execution: signal.control_executions.order(executed_at: :desc).first }%>
-            <% end %>
           </div>
           <div class="px-4">
             <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
             <% if last_execution && signal.mode == "scheduled" %>
               <% scheduled_time = MqttListener.next_scheduled_trigger(signal) %>
-              <p class="text-sm theme-text-secondary mt-2">
+              <p class="text-sm theme-text-primary font-semibold mt-2">
                 <% Rails.logger.info "time.current #{Time.current}; scheduled #{scheduled_time}; scheduled in zone #{scheduled_time.in_time_zone("Central Time (US & Canada)")}"%>
-                Next trigger is <%= Time.current - scheduled_time > 0 ? distance_of_time_in_words(Time.current, scheduled_time + 29.hours) : distance_of_time_in_words(Time.current, scheduled_time + 5.hours) %> from now.
+                Next trigger is <span class="theme-text-secondary font-normal"><%= Time.current - scheduled_time > 0 ? distance_of_time_in_words(Time.current, scheduled_time + 29.hours) : distance_of_time_in_words(Time.current, scheduled_time + 5.hours) %> from now.
               </p>
 
-              <p class="text-sm theme-text-secondary">
-                Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
+              <p class="text-sm theme-text-primary font-semibold">
+                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago.</span>
+              </p>
+            <% elsif last_execution and signal.mode == "automatic" %>
+              <p class="text-sm theme-text-primary font-semibold mt-2">
+  
+                Threshold value <span class="theme-text-secondary font-normal"><%= signal.threshold_value %> ago.</span>
+              </p>
+              <p class="text-sm theme-text-primary font-semibold">
+  
+                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago.</span>
               </p>
             <% elsif last_execution %>
-              <p class="text-sm theme-text-secondary mt-2">
-                Last triggered <%= time_ago_in_words(last_execution.executed_at) %> ago.
+              <p class="text-sm theme-text-primary font-semibold mt-2">
+                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago.</span>
               </p>
             <% else %>
               <p class="text-sm theme-text-secondary">Not triggered yet.</p>

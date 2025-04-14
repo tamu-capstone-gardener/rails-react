@@ -1,3 +1,9 @@
-<p class="theme-text-primary text-sm mt-2">
-    Currently <%= control_execution.status ? "On" : "Off" %>
-</p>
+<% if control_execution.status %>
+    <p class="theme-text-primary font-semibold text-sm mt-2">
+        Currently <span class="text-green-500"><%= control_execution.status ? "On" : "Off" %>
+    </p>
+<% else %>
+    <p class="theme-text-primary font-semibold text-sm mt-2">
+        Currently <span class="text-red-500"><%= control_execution.status ? "On" : "Off" %>
+    </p>
+<% end %>
