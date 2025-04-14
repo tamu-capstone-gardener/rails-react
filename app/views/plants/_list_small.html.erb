@@ -1,15 +1,27 @@
-<div class="grid grid-cols-2 xl:grid-cols-3 gap-4" data-controller="plant-modal">
-  <% plants.each do |plant| %>
-    <% plant_data = plant.as_json(only: [
-        :common_name, :genus, :species, :family, :growth_rate, :hardiness_zones,
-        :height, :width, :plant_type, :pollinators, :leaf, :flower, :ripen,
-        :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
-        :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf
-      ]).to_json %>
+<div data-controller="plant-dropdown" class="w-full">
+  <!-- Header with dropdown -->
+  <div class="flex items-center justify-between cursor-pointer px-2 py-4 theme-text-primary font-bold text-xl"
+       data-action="click->plant-dropdown#toggle">
+    <span>Plants</span>
+    <svg data-plant-dropdown-target="icon" class="w-5 h-5 transition-transform duration-200 rotate-180" fill="none" stroke="currentColor" stroke-width="2"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
 
-    <div class="p-4 theme-bg-alt rounded-md relative flex flex-col justify-between items-start" data-plant-card >
-      <div class="w-full min-h-[85px]">
-        <div class="flex justify-between items-start gap-2">
+  <!-- Collapsible plant grid -->
+  <div data-plant-dropdown-target="content" class="hidden grid grid-cols-2 xl:grid-cols-3 gap-4">
+    <% plants.each do |plant| %>
+      <% plant_data = plant.as_json(only: [
+          :common_name, :genus, :species, :family, :growth_rate, :hardiness_zones,
+          :height, :width, :plant_type, :pollinators, :leaf, :flower, :ripen,
+          :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
+          :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf
+        ]).to_json %>
+
+      <div class="p-4 theme-bg-alt rounded-md relative flex flex-col justify-between items-start" data-plant-card>
+        <div class="w-full min-h-[85px]">
+          <div class="flex justify-between items-start gap-2">
             <h3 class="theme-text-primary text-lg font-bold"><%= plant.common_name.to_s.split(",").first.strip || "Unknown" %></h3>
             <button type="button"
                     class="px-[4px] text-2xl btn-primary rounded-full"
@@ -17,29 +29,27 @@
                     data-plant-id="<%= plant.id %>">
               &#9432;
             </button>
-
-        </div>
-
-        <p class="theme-text-secondary text-sm italic mb-2">
+          </div>
+          <p class="theme-text-secondary text-sm italic mb-2">
             (<%= plant.genus %> <%= plant.species %>)
-        </p>
+          </p>
+        </div>
       </div>
-    </div>
-  <% end %>
+    <% end %>
+  </div>
+
   <div id="plant-info-modal"
-      class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden"
-      data-action="click->plant-modal#closeOnBackgroundClick">
+       class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden"
+       data-action="click->plant-modal#closeOnBackgroundClick">
 
     <div class="theme-bg border-1 border-text-primary shadow rounded-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
-        data-action="click->plant-modal#stopPropagation">
+         data-action="click->plant-modal#stopPropagation">
 
       <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700">
         &times;
       </button>
 
       <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
-
-      <!-- Turbo will auto-fetch this on `.src =` -->
       <turbo-frame id="plant-info-content"></turbo-frame>
     </div>
   </div>

@@ -1,6 +1,6 @@
-<div class="mt-4 h-full flex items-start justify-start">
+<div class="h-full w-full flex items-start justify-center">
   <% if control_signals.empty? %>
-    <p class="text-sm theme-text-secondary italic mb-4">No control signals registered yet.</p>
+    <p class="text-sm theme-text-secondary pl-4 italic h-auto self-center">No control signals registered yet.</p>
   <% else %>
     <ul class="grid sm:grid-cols-2 gap-4 h-auto">
       <% control_signals.each do |signal| %>
