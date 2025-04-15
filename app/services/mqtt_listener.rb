@@ -154,9 +154,11 @@ class MqttListener
     last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "scheduled")
       .order(executed_at: :desc)
       .first
-    now = Time.current
+
 
     scheduled_time_local = control_signal.scheduled_time
+
+    now = Time.current
 
     Time.use_zone("Central Time (US & Canada)") do
       today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
@@ -165,11 +167,13 @@ class MqttListener
       Rails.logger.info "now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
       if last_exec.present?
         if last_exec.executed_at < control_signal.updated_at
-            Rails.logger.info "Next scheduled trigger calculated as #{today_scheduled_time}"
-            return today_scheduled_time
+          Rails.logger.info "let's choose today's scheduled time"
+          next_trigger = today_scheduled_time
         elsif now > today_scheduled_time
+          Rails.logger.info "let's choose tomorrow's scheduled time"
           next_trigger = tomorrow_scheduled_time
         else
+          Rails.logger.info "let's choose the long equation one"
           next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
         end
       else

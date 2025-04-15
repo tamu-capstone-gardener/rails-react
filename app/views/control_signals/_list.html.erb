@@ -31,7 +31,7 @@
               <% scheduled_time = MqttListener.next_scheduled_trigger(signal) %>
               <p class="text-sm theme-text-primary font-semibold mt-2">
                 <% Rails.logger.info "time.current #{Time.current}; scheduled #{scheduled_time}; scheduled in zone #{scheduled_time.in_time_zone("Central Time (US & Canada)")}"%>
-                Next trigger is <span class="theme-text-secondary font-normal"><%= Time.current - scheduled_time > 0 ? distance_of_time_in_words(Time.current, scheduled_time + 29.hours) : distance_of_time_in_words(Time.current, scheduled_time + 5.hours) %> from now.
+                Next trigger is <span class="theme-text-secondary font-normal"><%= distance_of_time_in_words(Time.current, scheduled_time) %> from now.
               </p>
 
               <p class="text-sm theme-text-primary font-semibold">
