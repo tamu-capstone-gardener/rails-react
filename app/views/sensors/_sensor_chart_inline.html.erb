@@ -29,16 +29,18 @@
           line: { fill: true, tension: 0.3 }
         },
         legend: {
-          labels: { fontColor: "var(--app-text-secondary)" }
+          labels: { color: "var(--app-text-primary)" }
         },
         scales: {
           x: {
-            ticks: { fontColor: "var(--app-text-secondary)" },
-            title: { display: true, text: "Time", color: "var(--app-text-secondary)" }
+            ticks: { color: "var(--app-text-primary)" },
+            grid: { color: "var(--app-grid-color)" },
+            title: { display: true, text: "Time", color: "var(--app-text-primary)" }
           },
           y: {
-            ticks: { fontColor: "var(--app-text-secondary)" },
-            title: { display: true, text: sanitize(sensor.measurement_unit), color: "var(--app-text-secondary)" }
+            ticks: { color: "var(--app-text-primary)" },
+            grid: { color: "var(--app-grid-color)" },
+            title: { display: true, text: sanitize(sensor.measurement_unit), color: "var(--app-text-primary)" }
           }
         },
         datasets: [

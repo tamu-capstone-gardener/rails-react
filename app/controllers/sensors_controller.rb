@@ -107,6 +107,33 @@ class SensorsController < ApplicationController
     render partial: "sensors/notification_form", locals: { sensor: @sensor }
   end
 
+  def time_series_chart
+    @sensor = Sensor.find(params[:id])
+    range = params[:range] || "30_days"
+
+    time_ago = case range
+    when "1_day" then 1.day.ago
+    when "7_days" then 7.days.ago
+    when "30_days" then 30.days.ago
+    when "365_days" then 1.year.ago
+    else 30.days.ago
+    end
+
+    hourly_data = @sensor.time_series_data
+                        .where("timestamp >= ?", time_ago)
+                        .group_by_hour(:timestamp)
+                        .average(:value)
+                        .transform_values { |v| v&.to_f&.round(2) }
+
+    render turbo_stream: turbo_stream.replace(
+      "chart-#{params[:id]}",
+      partial: "sensors/sensor_chart_inline",
+      locals: { sensor: @sensor, data: hourly_data }
+    )
+  end
+
+
+
 
   private
 

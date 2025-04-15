@@ -15,7 +15,6 @@ Rails.application.routes.draw do
   get "complete_profile", to: "users#complete_profile"
   patch "complete_profile", to: "users#update_profile"
 
-
   # Nested resources for plant_modules
   resources :plant_modules do
     resources :control_signals, only: [ :edit, :update ] do
@@ -42,16 +41,16 @@ Rails.application.routes.draw do
   # Time series data routes
   resources :time_series_data, only: [ :index, :show ]
 
-  # Custom route for viewing sensor time series data
   get "sensors/:id/time_series", to: "sensors#show", as: :sensor_time_series
+  get "sensors/:id/time_series_chart", to: "sensors#time_series_chart", as: :sensor_time_series_chart
 
-  post "mqtt/schedule", to: "mqtt#set_schedule"
+  post "mqtt/schedule", to: "mqtt#set_schedule" # TODO: delete
   post "mqtt/water", to: "mqtt#send_water_signal"
 
   require "sidekiq/web"
   mount Sidekiq::Web => "/sidekiq"
 
-  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker # TODO: push notifications (this needed?)
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   mount ActionCable.server => "/cable"
 end
