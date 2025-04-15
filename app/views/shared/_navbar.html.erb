@@ -23,7 +23,7 @@
     <div class="flex items-center space-x-4">
       <% if current_user %>
         <!-- Profile Menu -->
-        <div data-controller="modal" class="relative">
+        <div data-controller="modal" class="relative z-100">
           <!-- Profile Avatar Button -->
           <button data-action="click->modal#open" class="focus:outline-none hover:cursor-pointer">
             <%= image_tag(current_user.avatar_url, class: "rounded-full w-8 h-8 object-cover") %>
@@ -42,7 +42,7 @@
                   <%= link_to "Settings", complete_profile_path, class: "block hover:underline" %>
                 </li>
                 <li>
-                  <%= button_to destroy_user_session_path, method: :delete, class: "text-red-500 hover:underline hover:cursor-pointer text-left w-full" do %>
+                  <%= button_to destroy_user_session_path, method: :delete, data: { turbo: false }, class: "text-red-500 hover:underline hover:cursor-pointer text-left w-full" do %>
                     Logout
                   <% end %>
                 </li>
@@ -91,13 +91,6 @@
           <%= link_to link[:name], link[:path], class: "block btn-secondary font-semibold px-4 py-2" %>
         <% end %>
       <% end %>
-      <button 
-        type="button" 
-        data-action="dark-mode#toggle"
-        class="w-full text-left btn-secondary font-semibold px-4 py-2"
-      >
-        Toggle Dark Mode
-      </button>
     </div>
   </div>
 
