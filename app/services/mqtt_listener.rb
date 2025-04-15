@@ -353,7 +353,7 @@ class MqttListener
     expected_on_duration = last_duration
 
     Rails.logger.info "last duration #{last_duration}; elapsed since on #{elapsed_since_on}; expected on duration #{expected_on_duration}"
-    if elapsed_since_on < expected_on_duration and last_updated_exec != last_exec or last_status != message_json["status"]
+    if elapsed_since_on < expected_on_duration and (last_updated_exec != last_exec or last_status != message_json["status"])
       time_until_next_off = expected_on_duration - elapsed_since_on
     else
       time_until_next_off = -1
@@ -379,6 +379,8 @@ class MqttListener
     if last_status != message_json["status"] and time_until_next_off != -1 # a
       Rails.logger.info "statuses aren't the same, turn on!"
       publish_control_command(control_signal, status: last_exec.status, duration: time_until_next_off, mode: "manual")
+    elsif time_until_next_off == -1 and message_json["status"] == "on"
+      publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
     elsif time_until_next_off != -1 and time_until_next_off < 60 # b
       Rails.logger.info "its time to turn off soon! sleep and then turn off"
       if time_until_next_off < 60

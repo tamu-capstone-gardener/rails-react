@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
 
   before_action :set_navbar_links
 
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
   private
 
   def set_navbar_links
@@ -24,5 +26,13 @@ class ApplicationController < ActionController::Base
       @page_links << { name: "Login", path: new_user_session_path }
     end
     @page_links << { name: "Help", path: help_path }
+  end
+
+  protected
+
+  def configure_permitted_parameters
+    # Add zip_code to sign up and account update
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :zip_code ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :zip_code ])
   end
 end

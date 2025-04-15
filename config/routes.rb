@@ -12,6 +12,10 @@ Rails.application.routes.draw do
     get "users/sign_out", to: "users/sessions#destroy", as: :destroy_user_session
   end
 
+  get "complete_profile", to: "users#complete_profile"
+  patch "complete_profile", to: "users#update_profile"
+
+
   # Nested resources for plant_modules
   resources :plant_modules do
     resources :control_signals, only: [ :edit, :update ] do
