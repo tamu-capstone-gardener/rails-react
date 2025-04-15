@@ -29,5 +29,9 @@
     </div>
   </div>
 
+  <div class="mt-4">
+    <%= paginate plants, params: request.query_parameters.merge(_turbo_frame: "recommendations") %>
+  </div>
+
 </div>
  

@@ -24,14 +24,10 @@
           <%= label_tag :edibility_rating, "Edibility Rating", class: "block text-sm font-medium theme-text-secondary" %>
           <%= select_tag :edibility_rating, options_for_select((0..5).map { |n| ["#{n} Star", n] }, params[:edibility_rating] || 3), class: "select mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
         </div>
-        <div>
-          <%= label_tag :location_type, "Location Type", class: "block text-sm font-medium theme-text-secondary" %>
-          <%= select_tag :location_type, options_for_select([["Indoor", "indoor"], ["Outdoor", "outdoor"]], params[:location_type] || "indoor"), class: "select mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
-        </div>
-        <div>
-          <%= label_tag :zip_code, "ZIP Code (for outdoor recommendations)", class: "block text-sm font-medium theme-text-secondary" %>
-          <%= text_field_tag :zip_code, params[:zip_code], class: "text-box mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
-        </div>
+        <%= hidden_field_tag :location_type, "", id: "location_type_input" %>
+        <%= hidden_field_tag :zip_code, "", id: "zip_code_input", data: { zip_toggle_target: "zipField" } %>
+
+
       </div>
       <div class="mt-4">
         <%= submit_tag "Apply Filters", class: "py-2 px-4 btn-secondary rounded-md hover:bg-blue-700" %>
@@ -51,7 +47,7 @@
       <% end %>
     </h3>
     
-    <!-- Search Form (optional) -->
+    <!-- Search Form -->
     <%= form_with url: plants_path, method: :get, local: false, data: { turbo_frame: "recommendations" }, class: "mb-4" do |f| %>
       <div class="flex flex-row items-end gap-4">
         <div class="flex-1">
@@ -67,7 +63,6 @@
     <!-- Recommendations List inside its own turbo frame -->
     <turbo-frame id="recommendations">
       <% paginated_plants = @plants || @recommendations %>
-
       <%= render partial: "plants/recommendations", locals: { plants: paginated_plants } %>
     </turbo-frame>
   </div>

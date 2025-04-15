@@ -8,16 +8,13 @@
 ).to_json %>
 
 <div class="p-4 theme-bg-alt rounded-md shadow relative mb-4" data-plant-card>
-  <% if plant_in_zone?(plant, params[:zip_code]) %>
-    <div class="absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1">
-      Zone Match
-    </div>
-  <% end %>
 
   <div class="flex justify-between gap-4">
-    <h3 class="theme-text-primary text-lg">
-      <%= plant.common_name %>
-    </h3>
+    <div>
+      <h3 class="theme-text-primary text-lg">
+        <%= plant.common_name %>
+      </h3>
+    </div>
     <button type="button"
             class="px-[4px] max-h-[32px] text-2xl btn-primary rounded-full"
             data-action="click->plant-modal#openModal"
@@ -25,6 +22,7 @@
       &#9432;
     </button>
   </div>
+
 
   <div class="flex flex-col mb-4">
     <p class="theme-text-secondary mb-4 text-md">
