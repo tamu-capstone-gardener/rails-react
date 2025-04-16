@@ -8,12 +8,12 @@ image: planthub/ruby_react
 servers:
   web:
     hosts:
-      - 3.128.124.156
+      - 3.12.230.208
     options:
         "add-host": host.docker.internal:host-gateway
   job:
     hosts:
-      - 3.128.124.156
+      - 3.12.230.208
     cmd: bundle exec sidekiq -e production
     options:
         "add-host": host.docker.internal:host-gateway
@@ -117,7 +117,7 @@ accessories:
 #       - data:/var/lib/mysql
   redis:
     image: redis:7.0
-    host: 3.128.124.156
+    host: 3.12.230.208
     port: 6379
     directories:
       - data:/data
