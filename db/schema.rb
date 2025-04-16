@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.datetime "executed_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "status", default: false, null: false
     t.index ["control_signal_id"], name: "index_control_executions_on_control_signal_id"
   end
 
@@ -77,7 +78,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.integer "frequency"
     t.string "unit"
     t.boolean "enabled", default: true
-    t.integer "length_ms"
+    t.integer "length_ms", default: 3000
     t.time "scheduled_time"
     t.index ["plant_module_id", "signal_type"], name: "index_control_signals_on_plant_module_id_and_signal_type"
     t.index ["sensor_id"], name: "index_control_signals_on_sensor_id"
@@ -194,6 +195,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.string "avatar_url", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "zip_code"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["uid"], name: "index_users_on_uid", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true

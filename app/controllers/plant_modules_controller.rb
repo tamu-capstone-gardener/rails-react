@@ -58,7 +58,15 @@ class PlantModulesController < AuthenticatedApplicationController
                             .where("timestamp >= ?", first_timestamp)
                             .group_by_hour(:timestamp)
                             .average(:value)
-                            .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
+                            .transform_values do |v|
+                              next nil if v.nil?
+                              value = v.to_f
+                              if sensor.measurement_type == "light_analog"
+                                ((4096 - value).abs / 4096.0 * 100).round(2)
+                              else
+                                value.round(2)
+                              end
+                            end
 
         @sensor_data[sensor.id] = hourly_data
       else
@@ -66,13 +74,11 @@ class PlantModulesController < AuthenticatedApplicationController
       end
     end
 
+    @control_signals = @plant_module.control_signals.includes(:last_execution).order(:signal_type)
+
     if @plant_module.location_type.downcase == "outdoor" && @plant_module.zip_code.present?
       @zone_data = zone_for_zip(@plant_module.zip_code)
     end
-  end
-
-  def index
-    @plant_modules = current_user.plant_modules
   end
 
   def edit
