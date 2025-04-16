@@ -10,9 +10,37 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
 
   create_table "care_schedules", id: :string, force: :cascade do |t|
     t.string "plant_module_id", null: false
@@ -72,6 +100,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
     t.index ["plant_module_id"], name: "index_photos_on_plant_module_id"
   end
 
+  create_table "photos_posts", id: false, force: :cascade do |t|
+    t.bigint "photo_id", null: false
+    t.bigint "post_id", null: false
+    t.index ["photo_id", "post_id"], name: "index_photos_posts_on_photo_id_and_post_id"
+    t.index ["post_id", "photo_id"], name: "index_photos_posts_on_post_id_and_photo_id"
+  end
+
   create_table "plant_modules", id: :string, force: :cascade do |t|
     t.string "user_id", null: false
     t.string "name", null: false
@@ -115,6 +150,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
     t.string "pfaf"
   end
 
+  create_table "posts", force: :cascade do |t|
+    t.string "title"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "schedules", id: :string, force: :cascade do |t|
     t.string "plant_module_id", null: false
     t.integer "frequency"
@@ -140,7 +182,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
     t.float "value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "notified_threshold_indices"
+    t.text "notified_threshold_indices", default: "--- []\n"
   end
 
   create_table "users", force: :cascade do |t|
@@ -157,6 +199,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_201313) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "care_schedules", "plant_modules"
   add_foreign_key "control_executions", "control_signals"
   add_foreign_key "control_signals", "plant_modules"
