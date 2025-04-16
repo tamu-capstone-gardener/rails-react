@@ -1,5 +1,6 @@
-<%= form_with(model: [plant_module, control_signal], class: "space-y-6", data: { controller: "control-signal-form" }) do |f| %>
+<%= form_with(model: [plant_module, control_signal], class: "space-y-6", data: { controller: "control-signal-form", "control-signal-form-default-threshold-value": @control_signal.threshold_value.to_s }) do |f| %>
   <!-- Mode Tabs -->
+  <% Rails.logger.debug "default threshold: #{@default_threshold_value.to_s}" %>
   <div class="flex space-x-2 mb-4" data-control-signal-form-target="modeTabs">
     <% %w[manual automatic scheduled].each do |m| %>
       <button type="button"
@@ -29,18 +30,19 @@
     <% preset_values = [3000, 5000, 10000, 30000, 60000, 180000, 3600000] %>
     <% selected_length = preset_values.include?(@control_signal.length_ms) ? @control_signal.length_ms : "custom" %>
     <%= f.label :length_ms, "Signal Duration" %>
-    <div class="flex space-x-2 items-center">
-      <%= f.select :length_ms, preset_values.map { |v| ["#{v / 1000}s", v] } + [["Custom", "custom"]],
-        { selected: selected_length },
-        class: "text-box border p-2 rounded",
-        data: { action: "control-signal-form#toggleCustomLengthInput", "control-signal-form-target": "lengthSelect" } %>
-      <%= f.number_field :length_ms,
-            class: "text-box border p-2 rounded",
-            placeholder: "Custom ms",
-            data: { "control-signal-form-target": "customLengthInput" },
-            value: (!preset_values.include?(@control_signal.length_ms) ? @control_signal.length_ms : nil) %>
-    </div>
+    <div class="flex space-x-2 items-end">
+      <div class="flex-1">
+        <%= label_tag :length_value, "Value" %>
+        <%= number_field_tag :length_value, @length_value, class: "text-box border p-2 rounded w-full", step: 1 %>
+      </div>
 
+      <div class="flex-1">
+        <%= label_tag :length_unit, "Unit" %>
+        <%= select_tag :length_unit,
+            options_for_select([["seconds", "seconds"], ["minutes", "minutes"], ["hours", "hours"], ["days", "days"]], @length_unit),
+            class: "text-box border p-2 rounded w-full" %>
+      </div>
+    </div>
   </div>
 
   <!-- Automatic Fields -->
@@ -67,10 +69,8 @@
 
       <div>
         <%= f.label :threshold_value, "Threshold" %>
-        <div class="flex-2 flex space-x-2 items-center">
-          <%= f.select :threshold_value, [10, 25, 50, 100, 500, 1000, 2500, 10000].map { |v| ["#{v}", v] } + [["Custom", "custom"]],
-            {}, class: "text-box border p-2 rounded", data: { action: "control-signal-form#toggleCustomThresholdInput", "control-signal-form-target": "thresholdSelect" } %>
-          <%= f.number_field :threshold_value, step: 0.01, placeholder: "Custom", class: "text-box border p-2 rounded", data: { "control-signal-form-target": "customThresholdInput" } %>
+        <div class="flex items-center space-x-2">
+          <%= f.number_field :threshold_value, step: 0.01, class: "text-box border p-2 rounded w-full" %>
           <span id="sensor-unit" class="text-gray-300"><%= @control_signal.sensor&.measurement_unit %></span>
         </div>
       </div>
@@ -79,19 +79,21 @@
 
   <!-- Scheduled Fields -->
   <div id="scheduled_fields" class="hidden" data-control-signal-form-target="scheduledFields">
-    <div>
-      <%= f.label :scheduled_time, "Scheduled Start Time" %>
-      <%= f.time_field :scheduled_time, class: "text-box border p-2 rounded w-full" %>
-    </div>
+    <div class="flex gap-4 items-end">
+      <div class="flex-1">
+        <%= f.label :scheduled_time, "Scheduled Start Time" %>
+        <%= f.time_field :scheduled_time, class: "text-box border p-2 rounded w-full" %>
+      </div>
 
-    <div>
-      <%= f.label :frequency, "Frequency" %>
-      <%= f.number_field :frequency, class: "text-box border p-2 rounded w-full", placeholder: "e.g., 3" %>
-    </div>
+      <div class="flex-1">
+        <%= f.label :frequency, "Frequency" %>
+        <%= f.number_field :frequency, class: "text-box border p-2 rounded w-full", placeholder: "e.g., 3" %>
+      </div>
 
-    <div>
-      <%= f.label :unit, "Unit" %>
-      <%= f.select :unit, options_for_select([["minutes", "minutes"], ["hours", "hours"], ["days", "days"]], @control_signal.unit), {}, class: "text-box border p-2 rounded w-full" %>
+      <div class="flex-1">
+        <%= f.label :unit, "Unit" %>
+        <%= f.select :unit, options_for_select([["minutes", "minutes"], ["hours", "hours"], ["days", "days"]], @control_signal.unit), {}, class: "text-box border p-2 rounded w-full" %>
+      </div>
     </div>
   </div>
 

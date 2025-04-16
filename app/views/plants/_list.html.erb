@@ -14,29 +14,16 @@
             <button type="button"
                     class="px-[4px] text-2xl btn-primary rounded-full"
                     data-action="click->plant-modal#openModal"
-                    data-plant="<%= html_escape(plant_data) %>">
-            &#9432;
+                    data-plant-id="<%= plant.id %>">
+              &#9432;
             </button>
+
         </div>
 
         <p class="theme-text-secondary text-sm italic mb-2">
             (<%= plant.genus %> <%= plant.species %>)
         </p>
       </div>
-
-      <hr class="border-b-[0.5] mb-4 border-bg w-full">
-      
-      <ul class="text-sm theme-text-primary space-y-1 mb-2 min-h-[85px]">
-        <% if plant.flower.present? %>
-          <li><strong>Flowering:</strong> <%= plant.flower %></li>
-        <% end %>
-        <% if plant.ripen.present? %>
-          <li><strong>Ripen:</strong> <%= plant.ripen %></li>
-        <% end %>
-        <% if plant.pollinators.present? %>
-          <li><strong>Pollinators:</strong> <%= plant.pollinators %></li>
-        <% end %>
-      </ul>
 
       <hr class="border-b-[0.5] mb-4 border-bg w-full">
 
@@ -47,19 +34,21 @@
       </div>
     </div>
   <% end %>
-  <div id="plant-info-modal" 
-        class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
-        data-controller="plant-modal" 
-        data-action="click->plant-modal#closeOnBackgroundClick">
-    <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+  <div id="plant-info-modal"
+      class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden"
+      data-action="click->plant-modal#closeOnBackgroundClick">
+
+    <div class="theme-bg border-1 border-text-primary shadow rounded-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
         data-action="click->plant-modal#stopPropagation">
-        <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
+
+      <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700">
         &times;
-        </button>
-        <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
-        <div id="plant-info-content" class="theme-text-primary space-y-2">
-        <!-- Plant info is injected here -->
-        </div>
+      </button>
+
+      <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
+
+      <!-- Turbo will auto-fetch this on `.src =` -->
+      <turbo-frame id="plant-info-content"></turbo-frame>
     </div>
   </div>
 </div>

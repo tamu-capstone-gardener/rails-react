@@ -15,14 +15,59 @@
     </button>
 
     <!-- Center Title -->
-    <h2 class="theme-text-primary text-2xl font-bold absolute left-1/2 transform -translate-x-1/2">
-      <%= link_to root_path do %> Plant<span class="p-1 theme-text-primary">Hub</span> <% end %>
+    <h2 class="theme-text-primary text-2xl hover:underline font-bold ">
+      <%= link_to root_path do %>Plant Hub<% end %>
     </h2>
 
     <!-- Right side: Login or Profile -->
     <div class="flex items-center space-x-4">
       <% if current_user %>
-        <%= image_tag(current_user.avatar_url, class: "rounded-full w-8 h-8 object-cover") %>
+        <!-- Profile Menu -->
+        <div data-controller="modal" class="relative">
+          <!-- Profile Avatar Button -->
+          <button data-action="click->modal#open" class="focus:outline-none hover:cursor-pointer">
+            <%= image_tag(current_user.avatar_url, class: "rounded-full w-8 h-8 object-cover") %>
+          </button>
+
+          <!-- Dropdown Modal -->
+          <div data-modal-target="modal" class="hidden absolute right-0 mt-2 w-64 theme-bg-alt shadow-xl rounded-lg z-50" data-action="click->modal#close">
+            <div class="rounded-lg p-4 border theme-border-bg-alt" data-action="click->modal#stopPropagation">
+              <div class="flex gap-4">
+                <p class="text-lg font-semibold theme-text-primary mb-2">Signed in as: </p>
+                <p class="text-lg theme-text-secondary truncate mb-4"><%= current_user.full_name %></p>
+              </div>
+              
+              <ul class="space-y-2">
+                <li>
+                  <%= link_to "Settings", complete_profile_path, class: "block hover:underline" %>
+                </li>
+                <li>
+                  <%= button_to destroy_user_session_path, method: :delete, data: { turbo: false }, class: "text-red-500 hover:underline hover:cursor-pointer text-left w-full" do %>
+                    Logout
+                  <% end %>
+                </li>
+              </ul>
+
+              <hr class="my-4 theme-border-text-primary">
+
+              <!-- Dark Mode Switch -->
+              <div data-controller="dark-mode" class="flex items-center justify-between">
+                <span class="text-sm theme-text-primary">Dark Mode</span>
+                <button
+                  type="button"
+                  class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors theme-bg hover:cursor-pointer focus:outline-none"
+                  data-action="click->dark-mode#toggle"
+                >
+                  <span class="sr-only">Toggle Dark Mode</span>
+                  <span class="absolute left-0 h-6 w-11 theme-border-bg-alt rounded-full transition-colors"></span>
+                  <span class="dot absolute left-0 inline-block h-5 w-5 bg-white rounded-full shadow transform transition-transform translate-x-1"></span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       <% else %>
         <%= button_to user_google_oauth2_omniauth_authorize_path, class: "text-white btn-primary px-4 py-2 rounded-lg text-sm font-semibold hover:cursor-pointer", method: :post, data: { turbo: "false" } do %>
           Login
@@ -40,17 +85,12 @@
           <%= button_to user_google_oauth2_omniauth_authorize_path, class: "w-full text-left btn-primary font-semibold px-4 py-2", method: :post, data: { turbo: "false" } do %>
             Login
           <% end %>
-        <% elsif link[:name] != "Login" || current_user %>
+        <% elsif link[:name] == "Create Module" %>
           <%= link_to link[:name], link[:path], class: "block btn-primary font-semibold px-4 py-2" %>
+        <% elsif link[:name] != "Login" || current_user %>
+          <%= link_to link[:name], link[:path], class: "block btn-secondary font-semibold px-4 py-2" %>
         <% end %>
       <% end %>
-      <button 
-        type="button" 
-        data-action="dark-mode#toggle"
-        class="w-full text-left btn-primary font-semibold px-4 py-2"
-      >
-        Toggle Dark Mode
-      </button>
     </div>
   </div>
 
