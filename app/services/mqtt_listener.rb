@@ -326,30 +326,30 @@ class MqttListener
       Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
       return
     end
-  
+
     begin
       # Use StringIO instead of Tempfile to keep the data in memory
       io = StringIO.new(message)
       timestamp = Time.now.iso8601
-      
+
       photo = Photo.new(
         id: SecureRandom.uuid,
         plant_module_id: plant_module_id,
         timestamp: timestamp
       )
-  
+
       photo.image.attach(
         io: io,
         filename: "plant_module_#{plant_module_id}_#{timestamp}.jpg",
-        content_type: 'image/jpeg'
+        content_type: "image/jpeg"
       )
-  
+
       photo.save!
       Rails.logger.info "Stored photo for plant module '#{plant_module_id}'"
     rescue ActiveRecord::RecordInvalid => e
-      Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json.except('photo_data')}"
+      Rails.logger.error "Database insertion failed when uploading photo for plant module #{plant_module_id}."
     rescue => e
-      Rails.logger.error "Unexpected error storing data: #{e.message}"
+      Rails.logger.error "Unexpected error storing data for plant module #{plant_module_id}."
     end
   end
 
