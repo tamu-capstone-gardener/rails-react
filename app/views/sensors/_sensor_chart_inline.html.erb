@@ -16,41 +16,45 @@
     <% end %>
   <% end %>
 
-  <turbo-frame id="chart-<%= sensor.id %>">
-    <%= line_chart data,
-      xtitle: "Time",
-      ytitle: sanitize(sensor.measurement_unit),
-      colors: ["#34D399"],
-      library: {
-        backgroundColor: "transparent",
-        spanGaps: true,
-        elements: {
-          point: { radius: 0 },
-          line: { fill: true, tension: 0.3 }
+  <%= line_chart data,
+    id: "chart-#{sensor.id}",
+    xtitle: "Time",
+    ytitle: sanitize(sensor.measurement_unit),
+    colors: ["#34D399"],
+    height: "300px",
+    width: "100%",
+    library: {
+      backgroundColor: "transparent",
+      spanGaps: true,
+      elements: {
+        point: { radius: 0 },
+        line: { fill: true, tension: 0.3 }
+      },
+      legend: {
+        labels: { color: "var(--app-text-primary)" }
+      },
+      plugins: {
+        timezone: "America/Chicago"
+      },
+      scales: {
+        x: {
+          ticks: { color: "var(--app-text-primary)" },
+          grid: { color: "var(--app-grid-color)" },
+          title: { display: true, text: "Time", color: "var(--app-text-primary)" }
         },
-        legend: {
-          labels: { color: "var(--app-text-primary)" }
-        },
-        scales: {
-          x: {
-            ticks: { color: "var(--app-text-primary)" },
-            grid: { color: "var(--app-grid-color)" },
-            title: { display: true, text: "Time", color: "var(--app-text-primary)" }
-          },
-          y: {
-            ticks: { color: "var(--app-text-primary)" },
-            grid: { color: "var(--app-grid-color)" },
-            title: { display: true, text: sanitize(sensor.measurement_unit), color: "var(--app-text-primary)" }
-          }
-        },
-        datasets: [
-          {
-            borderColor: "rgb(34, 197, 94)",
-            backgroundColor: "rgba(34, 197, 94, 0.2)"
-          }
-        ] + threshold_lines
-      } %>
-  </turbo-frame>
+        y: {
+          ticks: { color: "var(--app-text-primary)" },
+          grid: { color: "var(--app-grid-color)" },
+          title: { display: true, text: sanitize(sensor.measurement_unit), color: "var(--app-text-primary)" }
+        }
+      },
+      datasets: [
+        {
+          borderColor: "rgb(34, 197, 94)",
+          backgroundColor: "rgba(34, 197, 94, 0.2)"
+        }
+      ] + threshold_lines
+    } %>
 <% else %>
   <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
 <% end %>

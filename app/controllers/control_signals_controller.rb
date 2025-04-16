@@ -1,4 +1,5 @@
 class ControlSignalsController < AuthenticatedApplicationController
+    include ControlSignalsHelper
     before_action :set_plant_module
     before_action :set_control_signal, only: [ :edit, :update ]
 
@@ -63,10 +64,16 @@ class ControlSignalsController < AuthenticatedApplicationController
 
 
       MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length_ms, status: !last_exec.status)
-      flash.now[:notice] = "Triggered #{control_signal.label || control_signal.signal_type} #{control_signal.control_executions.order(executed_at: :desc).first.status ? "On" : "Off"} "
+
+      if !last_exec.status
+        flash.now[:success] = "Turned #{control_signal.label || control_signal.signal_type} On for #{format_duration(control_signal.length_ms)}"
+      else
+        flash.now[:alert] = "Turned #{control_signal.label || control_signal.signal_type} Off"
+      end
       render turbo_stream: [
         turbo_stream.update("flash", partial: "shared/flash"),
-        turbo_stream.update("control_execution", partial: "control_executions/control_execution", locals: { control_execution: control_signal.control_executions.order(executed_at: :desc).first })
+        turbo_stream.update("control_execution", partial: "control_executions/control_execution", locals: { control_execution: control_signal.control_executions.order(executed_at: :desc).first }),
+        turbo_stream.update("control_toggle_button_#{control_signal.id}", partial: "control_signals/control_toggle_button", locals: { signal: control_signal })
       ]
 
     rescue => e

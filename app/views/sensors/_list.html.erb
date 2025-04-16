@@ -27,9 +27,10 @@
       <!-- Chart container for sensor -->
       <div class="w-full" data-controller="sensor-filter dark-mode-chart"
            data-sensor-filter-sensor-id-value="<%= sensor.id %>">
-           <%= render "sensors/sensor_chart_controls", sensor: sensor %>
+           
         <% if @sensor_data && @sensor_data[sensor.id] && @sensor_data[sensor.id].any? %>
-          <%= render "sensors/sensor_chart_inline", sensor: sensor, data: @sensor_data[sensor.id] %>
+            <%= render "sensors/sensor_chart_inline", sensor: sensor, data: @sensor_data[sensor.id] %>
+          
         <% else %>
           <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
         <% end %>

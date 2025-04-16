@@ -8,6 +8,8 @@ import "channels"
 
 lazyLoadControllersFrom("controllers", application)
 
+Chartkick.configure({ timezone: "America/Chicago" })
+
 const registerServiceWorker = async () => {
   if (navigator.serviceWorker) {
     try {

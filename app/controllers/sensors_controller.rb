@@ -4,19 +4,31 @@ class SensorsController < ApplicationController
   def show
     @sensor = Sensor.find(params[:id])
 
-    if params[:start_date].present?
-      start_time = Date.parse(params[:start_date])
-    else
-      days = params[:days].present? ? params[:days].to_i : 10
-      start_time = days.days.ago
-    end
+    Time.use_zone(Time.zone.name) do
+      if params[:start_date].present?
+        start_time = Date.parse(params[:start_date])
+      else
+        days = params[:days].present? ? params[:days].to_i : 10
+        start_time = days.days.ago
+      end
 
-    @time_series_data = TimeSeriesDatum
-                        .where(sensor_id: @sensor.id)
-                        .where("timestamp >= ?", start_time)
-                        .group_by_minute(:timestamp)
-                        .average(:value)
-                        .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
+
+      Rails.logger.info "Time zone is #{Time.zone.name}"
+      @time_series_data = TimeSeriesDatum
+                          .where(sensor_id: @sensor.id)
+                          .where("timestamp >= ?", start_time)
+                          .group_by_minute(:timestamp, time_zone: Time.zone.name)
+                          .average(:value)
+                          .transform_values do |v|
+                            next nil if v.nil?
+                            value = v.to_f
+                            if @sensor.measurement_type == "light_analog"
+                              ((4096 - value).abs / 4096.0 * 100).round(2)
+                            else
+                              value.round(2)
+                            end
+                          end
+    end
 
     respond_to do |format|
       format.html
@@ -121,10 +133,19 @@ class SensorsController < ApplicationController
 
     hourly_data = @sensor.time_series_data
                         .where("timestamp >= ?", time_ago)
-                        .group_by_hour(:timestamp)
+                        .group_by_hour(:timestamp, time_zone: "Central Time (US & Canada)")
                         .average(:value)
-                        .transform_values { |v| v&.to_f&.round(2) }
+                        .transform_values do |v|
+                          next nil if v.nil?
+                          value = v.to_f
+                          if @sensor.measurement_type == "light_analog"
+                            ((4096 - value).abs / 4096.0 * 100).round(2)
+                          else
+                            value.round(2)
+                          end
+                        end
 
+    Rails.logger.info "Replacing the chart for #{@sensor.measurement_type}."
     render turbo_stream: turbo_stream.replace(
       "chart-#{params[:id]}",
       partial: "sensors/sensor_chart_inline",

@@ -58,7 +58,15 @@ class PlantModulesController < AuthenticatedApplicationController
                             .where("timestamp >= ?", first_timestamp)
                             .group_by_hour(:timestamp)
                             .average(:value)
-                            .transform_values { |v| v.nil? ? nil : v.to_f.round(2) }
+                            .transform_values do |v|
+                              next nil if v.nil?
+                              value = v.to_f
+                              if sensor.measurement_type == "light_analog"
+                                ((4096 - value).abs / 4096.0 * 100).round(2)
+                              else
+                                value.round(2)
+                              end
+                            end
 
         @sensor_data[sensor.id] = hourly_data
       else

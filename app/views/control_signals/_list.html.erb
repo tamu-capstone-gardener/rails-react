@@ -30,7 +30,6 @@
             <% if last_execution && signal.mode == "scheduled" %>
               <% scheduled_time = MqttListener.next_scheduled_trigger(signal) %>
               <p class="text-sm theme-text-primary font-semibold mt-2">
-                <% Rails.logger.info "time.current #{Time.current}; scheduled #{scheduled_time}; scheduled in zone #{scheduled_time.in_time_zone("Central Time (US & Canada)")}"%>
                 Next trigger is <span class="theme-text-secondary font-normal"><%= distance_of_time_in_words(Time.current, scheduled_time) %> from now.
               </p>
 
@@ -54,13 +53,16 @@
               <p class="text-sm theme-text-secondary">Not triggered yet.</p>
             <% end %>
           </div>
-          <div class="flex m-4 flex-1 items-end justify-center">
-                <%= button_to "Turn on for #{format_duration(signal.length_ms)}",
-                              trigger_plant_module_control_signal_path(plant_module, signal),
-                              method: :post,
-                              params: { toggle: true },
-                              class: "btn-secondary px-4 py-2 rounded-lg transition hover:scale-105" %>
-            </div>
+          <%= turbo_frame_tag "control_toggle_button_#{signal.id}" do %>
+            <% is_on = last_execution&.status %>
+            <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length_ms)}" %>
+
+            <%= button_to button_label,
+                          trigger_plant_module_control_signal_path(plant_module, signal),
+                          method: :post,
+                          params: { toggle: true },
+                          class: "btn-secondary px-4 py-2 m-4 rounded-lg transition hover:scale-105" %>
+          <% end %>
         </li>
       <% end %>
     </ul>
