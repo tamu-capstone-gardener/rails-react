@@ -72,14 +72,5 @@
         <%= render "sensors/list", plant_module: @plant_module, sensors: @plant_module.sensors %>
       </turbo-frame>
     </div>
-
-    <div>
-      <% if @plant_module.photos.any? %>
-        <h2 class="text-2xl font-semibold theme-text-primary">Recent Photo</h2>
-        <%= image_tag @plant_module.photos.order(created_at: :desc).first.image %>
-      <% else %>
-        <p> No Photos </p>
-      <% end %>
-    </div>
   </div>
 </div>
