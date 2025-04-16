@@ -4,13 +4,14 @@ export default class extends Controller {
   connect() {
     this.updateTheme();
     window.addEventListener("themeChanged", this.updateTheme.bind(this));
+    this.element.addEventListener("dark-mode:refresh", this.updateTheme.bind(this));
   }
 
   updateTheme() {
     const isDark = document.documentElement.classList.contains("dark");
     const appTextColor = isDark ? "#ffffff" : "#1f2937";
     const appGridColor = isDark ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.1)";
-    
+
     document.documentElement.style.setProperty("--app-text-primary", appTextColor);
     document.documentElement.style.setProperty("--app-grid-color", appGridColor);
 

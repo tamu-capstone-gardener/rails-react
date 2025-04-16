@@ -1,6 +1,29 @@
-<div class="container mx-auto p-6">
-  <h1 class="text-3xl font-bold text-center mb-4">Plant<span class="p-1 ">Hub</span> Dashboard</h1>
-  <p> 
-    TODO
-  </p>
+<div class="container mx-auto flex flex-col justify-center items-center gap-12">
+  <div class="flex w-full justify-center items-center border-bg-primary p-4">
+    <% if user_signed_in? %>
+      <% if current_user.plant_modules.any? %>
+        <%= render partial: "plant_modules/list", locals: { plant_modules: current_user.plant_modules } %>
+      <% else %>
+        <%= button_to sanitize("Get Started"), help_path, method: :get, class: "py-2 px-4 text-lg btn-primary rounded-lg m-16" %>
+      <% end %>
+    <% else %>
+      <p>Log in with Google to view/create plant modules.</p>
+    <% end %>
+  </div>
+  <div class="flex justify-center gap-8 w-full md:w-2/3 items-center border-[0.5px] border-text-primary rounded-lg theme-bg-alt">
+    <div class="flex flex-col justify-center items-center gap-8 rounded-lg p-8">
+      <h2 class="text-2xl ">Having any issues?</h2>
+      <%= button_to sanitize("Help Page"), help_path, method: :get, class: "btn-primary px-4 py-2 rounded-lg text-white text-lg" %>
+      <%= link_to "Report via GitHub Issues", "https://github.com/tamu-capstone-gardener/rails-react/issues", 
+          class: "btn-secondary px-4 py-2 rounded-lg text-white text-lg inline-block text-center", 
+          target: "_blank", rel: "noopener" %>
+    </div>
+    <div class="flex h-full flex-col justify-start items-center gap-8 border-bg-primary theme-bg-alt rounded-lg p-8">
+      <h2 class="text-2xl ">Want to contribute?</h2>
+      <%= link_to "View GitHub Repos", "https://github.com/orgs/tamu-capstone-gardener/repositories", 
+          class: "btn-primary px-4 py-2 rounded-lg text-white text-lg inline-block text-center", 
+          target: "_blank", rel: "noopener" %>
+      <div></div>
+    </div>
+  </div>
 </div>

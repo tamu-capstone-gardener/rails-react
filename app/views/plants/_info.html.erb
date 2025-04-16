@@ -1,0 +1,102 @@
+<turbo-frame id="plant-info-content">
+<div class="plant-details theme-text-primary grid grid-cols-1 md:grid-cols-2 gap-6 text-sm leading-relaxed p-2">
+  <!-- Basic Info -->
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold border-b border-bg pb-1 mb-2">Basics</h3>
+    <% if plant.common_name.present? %>
+      <p><strong>Common Name:</strong> <%= plant.common_name %></p>
+    <% end %>
+    <% if plant.genus.present? %>
+      <p><strong>Genus:</strong> <%= plant.genus %></p>
+    <% end %>
+    <% if plant.species.present? %>
+      <p><strong>Species:</strong> <%= plant.species %></p>
+    <% end %>
+    <% if plant.family.present? %>
+      <p><strong>Family:</strong> <%= plant.family %></p>
+    <% end %>
+    <% if plant.plant_type.present? %>
+      <p><strong>Plant Type:</strong> <%= plant.plant_type %></p>
+    <% end %>
+    <% if plant.growth_rate.present? %>
+      <p><strong>Growth Rate:</strong> <%= plant.growth_rate %></p>
+    <% end %>
+  </div>
+
+  <!-- Environment -->
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold border-b border-bg pb-1 mb-2">Environment</h3>
+    <% if plant.hardiness_zones.present? %>
+      <p><strong>Hardiness Zones:</strong> <%= clean_array_string(plant.hardiness_zones) %></p>
+    <% end %>
+    <% if plant.height.present? && plant.height > 0 %>
+      <p><strong>Height:</strong> <%= plant.height %> m</p>
+    <% end %>
+    <% if plant.width.present? && plant.width > 0 %>
+      <p><strong>Width:</strong> <%= plant.width %> m</p>
+    <% end %>
+    <% if plant.soils.present? %>
+      <p><strong>Soils:</strong> <%= clean_array_string(plant.soils) %></p>
+    <% end %>
+    <% if plant.ph.present? %>
+      <p><strong>pH:</strong> <%= plant.ph %></p>
+    <% end %>
+    <% if plant.ph_split.present? %>
+      <p><strong>pH Split:</strong> <%= clean_array_string(plant.ph_split) %></p>
+    <% end %>
+    <% if plant.preferences.present? %>
+      <p><strong>Preferences:</strong> <%= plant.preferences %></p>
+    <% end %>
+    <% if plant.tolerances.present? %>
+      <p><strong>Tolerances:</strong> <%= plant.tolerances %></p>
+    <% end %>
+  </div>
+
+  <!-- Growth Cycle -->
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold border-b border-bg pb-1 mb-2">Growth & Reproduction</h3>
+    <% if plant.pollinators.present? %>
+      <p><strong>Pollinators:</strong> <%= clean_array_string(plant.pollinators) %></p>
+    <% end %>
+    <% if plant.flower.present? %>
+      <p><strong>Flower:</strong> <%= plant.flower %></p>
+    <% end %>
+    <% if plant.ripen.present? %>
+      <p><strong>Ripen:</strong> <%= plant.ripen %></p>
+    <% end %>
+    <% if plant.reproduction.present? %>
+      <p><strong>Reproduction:</strong> <%= plant.reproduction %></p>
+    <% end %>
+  </div>
+
+  <!-- Habitat -->
+  <div class="space-y-2">
+    <h3 class="text-lg font-bold border-b border-bg pb-1 mb-2">Habitat</h3>
+    <% if plant.habitat.present? %>
+      <p><strong>Habitat:</strong> <%= plant.habitat %></p>
+    <% end %>
+    <% if plant.habitat_range.present? %>
+      <p><strong>Habitat Range:</strong> <%= plant.habitat_range %></p>
+    <% end %>
+  </div>
+
+  <!-- Uses -->
+  <div class="space-y-2 md:col-span-2">
+    <h3 class="text-lg font-bold border-b border-bg pb-1 mb-2">Uses & Value</h3>
+    <% if plant.edibility.present? %>
+      <p><strong>Edibility:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span></p>
+    <% end %>
+    <% if plant.medicinal.present? %>
+      <p><strong>Medicinal:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span></p>
+    <% end %>
+    <% if plant.other_uses.present? %>
+      <p><strong>Other Uses:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></p>
+    <% end %>
+    <% if plant.pfaf.present? %>
+      <p><strong>PFAF:</strong>
+        <%= link_to plant.pfaf, plant.pfaf, target: "_blank", class: "text-blue-400 hover:underline" %>
+      </p>
+    <% end %>
+  </div>
+</div>
+</turbo-frame>

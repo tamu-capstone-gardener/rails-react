@@ -6,6 +6,7 @@
   --btn-secondary: #016630;
   --btn-secondary-rotate: #008236; 
   --bg-alt: #f0f0f0;     /* light alternative background */
+  --bg-alt-rotate: #cdcccc;
   --text-primary: #000000;     /* light text */
   --text-secondary: #4a5568; /* light secondary text */
   --primary: #3461d3;  /* primary color */
@@ -16,6 +17,7 @@
 html.dark {
   --bg: #1a202c;       /* dark background */
   --bg-alt: #2d3748;   /* dark alternative background */
+  --bg-alt-rotate: #374357;
   --text-primary: #ffffff;     /* dark text */
   --text-secondary: #e2e8f0; /* dark secondary text */
   --primary: #34d399;  /* you can adjust as needed */
@@ -64,6 +66,10 @@ html.dark {
 .theme-bg-alt {
   background-color: var(--bg-alt) !important;
 }
+
+.theme-bg-alt-rotate {
+  background-color: var(--bg-alt-rotate) !important;
+}
   
 .theme-text-primary {
   color: var(--text-primary) !important;
@@ -71,6 +77,10 @@ html.dark {
 
 .theme-text-secondary {
   color: var(--text-secondary) !important;
+}
+
+.theme-text-alt {
+  color: var(--btn-secondary-rotate);
 }
 
 .text-box {
@@ -89,6 +99,10 @@ html.dark {
 .border-bg-alt {
   border-color: var(--bg-alt);
 }
+
+.border-bg-text-secondary {
+  border-color: var(--text-secondary)
+} 
 
 .border-text-primary {
   border-color: var(--text-primary);

@@ -5,13 +5,13 @@ class ApplicationController < ActionController::Base
 
   before_action :set_navbar_links
 
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
   private
 
   def set_navbar_links
     @page_links = [
-      { name: "Home", path: root_path },
-      { name: "Modules", path: plant_modules_path },
-      { name: "Help", path: help_path }
+      { name: "Home", path: root_path }
       # { name: 'Posts (TODO)', path: root_path },
       # { name: 'Advice (TODO)', path: root_path },
       # { name: 'Data (TODO)', path: root_path },
@@ -20,9 +20,18 @@ class ApplicationController < ActionController::Base
       # { name: 'Profile (TODO)', path: root_path },
     ]
     if user_signed_in?
-      @page_links << { name: "Logout", path: destroy_user_session_path, method: :delete }
+      @page_links << { name: "Create Module", path: new_plant_module_path }
     else
       @page_links << { name: "Login", path: new_user_session_path }
     end
+    @page_links << { name: "Help", path: help_path }
+  end
+
+  protected
+
+  def configure_permitted_parameters
+    # Add zip_code to sign up and account update
+    devise_parameter_sanitizer.permit(:sign_up, keys: [ :zip_code ])
+    devise_parameter_sanitizer.permit(:account_update, keys: [ :zip_code ])
   end
 end

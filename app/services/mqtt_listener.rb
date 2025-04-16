@@ -17,6 +17,7 @@ class MqttListener
           client.subscribe("#{secrets[:topic]}/+/sensor_data")
           client.subscribe("#{secrets[:topic]}/+/photo")
           client.subscribe("#{secrets[:topic]}/+/init_sensors")
+          client.subscribe("#{secrets[:topic]}/+/+/status")
 
           client.get do |topic, message|
             Rails.logger.info "Received MQTT message on #{topic}: #{message}"
@@ -33,6 +34,9 @@ class MqttListener
               process_mqtt_sensor_init(topic, message_json)
             elsif topic.include?("sensor_init_response")
               Rails.logger.info "Received sensor init response: #{message_json}"
+            elsif topic.include?("/status")
+              Rails.logger.info "Received status message: #{message_json}"
+              process_control_status(topic, message_json)
             else
               process_mqtt_photo(topic, message_json)
             end
@@ -70,6 +74,9 @@ class MqttListener
 
     # Store the sensor data
     begin
+      if value > 10000
+        return
+      end
       TimeSeriesDatum.create!(
         sensor_id: sensor_id,
         value: value,
@@ -81,39 +88,23 @@ class MqttListener
       return
     end
 
-    # Process control signals for this sensor
+    # Process the automatic control signals
     control_signals = ControlSignal.where(sensor_id: sensor_id, enabled: true)
     control_signals.each do |cs|
-      case cs.mode
-      when "automatic"
+      if cs.mode == "automatic"
         condition_met = case cs.comparison
         when "<" then value < cs.threshold_value
         when ">" then value > cs.threshold_value
         else false
         end
         if condition_met
-          current_time = Time.now
-          last_exec = ControlExecution.where(control_signal_id: cs.id, source: "auto").order(executed_at: :desc).first
+          current_time = Time.current
+          last_exec = ControlExecution.where(control_signal_id: cs.id, source: "automatic").order(executed_at: :desc).first
           debounce = 300 # let's add a 5 minute debounce just in case water needs to settle in or anything similar
           if last_exec.nil? || current_time - last_exec.executed_at >= debounce
-            publish_control_command(cs, mode: "auto")
+            publish_control_command(cs, mode: "automatic", status: true)
           else
             Rails.logger.info "Control signal #{cs.id} triggered recently, waiting for debounce period."
-          end
-        end
-      when "scheduled"
-        current_time = Time.now
-        next_trigger = next_scheduled_trigger(cs)
-        last_exec = ControlExecution.where(control_signal_id: cs.id, source: "scheduled").order(executed_at: :desc).first
-        local_now = Time.now
-        Time.use_zone("Central Time (US & Canada)") do
-          local_next_trigger = next_trigger
-          difference = local_next_trigger - local_now
-          Rails.logger.info "next_trigger - current_time: #{next_trigger - current_time} and difference: #{difference}"
-          if (difference).abs <= 60
-            publish_control_command(cs, mode: "scheduled")
-          else
-            Rails.logger.info "Control signal #{cs.id} has next_trigger: #{next_trigger} and current time: #{current_time}, this means it falls outside the threshold."
           end
         end
       end
@@ -124,90 +115,40 @@ class MqttListener
     secrets = Rails.application.credentials.hivemq
     topic = control_signal.mqtt_topic
     # Use length_ms as the toggle "on" duration (defaulting to 3000 ms if not provided)
-    toggle_duration = control_signal.length_ms || 3000
+    toggle_duration = options[:duration] || control_signal.length_ms || 3000
 
-    mode = options[:mode] || control_signal.mode
-    Rails.logger.info "publish_control_command invoked for control_signal #{control_signal.id} with mode #{mode}, scheduled_time: #{control_signal.scheduled_time}, frequency: #{control_signal.frequency}, unit: #{control_signal.unit}, toggle_duration: #{toggle_duration / 1000.0}s"
+    if !options[:duration]
+      toggle_duration /= 1000
+    end
 
+    mode = options[:mode] ? options[:mode] : control_signal.mode
+    status = options[:status]
 
-    if mode == "scheduled"
+    # if the toggle duration is less than a minute, lets handle it with a thread
+    if toggle_duration < 60 and toggle_duration != 0
+      Rails.logger.info "Because the "
       Thread.new do
-        begin
-          # Publish the "toggle on" command.
-          Rails.logger.info "Publishing scheduled control ON to topic #{topic} at #{Time.current} from thread"
-          MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-            client.publish(topic, { toggle: true }.to_json)
-          end
-
-          create_execution_data(control_signal, mode)
-          # Keep the toggle on for the duration specified (toggle_duration is in milliseconds).
-          Rails.logger.info("Sleeping for #{toggle_duration / 1000.0}s before toggling back off")
-          sleep(toggle_duration / 1000.0)
-
-          # Publish the "toggle off" command (or the second toggle as needed).
-          Rails.logger.info "Publishing scheduled control OFF to topic #{topic} at #{Time.current}"
-          MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-            client.publish(topic, { toggle: true }.to_json)
-          end
-
-          break
-        rescue => thread_e
-          Rails.logger.error "Error in scheduled command thread: #{thread_e.message}"
-          # Optionally, you can choose to break or retry immediately.
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
+          client.publish(topic, { toggle: true }.to_json)
         end
-      end
-    elsif mode == "manual"
-      Thread.new do
-        begin
-          # Publish the "toggle on" command.
-          Rails.logger.info "Publishing scheduled control ON to topic #{topic} at #{Time.current} from thread"
-          MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-            client.publish(topic, { toggle: true }.to_json)
-          end
 
-          create_execution_data(control_signal, mode)
-          # Keep the toggle on for the duration specified (toggle_duration is in milliseconds).
-          Rails.logger.info("Sleeping for #{toggle_duration / 1000.0}s before toggling back off")
-          sleep(toggle_duration / 1000.0)
+        create_execution_data(control_signal, mode, true, toggle_duration * 1000)
 
-          # Publish the "toggle off" command (or the second toggle as needed).
-          Rails.logger.info "Publishing scheduled control OFF to topic #{topic} at #{Time.current}"
-          MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-            client.publish(topic, { toggle: true }.to_json)
-          end
+        sleep(toggle_duration)
 
-          break
-        rescue => thread_e
-          Rails.logger.error "Error in scheduled command thread: #{thread_e.message}"
-          # Optionally, you can choose to break or retry immediately.
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
+          client.publish(topic, { toggle: true }.to_json)
         end
+
+        create_execution_data(control_signal, mode, false, 0)
       end
     else
-      Thread.new do
-        begin
-          # Publish the "toggle on" command.
-          Rails.logger.info "Publishing scheduled control ON to topic #{topic} at #{Time.current} from thread"
-          MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-            client.publish(topic, { toggle: true }.to_json)
-          end
-
-          create_execution_data(control_signal, mode)
-          # Keep the toggle on for the duration specified (toggle_duration is in milliseconds).
-          Rails.logger.info("Sleeping for #{toggle_duration / 1000.0}s before toggling back off")
-          sleep(toggle_duration / 1000.0)
-
-          # Publish the "toggle off" command (or the second toggle as needed).
-          Rails.logger.info "Publishing scheduled control OFF to topic #{topic} at #{Time.current}"
-          MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-            client.publish(topic, { toggle: true }.to_json)
-          end
-
-          break
-        rescue => thread_e
-          Rails.logger.error "Error in scheduled command thread: #{thread_e.message}"
-          # Optionally, you can choose to break or retry immediately.
-        end
+      Rails.logger.info "Publishing #{mode} control #{status} to topic #{topic} at #{Time.current} from thread"
+      MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
+        client.publish(topic, { toggle: true }.to_json)
       end
+
+      create_execution_data(control_signal, mode, status, toggle_duration * 1000)
     end
   end
 
@@ -215,27 +156,19 @@ class MqttListener
     last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "scheduled")
       .order(executed_at: :desc)
       .first
-    now = Time.now
-    scheduled_time_local = control_signal.scheduled_time
+
+
+    scheduled = Time.zone.parse(control_signal.scheduled_time.strftime("%H:%M"))
+    now = Time.current
+
     Time.use_zone("Central Time (US & Canada)") do
-      today_scheduled_time = now.change(hour: scheduled_time_local.hour, min: scheduled_time_local.min, sec: scheduled_time_local.sec)
-      tomorrow_scheduled_time = today_scheduled_time + 1.day
-      Rails.logger.info "last_exec: #{last_exec.executed_at}; now: #{now}; scheduled_time_local: #{today_scheduled_time}; tomorrow_scheduled_time: #{tomorrow_scheduled_time}"
-      if last_exec.present?
-        if last_exec.executed_at < control_signal.updated_at
-          if (now - today_scheduled_time).abs > 60
-            Rails.logger.info "Next scheduled trigger calculated as #{tomorrow_scheduled_time}"
-            return tomorrow_scheduled_time
-          else
-            Rails.logger.info "Next scheduled trigger calculated as #{today_scheduled_time}"
-            return today_scheduled_time
-          end
-        else
-          next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
-        end
+      if control_signal.updated_at > last_exec.executed_at
+        next_trigger = scheduled
       else
-        next_trigger = today_scheduled_time
-        next_trigger += 1.day if next_trigger < now
+        next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
+      end
+      if next_trigger < now
+        next_trigger = next_trigger + 1.day
       end
 
       Rails.logger.info "Next scheduled trigger calculated as #{next_trigger}"
@@ -246,7 +179,6 @@ class MqttListener
 
 
   def self.convert_frequency_to_ms(frequency, unit)
-    Rails.logger.info "Converting frequency to ms: frequency=#{frequency}, unit=#{unit}"
     case unit
     when "minutes"
       frequency * 60 * 1000
@@ -259,12 +191,14 @@ class MqttListener
     end
   end
 
-  def self.create_execution_data(cs, source)
+  def self.create_execution_data(cs, source, status, duration)
+    Rails.logger.info "creating execution data for #{cs.signal_type} with source #{source} and status #{status} for duration #{duration}"
     ControlExecution.create!(
             control_signal_id: cs.id,
             source: source,
-            duration_ms: cs.length_ms || 3000,
-            executed_at: Time.now
+            duration_ms: duration,
+            executed_at: Time.current,
+            status: status
           )
   end
 
@@ -287,7 +221,7 @@ class MqttListener
       existing = plant_module.sensors.find_by(measurement_type: type)
       if existing
         Rails.logger.info "Sensor for type '#{type}' already exists (ID: #{existing.id})."
-        responses[:sensors] << { type: type, status: "exists", sensor_id: existing.id }
+        responses[:sensors] << { type: type, statusduration: "exists", sensor_id: existing.id }
       else
         Rails.logger.info "Creating new sensor for type '#{type}' with unit '#{unit}'."
         sensor = plant_module.sensors.create!(
@@ -375,6 +309,96 @@ class MqttListener
       client.publish("planthub/#{module_id}/sensor_init_response", responses.to_json)
     end
   end
+
+  def self.process_control_status(topic, message_json)
+    control_type = topic.split("/")[-2]
+    plant_module_id = topic.split("/")[-3]
+
+    control_signal = ControlSignal.find_by(plant_module_id: plant_module_id, signal_type: control_type)
+    return unless control_signal&.enabled?
+
+    last_exec = ControlExecution
+                  .where(control_signal_id: control_signal.id)
+                  .order(executed_at: :desc)
+                  .first
+
+    last_exec_on = ControlExecution
+                  .where(control_signal_id: control_signal.id, status: true)
+                  .order(executed_at: :desc)
+                  .first
+
+    last_exec_off = ControlExecution
+                    .where(control_signal_id: control_signal.id, status: false)
+                    .order(executed_at: :desc)
+                    .first
+
+    last_updated_exec = ControlExecution
+                      .where(control_signal_id: control_signal.id)
+                      .order(updated_at: :desc)
+                      .first
+
+    # add a check to make sure if the esp was off at scheduled time to retrigger
+    last_status = last_updated_exec.status ? "on" : "off"
+    elapsed_since_on = ((last_exec_on&.updated_at || 1.year.ago) - (last_exec_on&.executed_at || 1.year.ago)) * 1000
+    expected_on_duration = last_exec_on&.duration_ms || control_signal.length_ms
+
+    if elapsed_since_on < expected_on_duration and last_status != "off"
+      time_until_next_off = expected_on_duration - elapsed_since_on
+      time_until_next_off /= 1000
+      Rails.logger.info "Time until next off: #{time_until_next_off.to_i}s"
+    else
+      time_until_next_off = -1
+      Rails.logger.info "Already off (time until next off == -1)"
+    end
+
+
+    if control_signal.mode == "scheduled"
+      now = Time.current
+      time_until_next_on = next_scheduled_trigger(control_signal) - now
+      Rails.logger.info "Time until next on: #{time_until_next_on.to_i}s"
+    end
+
+
+    # see if we need to send any toggle to the ESP to either
+    # a - make sure it is staying on if it is supposed to but allow for a 60 second debounce
+    # b - make sure we turn stuff off when it should be turned off
+    # c - turn on the scheduled stuff too
+    # d - handle the most recent pushes to show successes (add notifications later maybe?)
+    if last_status != message_json["status"] and time_until_next_off != -1 # a
+      Rails.logger.info "The control signal is off but we expect it to be on, turn it on for #{time_until_next_off.to_i}s."
+      Rails.logger.info "It will turn off at #{Time.current + time_until_next_off.to_i}"
+      publish_control_command(control_signal, status: last_exec.status, duration: time_until_next_off, mode: "manual")
+    elsif time_until_next_off == -1 and message_json["status"] == "on"
+      Rails.logger.info "The control signal is on but we don't expect it to be, turn it off."
+      publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
+    elsif time_until_next_off != -1 and time_until_next_off < 60 # b
+      Rails.logger.info "The control signal needs to turn off in #{time_until_next_off.to_i}s"
+      if time_until_next_off <= 0
+        Rails.logger.error "This is unexpected behavior return safely before trying to sleep for negative time"
+        return
+      end
+      Thread.new do
+        Rails.logger.info "Waiting..."
+        sleep(time_until_next_off)
+        publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
+      end
+    elsif control_signal.mode == "scheduled" and time_until_next_on > 0 and time_until_next_on < 60  # c
+      Rails.logger.info "The control signal is on scheduled mode and we need to turn on the light in #{time_until_next_on.to_i}s."
+      Rails.logger.info "It will turn on at #{Time.current + time_until_next_on.to_i}"
+      Thread.new do
+        Rails.logger.info "Waiting..."
+        sleep(time_until_next_on)
+        publish_control_command(control_signal, status: true, duration: control_signal.length_ms, mode: "scheduled")
+      end
+    elsif last_exec == last_exec_on and last_status == message_json["status"]
+      Rails.logger.info "The control signal is on, as expected, so lets update the most recent on execution."
+      last_exec_on&.touch
+    else
+      Rails.logger.info "The control signal is off, as expected, so lets update the most recent off execution."
+      last_exec_off&.touch
+    end
+  end
+
 
   def self.default_unit_for(type)
     {

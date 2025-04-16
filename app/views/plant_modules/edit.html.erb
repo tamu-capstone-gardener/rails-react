@@ -1,11 +1,9 @@
 <div class="max-w-3xl mx-auto p-6 w-full" data-controller="plant-module filters zip-toggle">
   <div class="mb-6">
-    <%= link_to "Back to Home", root_path,
+    <%= link_to "Back to Plant Module", plant_module_path(@plant_module),
           class: "btn-secondary text-white px-4 py-2 rounded-lg transition duration-300 inline-block" %>
-  </div>  
-  <h1 class="text-3xl font-bold mb-6 theme-text-primary">Create New Plant Module</h1>
-  
-  <!-- Module Form Section -->
+  </div>
+  <h1 class="text-3xl font-bold mb-6 theme-text-primary">Edit Plant Module</h1>
   <%= render "form", plant_module: @plant_module %>
 
   <!-- Filters Form Section -->
@@ -28,6 +26,8 @@
         </div>
         <%= hidden_field_tag :location_type, "", id: "location_type_input" %>
         <%= hidden_field_tag :zip_code, "", id: "zip_code_input", data: { zip_toggle_target: "zipField" } %>
+
+
       </div>
       <div class="mt-4">
         <%= submit_tag "Apply Filters", class: "py-2 px-4 btn-secondary rounded-md hover:bg-blue-700" %>
@@ -47,7 +47,7 @@
       <% end %>
     </h3>
     
-    <!-- Search Form (optional) -->
+    <!-- Search Form -->
     <%= form_with url: plants_path, method: :get, local: false, data: { turbo_frame: "recommendations" }, class: "mb-4" do |f| %>
       <div class="flex flex-row items-end gap-4">
         <div class="flex-1">
@@ -63,8 +63,24 @@
     <!-- Recommendations List inside its own turbo frame -->
     <turbo-frame id="recommendations">
       <% paginated_plants = @plants || @recommendations %>
-
       <%= render partial: "plants/recommendations", locals: { plants: paginated_plants } %>
     </turbo-frame>
   </div>
+
+  <div id="plant-info-modal" 
+        class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden" 
+        data-controller="plant-modal" 
+        data-action="click->plant-modal#closeOnBackgroundClick">
+    <div class="theme-bg border-bg-alt shadow rounded-lg shadow-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+        data-action="click->plant-modal#stopPropagation">
+        <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700 hover:cursor-pointer">
+        &times;
+        </button>
+        <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
+        <div id="plant-info-content" class="theme-text-primary space-y-2">
+        <!-- Plant info is injected here -->
+        </div>
+    </div>
+  </div>
+
 </div>

@@ -1,0 +1,51 @@
+<%= form_with model: plant_module, local: true, class: "rounded-lg", data: { action: "submit->plant-module#validateForm" } do |f| %>
+  <!-- Module Name -->
+  <div class="mb-4">
+    <%= f.label :name, "Module Name", class: "block text-sm font-medium theme-text-secondary" %>
+    <%= f.text_field :name, class: "mt-1 block w-full rounded-md text-box shadow-sm", required: true %>
+  </div>
+
+  <!-- Description -->
+  <div class="mb-4">
+    <%= f.label :description, "Description", class: "block text-sm font-medium theme-text-secondary" %>
+    <%= f.text_area :description, rows: 3, class: "mt-1 block w-full rounded-md text-box shadow-sm", required: true %>
+  </div>
+
+  <!-- Location Type and ZIP Code -->
+  <div class="mb-4">
+    <span class="block text-sm font-medium theme-text-primary">Module Location Type</span>
+    <div class="mt-1">
+      <%= f.radio_button :location_type, "indoor", class: "mr-2", data: { action: "change->zip-toggle#toggleZipField" } %>
+      <%= f.label :location_type, "Indoor", value: "indoor", class: "mr-4 theme-text-primary" %>
+      <%= f.radio_button :location_type, "outdoor", class: "mr-2", data: { action: "change->zip-toggle#toggleZipField" } %>
+      <%= f.label :location_type, "Outdoor", value: "outdoor", class: "theme-text-primary" %>
+    </div>
+  </div>
+
+  <div data-zip-toggle-target="zipField">
+    <%= f.label :zip_code, "ZIP Code", class: "block text-sm font-medium theme-text-secondary" %>
+    <%= f.text_field :zip_code,
+          value: @plant_module.zip_code.presence || current_user.zip_code,
+          class: "text-box mt-1 block w-full rounded-md border-gray-300 shadow-sm" %>
+  </div>
+
+
+  <hr class="my-6">
+
+  <!-- Selected Plants -->
+  <turbo-frame id="selected-plants-frame">
+    <div id="selected-plants" class="mb-6">
+        <h3 class="text-xl font-semibold mb-2 theme-text-primary">Selected Plants</h3>
+        <div id="selected-plants-list" data-controller="plant-modal">
+        <% plant_module.plants.each do |plant| %>
+            <%= render partial: "plants/card", locals: { plant: plant, selected: true } %>
+        <% end %>
+        </div>
+    </div>
+  </turbo-frame>
+
+  <!-- Submit Button -->
+  <div>
+    <%= f.submit plant_module.new_record? ? "Create Module" : "Update Module", class: "w-full py-2 px-4 bg-green-600 btn-primary rounded-lg" %>
+  </div>
+<% end %>

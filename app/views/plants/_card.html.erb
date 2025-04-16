@@ -1,0 +1,68 @@
+<% plant_data = plant.as_json(
+  only: [
+    :common_name, :genus, :species, :family, :growth_rate,
+    :hardiness_zones, :height, :width, :plant_type, :pollinators, :leaf, :flower,
+    :ripen, :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
+    :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf,
+  ]
+).to_json %>
+
+<div class="p-4 theme-bg-alt rounded-md shadow relative mb-4" data-plant-card>
+
+  <div class="flex justify-between gap-4">
+    <div>
+      <h3 class="theme-text-primary text-lg">
+        <%= plant.common_name %>
+      </h3>
+    </div>
+    <button type="button"
+            class="px-[4px] max-h-[32px] text-2xl btn-primary rounded-full"
+            data-action="click->plant-modal#openModal"
+            data-plant-id="<%= plant.id %>">
+      &#9432;
+    </button>
+  </div>
+
+
+  <div class="flex flex-col mb-4">
+    <p class="theme-text-secondary mb-4 text-md">
+      (<%= plant.genus %> <%= plant.species %>)
+    </p>
+    <p class="theme-text-primary flex justify-evenly items-start">
+      <span class="w-full">Light: <span class="theme-text-secondary"><%= plant.light_requirement || "6-8" %></span></span> 
+      <span class="w-full">Flowering: <span class="theme-text-secondary"><%= plant.flower || "Unknown" %></span></span>
+      <span class="w-full">Ripen: <span class="theme-text-secondary"><%= plant.ripen || "Unknown" %></span></span>
+    </p>
+    <p class="theme-text-primary flex justify-evenly">
+      <span class="w-full">Edibility: <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span></span>
+      <span class="w-full">Medicinal: <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span></span>
+      <span class="w-full">Other Uses: <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></span>
+    </p>
+  </div>
+
+  <div class="flex justify-end space-x-2">
+    <% if selected %>
+      <button type="button" 
+              class="remove-plant-btn py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              data-action="click->plant-module#removePlant">Remove</button>
+      <input type="hidden" name="plant_module[plant_ids][]" value="<%= plant.id %>">
+    <% else %>
+      <%= button_tag "Select", type: "button", class: "btn-secondary py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none", 
+        data: { 
+          action: "click->plant-module#selectPlant", 
+          plant_id: plant.id, 
+          plant_name: plant.common_name,
+          plant_genus: plant.genus,
+          plant_species: plant.species,
+          plant_light: (plant.light_requirement.presence || "6-8"),
+          plant_edibility: render_star_rating(plant.edibility),
+          plant_medicinal: render_star_rating(plant.medicinal),
+          plant_other_uses: render_star_rating(plant.other_uses),
+          plant_in_zone: plant_in_zone?(plant, params[:zip_code] || "00000"),
+          plant_ripen: plant.ripen,
+          plant_flower: plant.flower,
+          plant_info: html_escape(plant_data)
+        } %>
+    <% end %>
+  </div>
+</div>

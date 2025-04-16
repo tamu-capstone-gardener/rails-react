@@ -1,0 +1,54 @@
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" data-controller="plant-modal">
+  <% plants.each do |plant| %>
+    <% plant_data = plant.as_json(only: [
+        :common_name, :genus, :species, :family, :growth_rate, :hardiness_zones,
+        :height, :width, :plant_type, :pollinators, :leaf, :flower, :ripen,
+        :reproduction, :soils, :ph, :ph_split, :preferences, :tolerances,
+        :habitat, :habitat_range, :edibility, :medicinal, :other_uses, :pfaf
+      ]).to_json %>
+
+    <div class="p-4 theme-bg-alt rounded-md shadow relative flex flex-col justify-between items-start" data-plant-card >
+      <div class="w-full min-h-[85px]">
+        <div class="flex justify-between items-start gap-2">
+            <h3 class="theme-text-primary text-lg font-bold"><%= plant.common_name.to_s.split(",").first.strip || "Unknown" %></h3>
+            <button type="button"
+                    class="px-[4px] text-2xl btn-primary rounded-full"
+                    data-action="click->plant-modal#openModal"
+                    data-plant-id="<%= plant.id %>">
+              &#9432;
+            </button>
+
+        </div>
+
+        <p class="theme-text-secondary text-sm italic mb-2">
+            (<%= plant.genus %> <%= plant.species %>)
+        </p>
+      </div>
+
+      <hr class="border-b-[0.5] mb-4 border-bg w-full">
+
+      <div class="text-sm space-y-1 min-h-[85px]">
+        <p><strong>Edibility:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.edibility) %></span></p>
+        <p><strong>Medicinal:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.medicinal) %></span></p>
+        <p><strong>Other Uses:</strong> <span class="text-yellow-500"><%= render_star_rating(plant.other_uses) %></span></p>
+      </div>
+    </div>
+  <% end %>
+  <div id="plant-info-modal"
+      class="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50 hidden"
+      data-action="click->plant-modal#closeOnBackgroundClick">
+
+    <div class="theme-bg border-1 border-text-primary shadow rounded-lg p-6 relative w-11/12 max-w-xl max-h-[90vh] overflow-y-auto"
+        data-action="click->plant-modal#stopPropagation">
+
+      <button data-action="click->plant-modal#closeModal" class="absolute top-2 right-4 text-red-500 text-2xl hover:text-red-700">
+        &times;
+      </button>
+
+      <h2 class="text-xl font-bold mb-4 theme-text-primary">Plant Details</h2>
+
+      <!-- Turbo will auto-fetch this on `.src =` -->
+      <turbo-frame id="plant-info-content"></turbo-frame>
+    </div>
+  </div>
+</div>

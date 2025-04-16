@@ -1,28 +1,60 @@
-<turbo-frame id="chart-<%= sensor.id %>">
-  <% if data.any? %>
-    <%= line_chart data,
-      xtitle: "Time",
-      ytitle: sanitize(sensor.measurement_unit),
-      colors: ["#34D399", "#FFFFFF"],
-      library: {
-        backgroundColor: "transparent",
-        legend: { labels: { fontColor: "var(--app-text-secondary)" } },
-        spanGaps: true,
-        scales: {
-          x: {
-            ticks: { fontColor: "var(--app-text-secondary)" },
-            title: { display: true, text: "Time", color: "var(--app-text-secondary)" }
-          },
-          y: {
-            ticks: { fontColor: "var(--app-text-secondary)" },
-            title: { display: true, text: sanitize(sensor.measurement_unit), color: "var(--app-text-secondary)" }
-          }
-        },
-        datasets: [
-          { borderColor: "rgb(34, 197, 94)", backgroundColor: "rgba(34, 197, 94, 0.2)" }
-        ]
-      } %>
-  <% else %>
-    <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
+<% if data.any? %>
+  <% threshold_lines = [] %>
+  <% if sensor.notifications %>
+    <% sensor.thresholds.each_with_index do |thresh, i| %>
+      <% if thresh =~ /\A\s*(<=|>=|<|>|=)\s*(-?\d+(\.\d+)?)\s*\z/ %>
+        <% threshold_value = Regexp.last_match(2).to_f %>
+        <% threshold_lines << {
+          label: "Threshold #{i + 1}",
+          data: data.keys.map { threshold_value },
+          borderDash: [5, 5],
+          borderColor: "#F87171",
+          pointRadius: 0,
+          fill: false
+        } %>
+      <% end %>
+    <% end %>
   <% end %>
-</turbo-frame>
+
+  <%= line_chart data,
+    id: "chart-#{sensor.id}",
+    xtitle: "Time",
+    ytitle: sanitize(sensor.measurement_unit),
+    colors: ["#34D399"],
+    height: "300px",
+    width: "100%",
+    library: {
+      backgroundColor: "transparent",
+      spanGaps: true,
+      elements: {
+        point: { radius: 0 },
+        line: { fill: true, tension: 0.3 }
+      },
+      legend: {
+        labels: { color: "var(--app-text-primary)" }
+      },
+      plugins: {
+        timezone: "America/Chicago"
+      },
+      scales: {
+        x: {
+          ticks: { color: "var(--app-text-primary)" },
+          grid: { color: "var(--app-grid-color)" },
+          title: { display: true, text: "Time", color: "var(--app-text-primary)" }
+        },
+        y: {
+          ticks: { color: "var(--app-text-primary)" },
+          grid: { color: "var(--app-grid-color)" },
+          title: { display: true, text: sanitize(sensor.measurement_unit), color: "var(--app-text-primary)" }
+        }
+      },
+      datasets: [
+        {
+          borderColor: "rgb(34, 197, 94)",
+          backgroundColor: "rgba(34, 197, 94, 0.2)"
+        }
+      ] + threshold_lines
+    } %>
+<% else %>
+  <p class="theme-text-primary mt-2">No time series data available for this sensor.</p>
+<% end %>

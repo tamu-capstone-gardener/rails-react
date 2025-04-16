@@ -1,0 +1,25 @@
+<div class="h-full w-full flex items-start justify-center">
+  <% if control_signals.empty? %>
+    <p class="text-sm theme-text-secondary pl-4 italic h-auto self-center">No control signals registered yet.</p>
+  <% else %>
+    <ul class="grid sm:grid-cols-2 gap-4 h-auto">
+      <% control_signals.each do |signal| %>
+        <li class="">
+          <div class="flex m-4 flex-1 items-end justify-center">
+            <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
+            <%= turbo_frame_tag "control_toggle_button_#{signal.id}" do %>
+              <% is_on = last_execution&.status %>
+              <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length_ms)}" %>
+
+              <%= button_to button_label,
+                            trigger_plant_module_control_signal_path(plant_module, signal),
+                            method: :post,
+                            params: { toggle: true },
+                            class: "btn-secondary px-4 py-2 m-4 rounded-lg transition hover:scale-105" %>
+            <% end %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>
