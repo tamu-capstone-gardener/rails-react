@@ -76,7 +76,12 @@
     <div>
       <% if @plant_module.photos.any? %>
         <h2 class="text-2xl font-semibold theme-text-primary">Recent Photo</h2>
-        <%= image_tag @plant_module.photos.order(created_at: :desc).first.image %>
+        <% recent_photo = @plant_module.photos.order(created_at: :desc).first %>
+        <% if recent_photo.image.present? %>
+          <%= image_tag recent_photo.image %>
+        <% else %>
+          <p> Image not available </p>
+        <% end %>
       <% else %>
         <p> No Photos </p>
       <% end %>

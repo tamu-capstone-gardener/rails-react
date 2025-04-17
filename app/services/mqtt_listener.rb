@@ -261,7 +261,7 @@ class MqttListener
     begin
       # Use StringIO instead of Tempfile to keep the data in memory
       io = StringIO.new(message)
-      timestamp = Time.now.iso8601
+      timestamp = Time.current.iso8601
 
       photo = Photo.new(
         id: SecureRandom.uuid,
