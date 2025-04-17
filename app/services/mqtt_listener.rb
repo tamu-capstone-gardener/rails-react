@@ -127,18 +127,21 @@ class MqttListener
 
     # if the toggle duration is less than a minute, lets handle it with a thread
     if toggle_duration < 60 and toggle_duration != 0
-      Rails.logger.info "Because the "
+      Rails.logger.info "Because the signal is less than 60 seconds:"
       Thread.new do
+        Rails.logger.info "Send on"
         MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-          client.publish(topic, { toggle: true }.to_json)
+          client.publish(topic)
         end
 
         create_execution_data(control_signal, mode, true, format_duration_from_seconds(toggle_duration, duration_unit), duration_unit)
 
+        Rails.logger.info "Sleep for #{toggle_duration}s"
         sleep(toggle_duration)
 
+        Rails.logger.info "Send off"
         MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-          client.publish(topic, { toggle: true }.to_json)
+          client.publish(topic)
         end
 
         create_execution_data(control_signal, mode, false, 0, duration_unit)
@@ -146,7 +149,7 @@ class MqttListener
     else
       Rails.logger.info "Publishing #{mode} control #{status} to topic #{topic} at #{Time.current} from thread"
       MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-        client.publish(topic, { toggle: true }.to_json)
+        client.publish(topic)
       end
 
       create_execution_data(control_signal, mode, status, format_duration_from_seconds(toggle_duration, duration_unit), duration_unit)
