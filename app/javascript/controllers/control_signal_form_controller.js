@@ -22,10 +22,10 @@ export default class extends Controller {
 
     if (isCustom) {
       this.lengthSelectTarget.removeAttribute("name")
-      this.customLengthInputTarget.name = "control_signal[length_ms]"
+      this.customLengthInputTarget.name = "control_signal[length]"
       this.customLengthInputTarget.classList.remove("hidden")
     } else {
-      this.lengthSelectTarget.name = "control_signal[length_ms]"
+      this.lengthSelectTarget.name = "control_signal[length]"
       this.customLengthInputTarget.removeAttribute("name")
       this.customLengthInputTarget.value = ""
       this.customLengthInputTarget.classList.add("hidden")

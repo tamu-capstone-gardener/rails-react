@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_17_042937) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,11 +55,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
   create_table "control_executions", id: :string, force: :cascade do |t|
     t.string "control_signal_id", null: false
     t.string "source", null: false
-    t.integer "duration_ms", null: false
+    t.integer "duration", null: false
     t.datetime "executed_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "status", default: false, null: false
+    t.string "duration_unit", default: "seconds", null: false
     t.index ["control_signal_id"], name: "index_control_executions_on_control_signal_id"
   end
 
@@ -78,8 +79,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.integer "frequency"
     t.string "unit"
     t.boolean "enabled", default: true
-    t.integer "length_ms", default: 3000
+    t.integer "length", default: 3000
     t.time "scheduled_time"
+    t.string "length_unit", default: "seconds", null: false
     t.index ["plant_module_id", "signal_type"], name: "index_control_signals_on_plant_module_id_and_signal_type"
     t.index ["sensor_id"], name: "index_control_signals_on_sensor_id"
   end
@@ -99,13 +101,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.string "plant_module_id", null: false
     t.string "url"
     t.index ["plant_module_id"], name: "index_photos_on_plant_module_id"
-  end
-
-  create_table "photos_posts", id: false, force: :cascade do |t|
-    t.bigint "photo_id", null: false
-    t.bigint "post_id", null: false
-    t.index ["photo_id", "post_id"], name: "index_photos_posts_on_photo_id_and_post_id"
-    t.index ["post_id", "photo_id"], name: "index_photos_posts_on_post_id_and_photo_id"
   end
 
   create_table "plant_modules", id: :string, force: :cascade do |t|
@@ -151,13 +146,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.string "pfaf"
   end
 
-  create_table "posts", force: :cascade do |t|
-    t.string "title"
-    t.text "description"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
   create_table "schedules", id: :string, force: :cascade do |t|
     t.string "plant_module_id", null: false
     t.integer "frequency"
@@ -183,7 +171,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_16_144449) do
     t.float "value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.text "notified_threshold_indices", default: "--- []\n"
+    t.string "notified_threshold_indices"
   end
 
   create_table "users", force: :cascade do |t|

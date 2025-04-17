@@ -9,7 +9,7 @@
             <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
             <%= turbo_frame_tag "control_toggle_button_#{signal.id}" do %>
               <% is_on = last_execution&.status %>
-              <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length_ms)}" %>
+              <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length, signal.length_unit)}" %>
 
               <%= button_to button_label,
                             trigger_plant_module_control_signal_path(plant_module, signal),

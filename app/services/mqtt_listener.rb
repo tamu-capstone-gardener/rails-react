@@ -1,6 +1,9 @@
 require "mqtt"
+require_dependency "control_signals_helper"
 
 class MqttListener
+  extend ControlSignalsHelper
+
   def self.start
     secrets = Rails.application.credentials.hivemq
 
@@ -32,6 +35,9 @@ class MqttListener
               end
               if topic.end_with?("sensor_data")
                 process_mqtt_sensor_data(topic, message_json)
+              elsif topic.end_with?("status")
+                Rails.logger.info "Processing control signal statuses"
+                process_control_status(topic, message_json)
               elsif topic.include?("init_sensors")
                 process_mqtt_sensor_init(topic, message_json)
               else
@@ -112,12 +118,9 @@ class MqttListener
   def self.publish_control_command(control_signal, options = {})
     secrets = Rails.application.credentials.hivemq
     topic = control_signal.mqtt_topic
-    # Use length_ms as the toggle "on" duration (defaulting to 3000 ms if not provided)
-    toggle_duration = options[:duration] || control_signal.length_ms || 3000
 
-    if !options[:duration]
-      toggle_duration /= 1000
-    end
+    duration_unit = control_signal.length_unit || "seconds"
+    toggle_duration = format_duration_to_seconds(control_signal.length, control_signal.length_unit) || 10
 
     mode = options[:mode] ? options[:mode] : control_signal.mode
     status = options[:status]
@@ -130,7 +133,7 @@ class MqttListener
           client.publish(topic, { toggle: true }.to_json)
         end
 
-        create_execution_data(control_signal, mode, true, toggle_duration * 1000)
+        create_execution_data(control_signal, mode, true, format_duration_from_seconds(toggle_duration, duration_unit), duration_unit)
 
         sleep(toggle_duration)
 
@@ -138,7 +141,7 @@ class MqttListener
           client.publish(topic, { toggle: true }.to_json)
         end
 
-        create_execution_data(control_signal, mode, false, 0)
+        create_execution_data(control_signal, mode, false, 0, duration_unit)
       end
     else
       Rails.logger.info "Publishing #{mode} control #{status} to topic #{topic} at #{Time.current} from thread"
@@ -146,7 +149,7 @@ class MqttListener
         client.publish(topic, { toggle: true }.to_json)
       end
 
-      create_execution_data(control_signal, mode, status, toggle_duration * 1000)
+      create_execution_data(control_signal, mode, status, format_duration_from_seconds(toggle_duration, duration_unit), duration_unit)
     end
   end
 
@@ -163,7 +166,7 @@ class MqttListener
       if control_signal.updated_at > last_exec.executed_at
         next_trigger = scheduled
       else
-        next_trigger = last_exec.executed_at + ((convert_frequency_to_ms(control_signal.frequency, control_signal.unit) || 5000) / 1000.0)
+        next_trigger = last_exec.executed_at + (format_duration_to_seconds(control_signal.frequency, control_signal.unit) || 10)
       end
       if next_trigger < now
         next_trigger = next_trigger + 1.day
@@ -174,25 +177,13 @@ class MqttListener
     end
   end
 
-  def self.convert_frequency_to_ms(frequency, unit)
-    case unit
-    when "minutes"
-      frequency * 60 * 1000
-    when "hours"
-      frequency * 60 * 60 * 1000
-    when "days"
-      frequency * 24 * 60 * 60 * 1000
-    else
-      frequency * 60 * 1000  # default to minutes if unspecified
-    end
-  end
-
-  def self.create_execution_data(cs, source, status, duration)
+  def self.create_execution_data(cs, source, status, duration, duration_unit)
     Rails.logger.info "creating execution data for #{cs.signal_type} with source #{source} and status #{status} for duration #{duration}"
     ControlExecution.create!(
             control_signal_id: cs.id,
             source: source,
-            duration_ms: duration,
+            duration: duration,
+            duration_unit: duration_unit,
             executed_at: Time.current,
             status: status
           )
@@ -217,7 +208,7 @@ class MqttListener
       existing = plant_module.sensors.find_by(measurement_type: type)
       if existing
         Rails.logger.info "Sensor for type '#{type}' already exists (ID: #{existing.id})."
-        responses[:sensors] << { type: type, statusduration: "exists", sensor_id: existing.id }
+        responses[:sensors] << { type: type, status: "exists", sensor_id: existing.id }
       else
         Rails.logger.info "Creating new sensor for type '#{type}' with unit '#{unit}'."
         sensor = plant_module.sensors.create!(
@@ -338,12 +329,11 @@ class MqttListener
 
     # add a check to make sure if the esp was off at scheduled time to retrigger
     last_status = last_updated_exec.status ? "on" : "off"
-    elapsed_since_on = ((last_exec_on&.updated_at || 1.year.ago) - (last_exec_on&.executed_at || 1.year.ago)) * 1000
-    expected_on_duration = last_exec_on&.duration_ms || control_signal.length_ms
+    elapsed_since_on = (last_exec_on&.updated_at || 1.year.ago) - (last_exec_on&.executed_at || 1.year.ago)
+    expected_on_duration = format_duration_to_seconds(last_exec_on&.duration, last_exec_on&.duration_unit) || format_duration_to_seconds(control_signal.length, control_signal.length_unit) || 10
 
     if elapsed_since_on < expected_on_duration and last_status != "off"
       time_until_next_off = expected_on_duration - elapsed_since_on
-      time_until_next_off /= 1000
       Rails.logger.info "Time until next off: #{time_until_next_off.to_i}s"
     else
       time_until_next_off = -1
@@ -366,7 +356,7 @@ class MqttListener
     if last_status != message_json["status"] and time_until_next_off != -1 # a
       Rails.logger.info "The control signal is off but we expect it to be on, turn it on for #{time_until_next_off.to_i}s."
       Rails.logger.info "It will turn off at #{Time.current + time_until_next_off.to_i}"
-      publish_control_command(control_signal, status: last_exec.status, duration: time_until_next_off, mode: "manual")
+      publish_control_command(control_signal, status: last_exec.status, duration: format_duration_from_seconds(time_until_next_off, control_signal.length_unit), mode: "manual")
     elsif time_until_next_off == -1 and message_json["status"] == "on"
       Rails.logger.info "The control signal is on but we don't expect it to be, turn it off."
       publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
@@ -387,7 +377,7 @@ class MqttListener
       Thread.new do
         Rails.logger.info "Waiting..."
         sleep(time_until_next_on)
-        publish_control_command(control_signal, status: true, duration: control_signal.length_ms, mode: "scheduled")
+        publish_control_command(control_signal, status: true, duration: format_duration_from_seconds(control_signal.length, control_signal.length_unit), mode: "scheduled")
       end
     elsif last_exec == last_exec_on and last_status == message_json["status"]
       Rails.logger.info "The control signal is on, as expected, so lets update the most recent on execution."
