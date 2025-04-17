@@ -20,25 +20,23 @@ class MqttListener
           client.subscribe("#{secrets[:topic]}/+/+/status")
 
           client.get do |topic, message|
-            Rails.logger.info "Received MQTT message on #{topic}: #{message}"
-
-            message_json = JSON.parse(message) rescue nil
-            unless message_json.is_a?(Hash)
-              Rails.logger.error "Malformed JSON received: #{message}"
-              next
-            end
-
-            if topic.end_with?("sensor_data")
-              process_mqtt_sensor_data(topic, message_json)
-            elsif topic.include?("init_sensors")
-              process_mqtt_sensor_init(topic, message_json)
-            elsif topic.include?("sensor_init_response")
-              Rails.logger.info "Received sensor init response: #{message_json}"
-            elsif topic.include?("/status")
-              Rails.logger.info "Received status message: #{message_json}"
-              process_control_status(topic, message_json)
+            if topic.end_with?("photo")
+              Rails.logger.info "Received MQTT binary photo data on #{topic}"
+              process_mqtt_photo(topic, message)
             else
-              process_mqtt_photo(topic, message_json)
+              Rails.logger.info "Received MQTT message on #{topic}: #{message}"
+              message_json = JSON.parse(message) rescue nil
+              unless message_json.is_a?(Hash)
+                Rails.logger.error "Malformed JSON received: #{message}"
+                next
+              end
+              if topic.end_with?("sensor_data")
+                process_mqtt_sensor_data(topic, message_json)
+              elsif topic.include?("init_sensors")
+                process_mqtt_sensor_init(topic, message_json)
+              else
+                Rails.logger.info "Received sensor init response: #{message_json}"
+              end
             end
           end
         end
@@ -176,8 +174,6 @@ class MqttListener
     end
   end
 
-
-
   def self.convert_frequency_to_ms(frequency, unit)
     case unit
     when "minutes"
@@ -255,33 +251,36 @@ class MqttListener
     publish_sensor_response(plant_module_id, responses)
   end
 
-  def self.process_mqtt_photo(topic, message_json)
+  def self.process_mqtt_photo(topic, message)
     plant_module_id = extract_plant_module_id_from_photo_topic(topic)
     unless plant_module_id
       Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
       return
     end
 
-    url = message_json["url"]
-    timestamp = message_json["timestamp"]
-
-    if url.nil? || timestamp.nil?
-      Rails.logger.warn "Missing required fields in message: #{message_json}"
-      return
-    end
-
     begin
-      Photo.create!(
+      # Use StringIO instead of Tempfile to keep the data in memory
+      io = StringIO.new(message)
+      timestamp = Time.current.iso8601
+
+      photo = Photo.new(
         id: SecureRandom.uuid,
         plant_module_id: plant_module_id,
-        timestamp: timestamp,
-        url: url
+        timestamp: timestamp
       )
+
+      photo.image.attach(
+        io: io,
+        filename: "plant_module_#{plant_module_id}_#{timestamp}.jpg",
+        content_type: "image/jpeg"
+      )
+
+      photo.save!
       Rails.logger.info "Stored photo for plant module '#{plant_module_id}'"
     rescue ActiveRecord::RecordInvalid => e
-      Rails.logger.error "Database insertion failed: #{e.message}. Data: #{message_json}"
+      Rails.logger.error "Database insertion failed when uploading photo for plant module #{plant_module_id}."
     rescue => e
-      Rails.logger.error "Unexpected error storing data: #{e.message}"
+      Rails.logger.error "Unexpected error storing data for plant module #{plant_module_id}."
     end
   end
 
