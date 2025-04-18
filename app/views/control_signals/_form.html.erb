@@ -27,20 +27,17 @@
 
   <!-- Duration -->
   <div>
-    <% preset_values = [3000, 5000, 10000, 30000, 60000, 180000, 3600000] %>
-    <% selected_length = preset_values.include?(@control_signal.length_ms) ? @control_signal.length_ms : "custom" %>
-    <%= f.label :length_ms, "Signal Duration" %>
     <div class="flex space-x-2 items-end">
       <div class="flex-1">
-        <%= label_tag :length_value, "Value" %>
-        <%= number_field_tag :length_value, @length_value, class: "text-box border p-2 rounded w-full", step: 1 %>
+        <%= label_tag :length, "Value" %>
+        <%= number_field_tag "control_signal[length]", @length, class: "text-box border p-2 rounded w-full", step: 1 %>
       </div>
 
       <div class="flex-1">
         <%= label_tag :length_unit, "Unit" %>
-        <%= select_tag :length_unit,
-            options_for_select([["seconds", "seconds"], ["minutes", "minutes"], ["hours", "hours"], ["days", "days"]], @length_unit),
-            class: "text-box border p-2 rounded w-full" %>
+        <%= select_tag "control_signal[length_unit]",
+              options_for_select([["seconds", "seconds"], ["minutes", "minutes"], ["hours", "hours"], ["days", "days"]], @length_unit),
+              class: "text-box border p-2 rounded w-full" %>
       </div>
     </div>
   </div>
