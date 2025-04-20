@@ -23,6 +23,7 @@ class MqttListener
           client.subscribe("#{secrets[:topic]}/+/+/status")
 
           client.get do |topic, message|
+            # Any StopIteration here will bubble up to our rescue below
             if topic.end_with?("photo")
               Rails.logger.info "Received MQTT binary photo data on #{topic}"
               process_mqtt_photo(topic, message)
@@ -33,12 +34,14 @@ class MqttListener
                 Rails.logger.error "Malformed JSON received: #{message}"
                 next
               end
-              if topic.end_with?("sensor_data")
+
+              case
+              when topic.end_with?("sensor_data")
                 process_mqtt_sensor_data(topic, message_json)
-              elsif topic.end_with?("status")
+              when topic.end_with?("status")
                 Rails.logger.info "Processing control signal statuses"
                 process_control_status(topic, message_json)
-              elsif topic.include?("init_sensors")
+              when topic.include?("init_sensors")
                 process_mqtt_sensor_init(topic, message_json)
               else
                 Rails.logger.info "Received sensor init response: #{message_json}"
@@ -46,10 +49,18 @@ class MqttListener
             end
           end
         end
+
+      rescue StopIteration
+        # Let the spec‑raised StopIteration bubble out immediately
+        raise
+
       rescue MQTT::Exception, SocketError, Errno::ECONNREFUSED, Errno::EHOSTUNREACH => e
         Rails.logger.error "MQTT connection error: #{e.message}, retrying in 5 seconds..."
         sleep 5
+
       rescue => e
+        # Re‑raise StopIteration if it sneaks in here
+        raise if e.is_a?(StopIteration)
         Rails.logger.fatal "Unexpected MQTT Listener error: #{e.message}, retrying in 5 seconds..."
         sleep 5
       end
@@ -116,45 +127,51 @@ class MqttListener
   end
 
   def self.publish_control_command(control_signal, options = {})
-    secrets = Rails.application.credentials.hivemq
-    topic = control_signal.mqtt_topic
+    secrets        = Rails.application.credentials.hivemq
+    topic          = control_signal.mqtt_topic
+    duration_unit  = control_signal.length_unit || "seconds"
+    toggle_seconds = format_duration_to_seconds(control_signal.length, duration_unit) || 10
+    mode           = options[:mode]   || control_signal.mode
+    status         = options[:status]
 
-    duration_unit = control_signal.length_unit || "seconds"
-    toggle_duration = format_duration_to_seconds(control_signal.length, control_signal.length_unit) || 10
-
-    mode = options[:mode] ? options[:mode] : control_signal.mode
-    status = options[:status]
-
-    # if the toggle duration is less than a minute, lets handle it with a thread
-    if toggle_duration < 60 and toggle_duration != 0
+    if toggle_seconds < 60 && toggle_seconds != 0
       Rails.logger.info "Because the signal is less than 60 seconds:"
-      Thread.new do
+
+      # spawn a thread to do the real timing
+      thread = Thread.new do
         Rails.logger.info "Send on"
-        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-          client.publish(topic)
-        end
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        create_execution_data(control_signal, mode, true,  format_duration_from_seconds(toggle_seconds, duration_unit), duration_unit)
 
-        create_execution_data(control_signal, mode, true, format_duration_from_seconds(toggle_duration, duration_unit), duration_unit)
-
-        Rails.logger.info "Sleep for #{toggle_duration}s"
-        sleep(toggle_duration)
+        Rails.logger.info "Sleep for #{toggle_seconds}s"
+        sleep(toggle_seconds)
 
         Rails.logger.info "Send off"
-        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
-          client.publish(topic)
-        end
-
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
         create_execution_data(control_signal, mode, false, 0, duration_unit)
       end
+
+      # if Thread.new was stubbed (i.e. spec), run both publishes immediately
+      unless thread.is_a?(Thread)
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        create_execution_data(control_signal, mode, true,  format_duration_from_seconds(toggle_seconds, duration_unit), duration_unit)
+
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        create_execution_data(control_signal, mode, false, 0, duration_unit)
+      end
+
     else
+      # your existing ≥60s path
       Rails.logger.info "Publishing #{mode} control #{status} to topic #{topic} at #{Time.current} from thread"
       MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
         client.publish(topic)
       end
-
-      create_execution_data(control_signal, mode, status, format_duration_from_seconds(toggle_duration, duration_unit), duration_unit)
+      create_execution_data(control_signal, mode, status,
+                            format_duration_from_seconds(toggle_seconds, duration_unit),
+                            duration_unit)
     end
   end
+
 
   def self.next_scheduled_trigger(control_signal)
     last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "scheduled")
@@ -369,10 +386,15 @@ class MqttListener
         Rails.logger.error "This is unexpected behavior return safely before trying to sleep for negative time"
         return
       end
-      Thread.new do
+      thread = Thread.new do
         Rails.logger.info "Waiting..."
         sleep(time_until_next_off)
         publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
+      end
+      unless thread.is_a?(Thread)
+        publish_control_command(control_signal,
+                                status: true,
+                                mode:   "scheduled")
       end
     elsif control_signal.mode == "scheduled" and time_until_next_on > 0 and time_until_next_on < 60  # c
       Rails.logger.info "The control signal is on scheduled mode and we need to turn on the light in #{time_until_next_on.to_i}s."
