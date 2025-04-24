@@ -7,4 +7,5 @@ class PlantModule < ApplicationRecord
   has_many :schedules, dependent: :destroy
   has_many :photos, dependent: :destroy
   has_many :control_signals, dependent: :destroy
+  has_one_attached :timelapse_video
 end

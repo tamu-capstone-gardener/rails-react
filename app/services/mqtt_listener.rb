@@ -3,6 +3,7 @@ require_dependency "control_signals_helper"
 
 class MqttListener
   extend ControlSignalsHelper
+  PHOTO_BUFFERS = {}
 
   def self.start
     secrets = Rails.application.credentials.hivemq
@@ -14,6 +15,9 @@ class MqttListener
         MQTT::Client.connect(
           host: secrets[:url],
           port: secrets[:port],
+          username: secrets[:username],
+          password: secrets[:password],
+          ssl: true
         ) do |client|
           Rails.logger.info "Connected to MQTT broker at #{secrets[:url]}"
 
@@ -140,30 +144,30 @@ class MqttListener
       # spawn a thread to do the real timing
       thread = Thread.new do
         Rails.logger.info "Send on"
-        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port], username: secrets[:username], password: secrets[:password], ssl: true) { |c| c.publish(topic) }
         create_execution_data(control_signal, mode, true,  format_duration_from_seconds(toggle_seconds, duration_unit), duration_unit)
 
         Rails.logger.info "Sleep for #{toggle_seconds}s"
         sleep(toggle_seconds)
 
         Rails.logger.info "Send off"
-        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port], username: secrets[:username], password: secrets[:password], ssl: true) { |c| c.publish(topic) }
         create_execution_data(control_signal, mode, false, 0, duration_unit)
       end
 
       # if Thread.new was stubbed (i.e. spec), run both publishes immediately
       unless thread.is_a?(Thread)
-        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port], username: secrets[:username], password: secrets[:password], ssl: true) { |c| c.publish(topic) }
         create_execution_data(control_signal, mode, true,  format_duration_from_seconds(toggle_seconds, duration_unit), duration_unit)
 
-        MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) { |c| c.publish(topic) }
+        MQTT::Client.connect(host: secrets[:url], port: secrets[:port], username: secrets[:username], password: secrets[:password], ssl: true) { |c| c.publish(topic) }
         create_execution_data(control_signal, mode, false, 0, duration_unit)
       end
 
     else
       # your existing ≥60s path
       Rails.logger.info "Publishing #{mode} control #{status} to topic #{topic} at #{Time.current} from thread"
-      MQTT::Client.connect(host: secrets[:url], port: secrets[:port]) do |client|
+      MQTT::Client.connect(host: secrets[:url], port: secrets[:port], username: secrets[:username], password: secrets[:password], ssl: true) do |client|
         client.publish(topic)
       end
       create_execution_data(control_signal, mode, status,
@@ -264,34 +268,53 @@ class MqttListener
 
   def self.process_mqtt_photo(topic, message)
     plant_module_id = extract_plant_module_id_from_photo_topic(topic)
-    unless plant_module_id
-      Rails.logger.warn "Ignoring message: Invalid topic format: #{topic}"
-      return
+    return unless plant_module_id
+
+    PHOTO_BUFFERS[plant_module_id] ||= { data: "", started: false }
+
+    case message
+    when "START"
+      PHOTO_BUFFERS[plant_module_id] = { data: "", started: true }
+      Rails.logger.info "Started receiving photo for plant_module #{plant_module_id}"
+    when "END"
+      if PHOTO_BUFFERS[plant_module_id][:started]
+        Rails.logger.info "Finished receiving photo for #{plant_module_id}, saving..."
+        save_buffered_photo(plant_module_id)
+      end
+      PHOTO_BUFFERS.delete(plant_module_id)
+    else
+      if PHOTO_BUFFERS[plant_module_id][:started]
+        PHOTO_BUFFERS[plant_module_id][:data] << message.b # Append binary chunk
+      else
+        Rails.logger.warn "Received chunk without START for #{plant_module_id}"
+      end
     end
+  end
+
+  def self.save_buffered_photo(plant_module_id)
+    buffer = PHOTO_BUFFERS[plant_module_id][:data]
+    return if buffer.blank?
 
     begin
-      # Use StringIO instead of Tempfile to keep the data in memory
-      io = StringIO.new(message)
+      io = StringIO.new(buffer)
       timestamp = Time.current.iso8601
-
-      photo = Photo.new(
+      photo = Photo.create!(
         id: SecureRandom.uuid,
         plant_module_id: plant_module_id,
         timestamp: timestamp
       )
 
-      photo.image.attach(
+      blob = ActiveStorage::Blob.create_and_upload!(
         io: io,
         filename: "plant_module_#{plant_module_id}_#{timestamp}.jpg",
         content_type: "image/jpeg"
       )
 
-      photo.save!
-      Rails.logger.info "Stored photo for plant module '#{plant_module_id}'"
-    rescue ActiveRecord::RecordInvalid => e
-      Rails.logger.error "Database insertion failed when uploading photo for plant module #{plant_module_id}."
+      photo.image.attach(blob)
+
+      Rails.logger.info "Successfully stored photo for plant module #{plant_module_id}"
     rescue => e
-      Rails.logger.error "Unexpected error storing data for plant module #{plant_module_id}."
+      Rails.logger.error "Failed to save photo for #{plant_module_id}: #{e.message}"
     end
   end
 
@@ -311,10 +334,14 @@ class MqttListener
   end
 
   def self.publish_sensor_response(module_id, responses)
+    secrets = Rails.application.credentials.hivemq
     Rails.logger.info("Attempting to publish a sensor init response!")
     MQTT::Client.connect(
-      host: Rails.application.credentials.hivemq[:url],
-      port: Rails.application.credentials.hivemq[:port]
+      host: secrets[:url],
+      port: secrets[:port],
+      username: secrets[:username],
+      password: secrets[:password],
+      ssl: true
     ) do |client|
       client.publish("planthub/#{module_id}/sensor_init_response", responses.to_json)
     end

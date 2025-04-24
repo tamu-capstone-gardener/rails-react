@@ -123,6 +123,12 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
+  def generate_timelapse
+    @plant_module = PlantModule.find_by(id: params[:id])
+    TimelapseWorker.perform_async(@plant_module.id)
+    redirect_to @plant_module, notice: "Timelapse generation has started and will appear here when ready."
+  end
+
 
   private
 

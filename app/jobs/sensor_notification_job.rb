@@ -40,7 +40,6 @@ class SensorNotificationJob < ApplicationJob
           message = sensor.messages[index] || "Notification triggered"
 
           Rails.logger.info "Sending notification: #{message}"
-          PushNotificationService.send_notification(sensor.plant_module.user, message, sensor, data_point)
 
           SensorMailer.with(sensor: sensor, data_point: data_point, message: message)
                       .notification_email

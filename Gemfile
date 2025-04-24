@@ -29,6 +29,7 @@ gem "sidekiq"
 gem "web-push"
 gem "kaminari"
 gem "redis"
+gem "streamio-ffmpeg"
 
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
