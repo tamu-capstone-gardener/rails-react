@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_17_042937) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_25_004323) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -154,6 +154,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_17_042937) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "sensor_notification_logs", force: :cascade do |t|
+    t.string "sensor_id", null: false
+    t.integer "threshold_index"
+    t.datetime "last_sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sensor_id"], name: "index_sensor_notification_logs_on_sensor_id"
+  end
+
   create_table "sensors", id: :string, force: :cascade do |t|
     t.string "plant_module_id", null: false
     t.string "measurement_unit"
@@ -200,6 +209,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_17_042937) do
   add_foreign_key "photos", "plant_modules"
   add_foreign_key "plant_modules", "users", primary_key: "uid"
   add_foreign_key "schedules", "plant_modules"
+  add_foreign_key "sensor_notification_logs", "sensors"
   add_foreign_key "sensors", "plant_modules"
   add_foreign_key "time_series_data", "sensors"
 end
