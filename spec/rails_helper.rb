@@ -1,4 +1,5 @@
 require 'simplecov'
+require_relative '/Users/kjj/Projects/simplecov-html-dark-mode/lib/simplecov-html.rb'
 SimpleCov.start 'rails' do
   add_filter '/spec/'
   add_filter '/config/'
