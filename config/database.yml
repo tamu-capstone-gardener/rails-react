@@ -87,7 +87,7 @@ production:
   primary: &primary_production
     <<: *default
     host: ep-misty-lab-a5ag4yvs-pooler.us-east-2.aws.neon.tech
-    database: ruby_react_production
+    database: <%= Rails.application.credentials.dig(:neon, :database_name) %>
     username: <%= Rails.application.credentials.dig(:neon, :username) %>
     password: <%= Rails.application.credentials.dig(:neon, :password) %>
   cache:

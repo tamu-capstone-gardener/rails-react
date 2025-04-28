@@ -1,3 +1,8 @@
+# Base controller for the application
+#
+# @abstract This controller provides common functionality for all controllers
+# in the application including browser compatibility checks, helper inclusion,
+# and parameter sanitization.
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
@@ -9,6 +14,9 @@ class ApplicationController < ActionController::Base
 
   private
 
+  # Sets up navigation links based on user authentication status
+  #
+  # @return [void]
   def set_navbar_links
     @page_links = [
       { name: "Home", path: root_path }
@@ -29,6 +37,10 @@ class ApplicationController < ActionController::Base
 
   protected
 
+  # Configures permitted parameters for Devise
+  #
+  # @note Allows zip_code to be submitted during user sign up and account update
+  # @return [void]
   def configure_permitted_parameters
     # Add zip_code to sign up and account update
     devise_parameter_sanitizer.permit(:sign_up, keys: [ :zip_code ])

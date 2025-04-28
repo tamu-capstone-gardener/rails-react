@@ -107,4 +107,20 @@ html.dark {
 .border-text-primary {
   border-color: var(--text-primary);
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg); /* dark track */
   
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--bg-alt-rotate); /* Tailwind gray-600 */
+  /* border: var(--text-primary) 1px solid; */
+  border-right: 0px;
+  border-radius: 0.5rem;
+  
+}
