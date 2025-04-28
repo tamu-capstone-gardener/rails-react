@@ -1,4 +1,22 @@
+# Controller for managing plant modules
+#
+# This controller handles CRUD operations for plant modules, which represent
+# physical growing setups that contain plants and sensors.
+#
+# @example Request to create a new plant module
+#   GET /plant_modules/new
+#
+# @example Request to view a plant module
+#   GET /plant_modules/123
 class PlantModulesController < AuthenticatedApplicationController
+  # Displays the form to create a new plant module with plant recommendations
+  #
+  # @param max_height [Float] optional maximum height filter for recommendations
+  # @param max_width [Float] optional maximum width filter for recommendations
+  # @param maintenance [String] optional maintenance level filter for recommendations
+  # @param edibility_rating [String] optional edibility rating filter for recommendations
+  # @param page [Integer] optional page number for recommendations pagination
+  # @return [void]
   def new
     @plant_module = PlantModule.new(location_type: "indoor")
 
@@ -22,6 +40,16 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
+  # Creates a new plant module
+  #
+  # @param plant_module [Hash] plant module parameters
+  # @option plant_module [String] :name name of the module
+  # @option plant_module [String] :description description of the module
+  # @option plant_module [String] :location physical location of the module
+  # @option plant_module [String] :location_type "indoor" or "outdoor"
+  # @option plant_module [String] :zip_code ZIP code for outdoor modules
+  # @option plant_module [Array<Integer>] :plant_ids IDs of plants to associate with the module
+  # @return [void]
   def create
     @plant_module = PlantModule.new(plant_module_params)
     @plant_module.user = current_user
@@ -39,6 +67,10 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
+  # Displays a plant module with its sensors and control signals
+  #
+  # @param id [String] ID of the plant module to display
+  # @return [void]
   def show
     @plant_module = PlantModule.find_by(id: params[:id])
 
@@ -81,6 +113,15 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
+  # Displays the form to edit a plant module with plant recommendations
+  #
+  # @param id [String] ID of the plant module to edit
+  # @param max_height [Float] optional maximum height filter for recommendations
+  # @param max_width [Float] optional maximum width filter for recommendations
+  # @param maintenance [String] optional maintenance level filter for recommendations
+  # @param edibility_rating [String] optional edibility rating filter for recommendations
+  # @param page [Integer] optional page number for recommendations pagination
+  # @return [void]
   def edit
     @plant_module = current_user.plant_modules.find_by(id: params[:id])
     redirect_to plant_modules_path, alert: "Module not found." unless @plant_module
@@ -99,6 +140,17 @@ class PlantModulesController < AuthenticatedApplicationController
   ).recommendations
   end
 
+  # Updates a plant module
+  #
+  # @param id [String] ID of the plant module to update
+  # @param plant_module [Hash] plant module parameters
+  # @option plant_module [String] :name name of the module
+  # @option plant_module [String] :description description of the module
+  # @option plant_module [String] :location physical location of the module
+  # @option plant_module [String] :location_type "indoor" or "outdoor"
+  # @option plant_module [String] :zip_code ZIP code for outdoor modules
+  # @option plant_module [Array<Integer>] :plant_ids IDs of plants to associate with the module
+  # @return [void]
   def update
     @plant_module = current_user.plant_modules.find_by(id: params[:id])
     unless @plant_module
@@ -113,6 +165,10 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
+  # Deletes a plant module
+  #
+  # @param id [String] ID of the plant module to delete
+  # @return [void]
   def destroy
     @plant_module = current_user.plant_modules.find_by(id: params[:id])
     if @plant_module
@@ -123,9 +179,22 @@ class PlantModulesController < AuthenticatedApplicationController
     end
   end
 
+  # Generates a timelapse video for a plant module using its photos
+  #
+  # @param id [String] ID of the plant module to generate timelapse for
+  # @return [void]
+  def generate_timelapse
+    @plant_module = PlantModule.find_by(id: params[:id])
+    TimelapseWorker.perform_async(@plant_module.id)
+    redirect_to @plant_module, notice: "Timelapse generation has started and will appear here when ready."
+  end
+
 
   private
 
+  # Permits plant module parameters for mass assignment
+  #
+  # @return [ActionController::Parameters] permitted parameters
   def plant_module_params
     params.require(:plant_module).permit(:name, :description, :location, :location_type, :zip_code, plant_ids: [])
   end

@@ -17,6 +17,9 @@ Rails.application.routes.draw do
 
   # Nested resources for plant_modules
   resources :plant_modules do
+    member do
+      post :generate_timelapse
+    end
     resources :control_signals, only: [ :edit, :update ] do
       post :trigger, on: :member
     end

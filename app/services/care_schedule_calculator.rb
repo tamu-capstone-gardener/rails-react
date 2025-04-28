@@ -1,9 +1,26 @@
 # app/services/care_schedule_calculator.rb
+
+# Service for calculating optimal care schedules based on plant requirements
+#
+# This service analyzes a collection of plants and determines the optimal
+# watering, fertilizing, and light schedules to meet the needs of all plants
+# in a plant module.
 class CareScheduleCalculator
+    # Initializes a new care schedule calculator
+    #
+    # @param plants [Array<Plant>, ActiveRecord::Relation] plants to calculate schedule for
+    # @return [CareScheduleCalculator] a new instance ready to calculate a care schedule
     def initialize(plants)
       @plants = plants
     end
 
+    # Calculates the recommended care schedule
+    #
+    # @return [Hash] recommended care schedule with watering, fertilizer, light, and soil moisture preferences
+    # @option return [Integer] :watering_frequency days between watering
+    # @option return [Integer] :fertilizer_frequency days between fertilizing
+    # @option return [Integer] :light_hours recommended hours of light per day
+    # @option return [String] :soil_moisture_pref recommended soil moisture level
     def calculate
       if @plants.any?
         {
@@ -25,7 +42,10 @@ class CareScheduleCalculator
 
     private
 
-    # Example: a "fast" growing plant may require more frequent watering.
+    # Calculates the recommended watering frequency
+    #
+    # @note Fast growing plants require more frequent watering
+    # @return [Integer] days between watering
     def recommended_watering_frequency
       frequencies = @plants.map do |plant|
         case plant.growth_rate.to_s.downcase
@@ -38,7 +58,10 @@ class CareScheduleCalculator
       frequencies.min
     end
 
-    # Example: fertilize less frequently for slow growers.
+    # Calculates the recommended fertilizer frequency
+    #
+    # @note Slow growing plants require less frequent fertilizing
+    # @return [Integer] days between fertilizing
     def recommended_fertilizer_frequency
       frequencies = @plants.map do |plant|
         case plant.growth_rate.to_s.downcase
@@ -51,7 +74,9 @@ class CareScheduleCalculator
       frequencies.max
     end
 
-    # Here we assume a default light requirement based on plant type.
+    # Calculates the recommended light hours per day
+    #
+    # @return [Integer] hours of light per day
     def recommended_light_hours
       hours = @plants.map do |plant|
         # For example, deciduous plants might require around 8 hours,
@@ -61,7 +86,9 @@ class CareScheduleCalculator
       (hours.sum / hours.size.to_f).round
     end
 
-    # For soil moisture preference, we can attempt to parse the stored soils array and choose the most common.
+    # Determines the recommended soil moisture preference
+    #
+    # @return [String] soil moisture preference ("low", "medium", or "high")
     def recommended_soil_moisture_pref
       prefs = @plants.map do |plant|
         soils = parse_soils(plant.soils)
@@ -72,7 +99,10 @@ class CareScheduleCalculator
       prefs.group_by(&:itself).max_by { |_k, v| v.size }&.first || "medium"
     end
 
-    # Attempt to convert the stored string into an array.
+    # Parses soil preference string into an array
+    #
+    # @param soils_string [String] JSON string of soil preferences
+    # @return [Array<String>] parsed soil preferences
     def parse_soils(soils_string)
       return [] unless soils_string.present?
       begin

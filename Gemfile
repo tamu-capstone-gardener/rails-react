@@ -29,6 +29,7 @@ gem "sidekiq"
 gem "web-push"
 gem "kaminari"
 gem "redis"
+gem "streamio-ffmpeg"
 
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
@@ -66,11 +67,16 @@ group :development, :test do
 
   gem "simplecov", require: false
   gem "rspec-rails"
+
+  gem "factory_bot_rails"
 end
 
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # documentation
+  gem "yard"
 end
 
 group :test do

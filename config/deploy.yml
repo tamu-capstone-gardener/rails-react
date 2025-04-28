@@ -96,7 +96,7 @@ builder:
 # Use a different ssh user than root
 ssh:
   user: ubuntu
-  keys: [ "lightsailKey.pem" ]
+  keys: [ "~/.ssh/LightsailDefaultKey-us-east-2-planthub.pem" ]
 
 # Use accessory services (secrets come from .kamal/secrets).
 accessories:

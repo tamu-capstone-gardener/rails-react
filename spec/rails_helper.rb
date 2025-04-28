@@ -1,4 +1,5 @@
 require 'simplecov'
+
 SimpleCov.start 'rails' do
   add_filter '/spec/'
   add_filter '/config/'
@@ -22,6 +23,8 @@ Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
 require 'sidekiq/testing'
 Sidekiq::Testing.inline! # or fake! depending on your preference
 
+
+require 'factory_bot_rails'
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -48,6 +51,7 @@ end
 RSpec.configure do |config|
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include FactoryBot::Syntax::Methods
 
   # rails_helper.rb
 

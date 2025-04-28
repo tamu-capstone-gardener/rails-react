@@ -21,7 +21,7 @@
           <div class="flex px-4  flex-col justify-start flex-1">
             <p class="theme-text-primary font-semibold text-sm mt-2" >
               Type: <span class="theme-text-secondary font-normal"><%= sanitize(signal.mode.titleize) %></span><br/>
-              Pulse Length: <span class="theme-text-secondary font-normal"><%= format_duration(signal.length_ms) || "none" %></span>
+              Pulse Length: <span class="theme-text-secondary font-normal"><%= format_duration(signal.length, signal.length_unit) || "none" %></span>
               
             </p>
           </div>
@@ -30,32 +30,32 @@
             <% if last_execution && signal.mode == "scheduled" %>
               <% scheduled_time = MqttListener.next_scheduled_trigger(signal) %>
               <p class="text-sm theme-text-primary font-semibold mt-2">
-                Next trigger is <span class="theme-text-secondary font-normal"><%= distance_of_time_in_words(Time.current, scheduled_time) %> from now.
+                Next trigger is <span class="theme-text-secondary font-normal"><%= distance_of_time_in_words(Time.current, scheduled_time) %> from now
               </p>
 
               <p class="text-sm theme-text-primary font-semibold">
-                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago.</span>
+                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago</span>
               </p>
             <% elsif last_execution and signal.mode == "automatic" %>
               <p class="text-sm theme-text-primary font-semibold mt-2">
   
-                Threshold value <span class="theme-text-secondary font-normal"><%= signal.threshold_value %> ago.</span>
+                Threshold value: <span class="theme-text-secondary font-normal"><%= signal.threshold_value.to_i %></span>
               </p>
               <p class="text-sm theme-text-primary font-semibold">
   
-                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago.</span>
+                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago</span>
               </p>
             <% elsif last_execution %>
               <p class="text-sm theme-text-primary font-semibold mt-2">
-                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago.</span>
+                Last triggered <span class="theme-text-secondary font-normal"><%= time_ago_in_words(last_execution.executed_at) %> ago</span>
               </p>
             <% else %>
-              <p class="text-sm theme-text-secondary">Not triggered yet.</p>
+              <p class="text-sm theme-text-secondary">Not triggered yet</p>
             <% end %>
           </div>
           <%= turbo_frame_tag "control_toggle_button_#{signal.id}" do %>
             <% is_on = last_execution&.status %>
-            <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length_ms)}" %>
+            <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length, signal.length_unit)}" %>
 
             <%= button_to button_label,
                           trigger_plant_module_control_signal_path(plant_module, signal),

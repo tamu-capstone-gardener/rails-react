@@ -47,3 +47,6 @@ coverage/
 /redis-7.0.0/
 dump.rdb
 
+# documentation
+doc/
+.yardoc/
