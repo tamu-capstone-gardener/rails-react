@@ -1,4 +1,17 @@
+# Controller for managing sensor data display and notification settings
+#
+# @example Request to view a sensor's data
+#   GET /sensors/123
+#
+# @example Request to update notification settings
+#   PATCH /sensors/123/update_notification_settings
 class SensorsController < ApplicationController
+  # Displays sensor data with time series chart
+  #
+  # @param id [String] ID of the sensor to display
+  # @param start_date [String] optional start date for time range
+  # @param days [Integer] optional number of days to show (default: 10)
+  # @return [void]
   def show
     @sensor = Sensor.find(params[:id])
 
@@ -40,6 +53,10 @@ class SensorsController < ApplicationController
     end
   end
 
+  # Toggles notification settings for a sensor
+  #
+  # @param id [String] ID of the sensor to update
+  # @return [void]
   def toggle_notification
     @sensor = Sensor.find(params[:id])
     @sensor.update(notifications: !@sensor.notifications)
@@ -56,8 +73,15 @@ class SensorsController < ApplicationController
     end
   end
 
-
-
+  # Updates notification thresholds and messages for a sensor
+  #
+  # @param id [String] ID of the sensor to update
+  # @param comparisons [Array<String>] comparison operators for thresholds
+  # @param values [Array<String>] threshold values
+  # @param messages [Array<String>] notification messages
+  # @param sensor [Hash] sensor parameters
+  # @option sensor [String] :notifications whether notifications are enabled
+  # @return [void]
   def update_notification_settings
     @sensor = Sensor.find(params[:id])
     comparisons = params[:comparisons] || []
@@ -84,12 +108,20 @@ class SensorsController < ApplicationController
     end
   end
 
-
+  # Renders the notification settings form for a sensor
+  #
+  # @param id [String] ID of the sensor to load settings for
+  # @return [void]
   def load_notification_settings
     @sensor = Sensor.find(params[:id])
     render partial: "sensors/notification_form", locals: { sensor: @sensor }
   end
 
+  # Displays time series chart for a sensor with a specific time range
+  #
+  # @param id [String] ID of the sensor to display
+  # @param range [String] time range to display ("1_day", "7_days", "30_days", "365_days")
+  # @return [void]
   def time_series_chart
     @sensor = Sensor.find(params[:id])
     range = params[:range] || "30_days"

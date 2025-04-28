@@ -1,6 +1,17 @@
+# Background job for processing sensor notification thresholds and sending alerts
+#
+# This job checks if a sensor reading has crossed configured thresholds
+# and sends notification emails when conditions are met.
 class SensorNotificationJob < ApplicationJob
   queue_as :default
 
+  # Processes notifications for a sensor data point
+  #
+  # @param sensor_id [String] UUID of the sensor to check
+  # @param data_point_id [Integer] ID of the time series data point to evaluate
+  # @return [void]
+  # @note Notifications are only sent if the sensor has notifications enabled
+  #   and the threshold hasn't triggered a notification in the last 6 hours
   def perform(sensor_id, data_point_id)
     sensor = Sensor.find(sensor_id)
     data_point = TimeSeriesDatum.find(data_point_id)

@@ -1,10 +1,19 @@
 require "mqtt"
 require_dependency "control_signals_helper"
 
+# Service for handling MQTT communication with plant modules
+#
+# This service subscribes to MQTT topics, processes incoming sensor data,
+# photos, and control signal statuses, and publishes control commands to
+# plant modules.
 class MqttListener
   extend ControlSignalsHelper
   PHOTO_BUFFERS = {}
 
+  # Starts the MQTT subscriber service
+  #
+  # @note This method runs in an infinite loop and restarts on connection errors
+  # @return [void]
   def self.start
     secrets = Rails.application.credentials.hivemq
 
@@ -73,7 +82,11 @@ class MqttListener
 
   private
 
-  # Process incoming sensor data, trigger automatic and scheduled control signals.
+  # Process incoming sensor data, trigger automatic and scheduled control signals
+  #
+  # @param topic [String] MQTT topic the sensor data was published on
+  # @param message_json [Hash] parsed JSON message containing sensor data
+  # @return [void]
   def self.process_mqtt_sensor_data(topic, message_json)
     sensor_id = extract_sensor_id_from_sensor_topic(topic)
     unless sensor_id
@@ -130,6 +143,13 @@ class MqttListener
     end
   end
 
+  # Publishes a control command to a plant module
+  #
+  # @param control_signal [ControlSignal] the control signal to publish
+  # @param options [Hash] additional options for the control command
+  # @option options [String] :mode ("automatic"|"manual"|"scheduled") source of the control signal
+  # @option options [Boolean] :status true for on, false for off
+  # @return [void]
   def self.publish_control_command(control_signal, options = {})
     secrets        = Rails.application.credentials.hivemq
     topic          = control_signal.mqtt_topic
@@ -176,7 +196,10 @@ class MqttListener
     end
   end
 
-
+  # Calculates the next scheduled trigger time for a control signal
+  #
+  # @param control_signal [ControlSignal] the control signal to calculate for
+  # @return [Time] the next time the control signal should be triggered
   def self.next_scheduled_trigger(control_signal)
     last_exec = ControlExecution.where(control_signal_id: control_signal.id, source: "scheduled")
       .order(executed_at: :desc)
