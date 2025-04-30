@@ -11,7 +11,7 @@
 class ControlSignalsController < AuthenticatedApplicationController
     include ControlSignalsHelper
     before_action :set_plant_module
-    before_action :set_control_signal, only: [ :edit, :update ]
+    before_action :set_control_signal, only: [ :edit, :update, :trigger ]
 
     # Displays the form to edit a control signal
     #
@@ -51,34 +51,67 @@ class ControlSignalsController < AuthenticatedApplicationController
     # @param toggle [String] "true" to toggle state, otherwise maintains current state
     # @return [void]
     def trigger
-      control_signal = ControlSignal.find(params[:id])
-      last_exec = ControlExecution.where(control_signal_id: control_signal.id)
-                                  .order(executed_at: :desc)
-                                  .first
+      # 1) flip the pump via MQTT
+      last = @control_signal.control_executions.order(executed_at: :desc).first
+      new_status = last.nil? ? true : !last.status
+      MqttListener.publish_control_command(
+        @control_signal,
+        mode:     "manual",
+        status:   new_status,
+        duration: @control_signal.length
+      )
 
+        # 2) set a flash message for the view
+        if new_status
+          flash.now[:success] =
+          "Turned #{@control_signal.label || @control_signal.signal_type} on " \
+          "for #{format_duration(@control_signal.length, @control_signal.length_unit)}"
+        else
+          flash.now[:alert] =
+          "Turned #{@control_signal.label || @control_signal.signal_type} off"
+        end
 
-      if last_exec.nil?
-        flash.now[:alert] = "No previous execution found for this control signal."
-        render turbo_stream: turbo_stream.update("flash", partial: "shared/flash"), status: :unprocessable_entity
-        return
+      # 3) respond with Turbo Stream replacements
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            # update the flash frame
+            turbo_stream.replace(
+              "flash",
+              partial: "shared/flash",
+              locals:  { flash: flash }
+            ),
+
+            # replace just this signal's execution display
+            turbo_stream.replace(
+              "control_execution_#{@control_signal.id}",
+              partial: "control_executions/control_execution",
+              locals:  { signal: @control_signal, control_execution: @control_signal.control_executions.order(executed_at: :desc).first }
+            ),
+
+            # replace just this signal's toggle button
+            turbo_stream.replace(
+              "control_toggle_button_#{@control_signal.id}",
+              partial: "control_signals/control_toggle_button",
+              locals:  { signal: @control_signal.reload }
+            )
+          ]
+        end
+
+        # fallback for non-Turbo clients
+        format.html do
+          redirect_to plant_module_path(@plant_module), notice: flash[:success]
+        end
       end
-      MqttListener.publish_control_command(control_signal, toggle: params[:toggle] == "true", mode: "manual", duration: control_signal.length, status: !last_exec.status)
-
-      if !last_exec.status
-        flash.now[:success] = "Turned #{control_signal.label || control_signal.signal_type} On for #{format_duration(control_signal.length, control_signal.length_unit)}"
-      else
-        flash.now[:alert] = "Turned #{control_signal.label || control_signal.signal_type} Off"
-      end
-      render turbo_stream: [
-        turbo_stream.update("flash", partial: "shared/flash"),
-        turbo_stream.update("control_execution", partial: "control_executions/control_execution", locals: { control_execution: control_signal.control_executions.order(executed_at: :desc).first }),
-        turbo_stream.update("control_toggle_button_#{control_signal.id}", partial: "control_signals/control_toggle_button", locals: { signal: control_signal })
-      ]
 
     rescue => e
       Rails.logger.error "Trigger error: #{e.message}"
       flash.now[:alert] = "Trigger failed: #{e.message}"
-      render turbo_stream: turbo_stream.update("flash", partial: "shared/flash"), status: :unprocessable_entity
+      render turbo_stream: turbo_stream.replace(
+        "flash_messages",
+        partial: "shared/flash",
+        locals:  { flash: flash }
+      ), status: :unprocessable_entity
     end
 
     private

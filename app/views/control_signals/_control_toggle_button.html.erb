@@ -1,9 +1,12 @@
-<% last_execution = signal.control_executions.order(executed_at: :desc).first %>
-<% is_on = last_execution&.status %>
-<% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length, signal.length_unit)}" %>
+<%= turbo_frame_tag "control_toggle_button_#{signal.id}" do %>
+    <% pm = signal.plant_module %>
+    <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
+    <% is_on = last_execution&.status %>
+    <% button_label = is_on ? "Turn #{signal.signal_type} off" : "Turn #{signal.signal_type} on for #{format_duration(signal.length, signal.length_unit)}" %>
 
-<%= button_to button_label,
-              trigger_plant_module_control_signal_path(signal.plant_module, signal),
-              method: :post,
-              params: { toggle: true },
-              class: "btn-secondary px-4 py-2 m-4 rounded-lg transition hover:scale-105" %>
+    <%= button_to button_label,
+                trigger_plant_module_control_signal_path(pm, signal),
+                method: :post,
+                params: { toggle: true },
+                class: "btn-secondary px-4 py-2 m-4 rounded-lg transition hover:scale-105" %>
+<% end %>

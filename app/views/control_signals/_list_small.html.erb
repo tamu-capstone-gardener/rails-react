@@ -6,16 +6,7 @@
       <% control_signals.each do |signal| %>
         <li>
           <div class="flex m-4 items-end justify-center">
-            <% last_execution = signal.control_executions.order(executed_at: :desc).first %>
-            <%= turbo_frame_tag "control_toggle_button_#{signal.id}" do %>
-              <% is_on = last_execution&.status %>
-              <% button_label = is_on ? "Turn off" : "Turn on for #{format_duration(signal.length, signal.length_unit)}" %>
-              <%= button_to button_label,
-                            trigger_plant_module_control_signal_path(plant_module, signal),
-                            method: :post,
-                            params: { toggle: true },
-                            class: "btn-secondary px-4 py-2 m-4 rounded-lg transition hover:scale-105" %>
-            <% end %>
+            <%= render "control_signals/control_toggle_button", signal: signal %>
           </div>
         </li>
       <% end %>

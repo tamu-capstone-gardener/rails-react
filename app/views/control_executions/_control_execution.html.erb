@@ -1,9 +1,15 @@
-<% if control_execution.status %>
-    <p class="theme-text-primary font-semibold text-sm mt-2">
-        Currently <span class="text-green-500"><%= control_execution.status ? "On" : "Off" %>
-    </p>
-<% else %>
-    <p class="theme-text-primary font-semibold text-sm mt-2">
-        Currently <span class="text-red-500"><%= control_execution.status ? "On" : "Off" %>
-    </p>
+<%= turbo_frame_tag "control_execution#{signal.id}", class: "px-4" do %>
+    <% if !control_execution %>
+        <p class="theme-text-primary font-semibold text-sm mt-2">
+            Currently <span class="text-red-500">Off</span>
+        </p>
+    <% elsif control_execution.status %>
+        <p class="theme-text-primary font-semibold text-sm mt-2">
+            Currently <span class="text-green-500">On</span>
+        </p>
+    <% else %>
+        <p class="theme-text-primary font-semibold text-sm mt-2">
+            Currently <span class="text-red-500">Off</span>
+        </p>
+    <% end %>
 <% end %>

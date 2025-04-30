@@ -9,6 +9,7 @@ require_dependency "control_signals_helper"
 class MqttListener
   extend ControlSignalsHelper
   PHOTO_BUFFERS = {}
+  @@toggle_threads = {}
 
   # Starts the MQTT subscriber service
   #
@@ -161,6 +162,12 @@ class MqttListener
     if toggle_seconds < 60 && toggle_seconds != 0
       Rails.logger.info "Because the signal is less than 60 seconds:"
 
+      existing = @@toggle_threads[control_signal.id]
+      if existing&.alive?
+        Rails.logger.info "Toggle for #{control_signal.id} already in flight—skipping duplicate"
+        return
+      end
+
       # spawn a thread to do the real timing
       thread = Thread.new do
         Rails.logger.info "Send on"
@@ -183,6 +190,8 @@ class MqttListener
         MQTT::Client.connect(host: secrets[:url], port: secrets[:port], username: secrets[:username], password: secrets[:password], ssl: true) { |c| c.publish(topic) }
         create_execution_data(control_signal, mode, false, 0, duration_unit)
       end
+
+      @@toggle_threads[control_signal.id] = thread
 
     else
       # your existing ≥60s path
@@ -402,7 +411,7 @@ class MqttListener
     elapsed_since_on = (last_exec_on&.updated_at || 1.year.ago) - (last_exec_on&.executed_at || 1.year.ago)
     expected_on_duration = format_duration_to_seconds(last_exec_on&.duration, last_exec_on&.duration_unit) || format_duration_to_seconds(control_signal.length, control_signal.length_unit) || 10
 
-    if elapsed_since_on < expected_on_duration and last_status != "off"
+    if elapsed_since_on < expected_on_duration and last_status != "off" and expected_on_duration > 60
       time_until_next_off = expected_on_duration - elapsed_since_on
       Rails.logger.info "Time until next off: #{time_until_next_off.to_i}s"
     else
@@ -423,15 +432,15 @@ class MqttListener
     # b - make sure we turn stuff off when it should be turned off
     # c - turn on the scheduled stuff too
     # d - handle the most recent pushes to show successes (add notifications later maybe?)
-    if last_status != message_json["status"] and time_until_next_off != -1 # a
-      Rails.logger.info "The control signal is off but we expect it to be on, turn it on for #{time_until_next_off.to_i}s."
+    if last_status != message_json["status"] and time_until_next_off != -1 and Time.now - last_exec_on.executed_at > 60 # a
+      Rails.logger.info "The control signal #{control_type} is off but we expect it to be on, turn it on for #{time_until_next_off.to_i}s."
       Rails.logger.info "It will turn off at #{Time.current + time_until_next_off.to_i}"
       publish_control_command(control_signal, status: last_exec.status, duration: format_duration_from_seconds(time_until_next_off, control_signal.length_unit), mode: "manual")
-    elsif time_until_next_off == -1 and message_json["status"] == "on"
-      Rails.logger.info "The control signal is on but we don't expect it to be, turn it off."
+    elsif time_until_next_off == -1 and message_json["status"] == "on" and expected_on_duration > 60
+      Rails.logger.info "The control signal #{control_type} is on but we don't expect it to be, turn it off."
       publish_control_command(control_signal, status: false, duration: 0, mode: "manual")
     elsif time_until_next_off != -1 and time_until_next_off < 60 # b
-      Rails.logger.info "The control signal needs to turn off in #{time_until_next_off.to_i}s"
+      Rails.logger.info "The control signal #{control_type} needs to turn off in #{time_until_next_off.to_i}s"
       if time_until_next_off <= 0
         Rails.logger.error "This is unexpected behavior return safely before trying to sleep for negative time"
         return
@@ -447,7 +456,7 @@ class MqttListener
                                 mode:   "scheduled")
       end
     elsif control_signal.mode == "scheduled" and time_until_next_on > 0 and time_until_next_on < 60  # c
-      Rails.logger.info "The control signal is on scheduled mode and we need to turn on the light in #{time_until_next_on.to_i}s."
+      Rails.logger.info "The control signal #{control_type} is on scheduled mode and we need to turn on the light in #{time_until_next_on.to_i}s."
       Rails.logger.info "It will turn on at #{Time.current + time_until_next_on.to_i}"
       Thread.new do
         Rails.logger.info "Waiting..."
@@ -455,10 +464,10 @@ class MqttListener
         publish_control_command(control_signal, status: true, duration: format_duration_from_seconds(control_signal.length, control_signal.length_unit), mode: "scheduled")
       end
     elsif last_exec == last_exec_on and last_status == message_json["status"]
-      Rails.logger.info "The control signal is on, as expected, so lets update the most recent on execution."
+      Rails.logger.info "The control signal #{control_type} is on, as expected, so lets update the most recent on execution."
       last_exec_on&.touch
     else
-      Rails.logger.info "The control signal is off, as expected, so lets update the most recent off execution."
+      Rails.logger.info "The control signal #{control_type} is off, as expected, so lets update the most recent off execution."
       last_exec_off&.touch
     end
   end

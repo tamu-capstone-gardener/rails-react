@@ -1,7 +1,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 my-4 w-full py-8 items-stretch auto-rows-fr">
   <% plant_modules.each do |plant_module| %>
+    
     <div class="relative theme-bg-alt shadow-lg rounded-lg h-full flex flex-col justify-between items-start" data-controller="modal">
-
+      <%= turbo_stream_from [ plant_module, :executions ] %>
       <div class="w-full p-4 h-full flex-0 flex justify-between gap-4 items-center theme-bg-alt-rotate rounded-t-lg">
         <%= link_to sanitize(plant_module.name), plant_module_path(plant_module), class: "text-3xl theme-text-primary hover:underline font-semibold" %>
         <button data-action="click->modal#open" class="text-xl px-1 pb-[10px] rounded-full btn-secondary hover:cursor-pointer">

@@ -1,3 +1,5 @@
+<%= turbo_stream_from :flash_messages %>
+
 <%= turbo_frame_tag "flash" do %>
   <% flash.each do |key, value| -%>
     <% bg_color = case key
